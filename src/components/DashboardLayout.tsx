@@ -40,6 +40,7 @@ const sidebarLinks = {
     { label: 'Book a Ride', href: '/rider/book', icon: Navigation },
     { label: 'My Rides', href: '/rider/rides', icon: History },
     { label: 'Profile', href: '/rider/profile', icon: User },
+    { label: 'Wallet', href: '/rider/wallet', icon: Wallet },
     { label: 'Payment', href: '/rider/payment', icon: CreditCard },
     { label: 'Notifications', href: '/rider/notifications', icon: Bell },
     { label: 'Support', href: '/rider/support', icon: HelpCircle },

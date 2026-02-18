@@ -37,7 +37,7 @@ export default function Footer() {
               Download the app or book online. Your driver is just seconds away.
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <Link
               href="/rider/book"
               className="group inline-flex items-center gap-2 bg-secondary text-dark font-bold px-7 py-3.5 rounded-full hover:shadow-[0_0_30px_rgba(0,230,118,0.4)] hover:scale-105 transition-all duration-300"

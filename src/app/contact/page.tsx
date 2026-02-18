@@ -60,7 +60,7 @@ export default function ContactPage() {
 
         <div className="relative mx-auto max-w-7xl px-6 sm:px-8 pt-36 pb-20 lg:pt-44 lg:pb-28 text-center">
           <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-5">Get In Touch</p>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-[-0.03em] text-white leading-[1.05]">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[-0.03em] text-white leading-[1.05]">
             We&apos;d love to
             <br />
             <span className="text-white/25">hear from you.</span>

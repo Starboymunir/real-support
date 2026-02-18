@@ -107,7 +107,7 @@ export default function Navbar() {
 
       {/* Mobile drawer */}
       <aside
-        className={`fixed top-0 right-0 z-[70] h-full w-80 bg-dark-surface shadow-2xl transform transition-transform duration-500 ease-out lg:hidden ${
+        className={`fixed top-0 right-0 z-[70] h-full w-80 max-w-[calc(100vw-3rem)] bg-dark-surface shadow-2xl transform transition-transform duration-500 ease-out lg:hidden ${
           mobileOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

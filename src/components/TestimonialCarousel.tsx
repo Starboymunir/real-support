@@ -53,12 +53,12 @@ export default function TestimonialCarousel() {
   const t = testimonials[active];
 
   return (
-    <div className="relative max-w-2xl mx-auto">
-      <div className="absolute -top-6 -left-4 text-secondary/10">
+    <div className="relative max-w-2xl mx-auto overflow-hidden">
+      <div className="absolute -top-6 -left-4 text-secondary/10 hidden sm:block">
         <Quote size={80} />
       </div>
 
-      <div className="relative card-premium !p-10 !rounded-3xl text-center">
+      <div className="relative card-premium !p-6 sm:!p-10 !rounded-3xl text-center">
         <div className="flex justify-center gap-1 mb-6">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star key={i} size={18} className="fill-amber-400 text-amber-400" />

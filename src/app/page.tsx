@@ -176,7 +176,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-[-0.03em] text-white"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-[-0.03em] text-white"
               >
                 Your ride,
                 <br />
@@ -368,9 +368,9 @@ export default function Home() {
       </section>
 
       {/* ------- HOW IT WORKS ------- */}
-      <section className="py-28 lg:py-36 relative" style={{ background: 'linear-gradient(180deg, #0A1628 0%, #060B14 100%)' }}>
+      <section className="py-28 lg:py-36 relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #0A1628 0%, #060B14 100%)' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             {/* Left — Steps */}
             <div>
               <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">How it works</p>
@@ -410,7 +410,7 @@ export default function Home() {
               <div className="relative">
                 <div className="absolute -inset-12 bg-gradient-to-b from-secondary/[0.04] to-transparent rounded-full blur-3xl pointer-events-none" />
                 
-                <div className="relative w-[280px] h-[560px] rounded-[3rem] border border-white/[0.08] bg-[#0a0a0a] shadow-2xl shadow-black/50 overflow-hidden">
+                <div className="relative w-full max-w-[280px] aspect-[1/2] rounded-[3rem] border border-white/[0.08] bg-[#0a0a0a] shadow-2xl shadow-black/50 overflow-hidden">
                   {/* Status bar */}
                   <div className="flex items-center justify-between px-6 pt-3 pb-2">
                     <span className="text-white/40 text-xs font-medium">9:41</span>
@@ -549,7 +549,7 @@ export default function Home() {
             {/* Top gradient line */}
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-secondary/40 to-transparent" />
             
-            <div className="relative p-10 lg:p-16">
+            <div className="relative p-6 sm:p-10 lg:p-16">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
                 <div>
                   <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Download</p>
@@ -576,7 +576,7 @@ export default function Home() {
                 </div>
 
                 <div className="flex justify-center">
-                  <div className="relative w-[220px] h-[440px] rounded-[2.5rem] border border-white/[0.06] bg-[#0a0a0a] overflow-hidden shadow-2xl shadow-black/40">
+                  <div className="relative w-full max-w-[220px] aspect-[1/2] rounded-[2.5rem] border border-white/[0.06] bg-[#0a0a0a] overflow-hidden shadow-2xl shadow-black/40">
                     <Image
                       src="/images/unsplash/london-city.jpg"
                       alt="RS CAB App"
@@ -601,7 +601,7 @@ export default function Home() {
       </section>
 
       {/* ------- CTA ------- */}
-      <section className="py-28 lg:py-36 relative" style={{ background: '#060B14' }}>
+      <section className="py-28 lg:py-36 relative overflow-hidden" style={{ background: '#060B14' }}>
         {/* Single centered glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-secondary/[0.04] rounded-full blur-[120px] pointer-events-none" />
 

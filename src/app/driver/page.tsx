@@ -80,7 +80,7 @@ export default function DriverRegistrationPage() {
             <Car size={14} className="inline mr-1.5 -mt-0.5" />
             Become a Driver
           </p>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-[-0.03em] text-white leading-[1.05]">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[-0.03em] text-white leading-[1.05]">
             Drive with
             <br />
             <span className="text-white/25">RS&nbsp;CAB.</span>

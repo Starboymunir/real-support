@@ -49,7 +49,7 @@ export default function AboutPage() {
         <div className="relative mx-auto max-w-7xl px-6 sm:px-8 pt-36 pb-20 lg:pt-44 lg:pb-28">
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-5">Our Story</p>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-[-0.03em] text-white leading-[1.05]">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[-0.03em] text-white leading-[1.05]">
               Driving the future of
               <br />
               <span className="text-white/25">urban mobility.</span>
@@ -196,7 +196,7 @@ export default function AboutPage() {
       </section>
 
       {/* â•â•â•â•â•â•â• CTA â•â•â•â•â•â•â• */}
-      <section className="py-28 lg:py-36 relative" style={{ background: '#060B14' }}>
+      <section className="py-28 lg:py-36 relative overflow-hidden" style={{ background: '#060B14' }}>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[250px] bg-secondary/[0.04] rounded-full blur-[100px] pointer-events-none" />
 
         <div className="relative mx-auto max-w-3xl px-6 sm:px-8 text-center">

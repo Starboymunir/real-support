@@ -60,7 +60,7 @@ export default function RegisterPage() {
             </div>
 
             <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
                   <input type="text" placeholder="First Name" value={form.firstName} onChange={(e) => update('firstName', e.target.value)} className="input-dark pl-12" />

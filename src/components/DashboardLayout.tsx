@@ -62,6 +62,31 @@ const sidebarLinks = {
   ],
 };
 
+/* Bottom tabs — the 5 most-used links per role */
+const bottomTabs: Record<string, { label: string; href: string; icon: typeof LayoutDashboard }[]> = {
+  rider: [
+    { label: 'Home', href: '/rider/dashboard', icon: LayoutDashboard },
+    { label: 'Book', href: '/rider/book', icon: Navigation },
+    { label: 'Wallet', href: '/rider/wallet', icon: Wallet },
+    { label: 'Rides', href: '/rider/rides', icon: History },
+    { label: 'Profile', href: '/rider/profile', icon: User },
+  ],
+  driver: [
+    { label: 'Home', href: '/driver/dashboard', icon: LayoutDashboard },
+    { label: 'Vehicle', href: '/driver/vehicle', icon: Car },
+    { label: 'Docs', href: '/driver/documents', icon: Upload },
+    { label: 'Earnings', href: '/driver/earnings', icon: Wallet },
+    { label: 'Alerts', href: '/driver/notifications', icon: Bell },
+  ],
+  company: [
+    { label: 'Home', href: '/company/dashboard', icon: LayoutDashboard },
+    { label: 'Bookings', href: '/company/bookings', icon: Briefcase },
+    { label: 'Team', href: '/company/employees', icon: Users },
+    { label: 'Reports', href: '/company/reports', icon: BarChart3 },
+    { label: 'Alerts', href: '/company/notifications', icon: Bell },
+  ],
+};
+
 function getInitials(name: string) {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 }
@@ -257,10 +282,44 @@ export default function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
           {children}
         </main>
       </div>
+
+      {/* ── Bottom Tab Bar (mobile only) ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+        {/* Glassmorphism backdrop */}
+        <div className="absolute inset-0 bg-dark/80 backdrop-blur-xl border-t border-white/[0.06]" />
+        {/* Safe-area bottom for notched devices */}
+        <div className="relative flex items-stretch justify-around px-1 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
+          {(bottomTabs[role] ?? []).map((tab) => {
+            const Icon = tab.icon;
+            const active = pathname === tab.href || (tab.href !== '/' && pathname.startsWith(tab.href + '/'));
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 py-2 rounded-xl transition-all duration-200 ${
+                  active
+                    ? 'text-secondary'
+                    : 'text-white/35 active:text-white/60'
+                }`}
+              >
+                {active && (
+                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-[3px] rounded-full bg-secondary" />
+                )}
+                <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+                <span className={`text-[10px] font-semibold leading-none ${
+                  active ? 'text-secondary' : ''
+                }`}>
+                  {tab.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

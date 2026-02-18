@@ -1,219 +1,132 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, Building2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Mail, Lock, Eye, EyeOff, Building2 } from 'lucide-react';
 
 export default function CompanyLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   return (
-    <div className="min-h-screen hero-dark line-grid flex">
+    <div className="min-h-screen flex" style={{ background: '#060B14' }}>
       {/* Left — Form */}
-      <motion.div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative overflow-hidden" initial={{ opacity: 0, x: -60 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
-        {/* Decorative elements */}
-        <div className="absolute top-20 -left-10 w-64 h-64 bg-secondary/5 rounded-full blur-3xl animate-morph pointer-events-none" />
-        <div className="absolute bottom-20 right-10 w-48 h-48 bg-accent/5 rounded-full blur-3xl animate-morph pointer-events-none" style={{ animationDelay: "4s" }} />
+      <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative overflow-hidden">
+        <div className="absolute top-20 -left-10 w-64 h-64 bg-secondary/[0.03] rounded-full blur-[100px] pointer-events-none" />
 
         <div className="w-full max-w-md relative z-10">
-          {/* Mobile logo */}
           <div className="lg:hidden flex justify-center mb-10 mt-6">
-            <Image
-              src="https://www.real-support.co.uk/home/header%20logo.png"
-              alt="RS CAB"
-              width={140}
-              height={42}
-              className="object-contain max-h-12"
-            />
+            <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={140} height={42} className="object-contain max-h-12" />
           </div>
 
-          {/* Form card */}
-          <div className="glass-dark rounded-3xl p-8 sm:p-10 neon-border">
-            {/* Desktop logo */}
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
             <div className="hidden lg:flex justify-center mb-8">
-              <Image
-                src="https://www.real-support.co.uk/home/header%20logo.png"
-                alt="RS CAB"
-                width={100}
-                height={30}
-                className="object-contain"
-              />
+              <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={100} height={30} className="object-contain" />
             </div>
 
             {/* Corporate badge */}
             <div className="flex justify-center mb-6">
-              <span className="pill">
-                <Building2 className="w-3.5 h-3.5" />
-                Corporate Portal
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-secondary bg-secondary/[0.08] px-3 py-1.5 rounded-full">
+                <Building2 className="w-3.5 h-3.5" /> Corporate Portal
               </span>
             </div>
 
-            <h2 className="text-3xl font-bold text-white text-center mb-2">
-              Company Sign In
-            </h2>
-            <p className="text-white/40 text-center mb-8">
-              Access your corporate account
-            </p>
+            <h2 className="text-3xl font-bold text-white text-center mb-2">Company Sign In</h2>
+            <p className="text-white/35 text-center mb-8">Access your corporate account</p>
 
-            {/* Form */}
             <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
-              {/* Company Email */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
-                <label className="block text-white/50 text-sm font-medium mb-2">Company Email</label>
+              <div>
+                <label className="block text-white/40 text-sm font-medium mb-2">Company Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
-                  <input
-                    type="email"
-                    placeholder="you@company.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="input-dark pl-12"
-                  />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
+                  <input type="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} className="input-dark pl-12" />
                 </div>
-              </motion.div>
+              </div>
 
-              {/* Password */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
-                <label className="block text-white/50 text-sm font-medium mb-2">Password</label>
+              <div>
+                <label className="block text-white/40 text-sm font-medium mb-2">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="input-dark pl-12 pr-12"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
-                  >
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
+                  <input type={showPassword ? 'text' : 'password'} placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} className="input-dark pl-12 pr-12" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/50 transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-              </motion.div>
-
-              {/* Forgot password */}
-              <div className="text-right">
-                <Link
-                  href="/forget-password"
-                  className="text-secondary text-sm font-medium hover:text-secondary-light transition-colors"
-                >
-                  Forgot password?
-                </Link>
               </div>
 
-              {/* Submit */}
-              <motion.button
-                type="submit"
-                className="btn-primary w-full text-center flex items-center justify-center gap-2 py-4 text-lg"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Building2 className="w-5 h-5" />
-                Sign In
-              </motion.button>
+              <div className="text-right">
+                <Link href="/forget-password" className="text-secondary text-sm font-medium hover:underline underline-offset-4">Forgot password?</Link>
+              </div>
+
+              <button type="submit" className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all flex items-center justify-center gap-2">
+                <Building2 className="w-5 h-5" /> Sign In
+              </button>
             </form>
 
-            {/* Rider login link */}
-            <div className="mt-6 pt-6 border-t border-white/5">
-              <Link
-                href="/company/dashboard"
-                className="block w-full text-center py-2.5 px-3 rounded-lg bg-white/[0.04] text-white/50 text-xs font-medium hover:bg-secondary/10 hover:text-secondary transition-all border border-white/5 mb-4"
-              >
+            <div className="mt-6 pt-6 border-t border-white/[0.04]">
+              <Link href="/company/dashboard" className="block w-full text-center py-2.5 rounded-lg bg-white/[0.03] text-white/40 text-xs font-medium hover:bg-white/[0.06] hover:text-white/60 transition-all border border-white/[0.04] mb-4">
                 Skip to Company Dashboard →
               </Link>
-              <p className="text-white/30 text-sm mb-2 text-center">Not a company account?</p>
+              <p className="text-white/25 text-sm mb-2 text-center">Not a company account?</p>
               <div className="text-center">
-                <Link
-                  href="/login"
-                  className="text-secondary text-sm font-semibold hover:text-secondary-light transition-colors inline-flex items-center gap-1"
-                >
-                  ← Back to Rider Login
-                </Link>
+                <Link href="/login" className="text-secondary text-sm font-semibold hover:underline underline-offset-4">← Back to Rider Login</Link>
               </div>
             </div>
           </div>
 
           {/* Trust indicators */}
-          <motion.div className="mt-8 flex justify-center gap-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}>
-            <div className="flex items-center gap-2 text-white/20 text-xs">
-              <div className="w-2 h-2 rounded-full bg-secondary/60" />
+          <div className="mt-8 flex justify-center gap-6">
+            <div className="flex items-center gap-2 text-white/15 text-xs">
+              <div className="w-2 h-2 rounded-full bg-secondary/40" />
               256-bit Encryption
             </div>
-            <div className="flex items-center gap-2 text-white/20 text-xs">
-              <div className="w-2 h-2 rounded-full bg-secondary/60" />
+            <div className="flex items-center gap-2 text-white/15 text-xs">
+              <div className="w-2 h-2 rounded-full bg-secondary/40" />
               GDPR Compliant
             </div>
-          </motion.div>
+          </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Right — Hero Image (hidden on mobile) */}
-      <motion.div className="hidden lg:block lg:w-[55%] relative overflow-hidden" initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
-        <Image
-          src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=1600&fit=crop"
-          alt="London business district"
-          fill
-          className="object-cover"
-          priority
-        />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#060B14]/60 to-[#060B14] z-10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#060B14] via-transparent to-[#060B14]/50 z-10" />
+      {/* Right — Hero Image */}
+      <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
+        <Image src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=1600&fit=crop" alt="London business district" fill className="object-cover" priority />
+        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#060B14]/60 to-[#060B14]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#060B14] via-transparent to-[#060B14]/50" />
 
-        {/* Content on image */}
-        <div className="absolute inset-0 z-20 flex flex-col justify-between p-12">
-          {/* Top right decorative */}
+        <div className="absolute inset-0 flex flex-col justify-between p-12 z-10">
           <div className="flex justify-end">
-            <span className="pill">Enterprise Solutions</span>
+            <span className="inline-flex items-center text-xs font-semibold uppercase tracking-wider text-secondary bg-secondary/[0.08] px-3 py-1.5 rounded-full">Enterprise Solutions</span>
           </div>
 
-          {/* Tagline */}
           <div className="mb-16">
-            <motion.h1 className="text-5xl font-bold text-white leading-tight mb-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
-              Manage Your<br />
-              <span className="gradient-text">Fleet & Team</span>
-            </motion.h1>
-            <motion.p className="text-white/50 text-lg max-w-md" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }}>
+            <h1 className="text-5xl font-black text-white leading-tight mb-4 tracking-[-0.02em]">
+              Manage Your
+              <br />
+              <span className="text-white/25">Fleet & Team</span>
+            </h1>
+            <p className="text-white/40 text-lg max-w-md">
               Powerful tools for corporate transportation management. Track rides, manage employees, and optimize costs.
-            </motion.p>
+            </p>
           </div>
 
-          {/* Floating stat cards */}
-          <div className="absolute top-1/3 right-16 flex flex-col gap-4 z-30">
-            <motion.div className="glass-dark rounded-2xl p-5 animate-float glow-green" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.6 }}>
-              <p className="text-secondary font-bold text-2xl">156</p>
-              <p className="text-white/50 text-sm">Partner Companies</p>
-            </motion.div>
-            <motion.div
-              className="glass-dark rounded-2xl p-5 animate-float"
-              style={{ animationDelay: "1.5s" }}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 }}
-            >
-              <p className="text-accent font-bold text-2xl">23K</p>
-              <p className="text-white/50 text-sm">Business Rides</p>
-            </motion.div>
-            <motion.div
-              className="glass-dark rounded-2xl p-5 animate-float"
-              style={{ animationDelay: "3s" }}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1.0 }}
-            >
-              <p className="text-white font-bold text-2xl">99.8%</p>
-              <p className="text-white/50 text-sm">Uptime SLA</p>
-            </motion.div>
+          {/* Stat cards */}
+          <div className="absolute top-1/3 right-16 flex flex-col gap-4">
+            {[
+              { value: '156', label: 'Partner Companies', color: '#00E676' },
+              { value: '23K', label: 'Business Rides', color: '#00B0FF' },
+              { value: '99.8%', label: 'Uptime SLA', color: '#fff' },
+            ].map((s) => (
+              <div key={s.label} className="rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-sm p-5">
+                <p className="font-bold text-2xl" style={{ color: s.color }}>{s.value}</p>
+                <p className="text-white/40 text-sm">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

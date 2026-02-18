@@ -2,8 +2,6 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
 import {
   Shield,
   Eye,
@@ -18,471 +16,205 @@ import {
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-/* ─── data ─── */
-
+/* ── data ── */
 const stats = [
-  { icon: Car, value: '15K+', label: 'Rides Completed' },
-  { icon: Users, value: '500+', label: 'Verified Drivers' },
-  { icon: MapPin, value: '50+', label: 'Cities Covered' },
-  { icon: Star, value: '4.9★', label: 'Average Rating' },
+  { icon: Car, value: '15K+', label: 'Rides' },
+  { icon: Users, value: '500+', label: 'Drivers' },
+  { icon: MapPin, value: '50+', label: 'Cities' },
+  { icon: Star, value: '4.9★', label: 'Rating' },
 ];
 
 const values = [
-  {
-    icon: Shield,
-    title: 'Safety First',
-    description:
-      'Every driver is background-checked, every vehicle inspected, and every ride tracked in real time for your peace of mind.',
-    gradient: 'from-emerald-500 to-green-600',
-  },
-  {
-    icon: Eye,
-    title: 'Transparency',
-    description:
-      'No hidden fees, no surge surprises. You see the price before you book. Clear, honest, and straightforward — always.',
-    gradient: 'from-cyan-500 to-blue-600',
-  },
-  {
-    icon: Clock,
-    title: 'Reliability',
-    description:
-      'On-time pickups, every time. Our smart dispatch system and dedicated fleet ensure you reach your destination without delay.',
-    gradient: 'from-violet-500 to-purple-600',
-  },
-  {
-    icon: Zap,
-    title: 'Innovation',
-    description:
-      'From AI-powered routing to seamless in-app payments, we continuously push the boundaries of what ride-sharing can be.',
-    gradient: 'from-amber-500 to-orange-600',
-  },
+  { icon: Shield, title: 'Safety First', desc: 'Every driver background-checked, every vehicle inspected, every ride tracked in real time.', color: '#00E676' },
+  { icon: Eye, title: 'Transparency', desc: 'No hidden fees, no surge surprises. You see the price before you book — always.', color: '#00B0FF' },
+  { icon: Clock, title: 'Reliability', desc: 'On-time pickups, every time. Smart dispatch ensures you arrive without delay.', color: '#E040FB' },
+  { icon: Zap, title: 'Innovation', desc: 'AI-powered routing, seamless payments, constant improvements to your experience.', color: '#FFD600' },
 ];
 
 const leaders = [
-  {
-    name: 'James Whitfield',
-    role: 'Chief Executive Officer',
-    bio: '15+ years in mobility tech. Previously led operations at a top European ride-sharing platform.',
-    image:
-      'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop&crop=face',
-  },
-  {
-    name: 'Sarah Mitchell',
-    role: 'Chief Operating Officer',
-    bio: 'Former logistics director with a passion for creating seamless urban transport experiences.',
-    image:
-      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop&crop=face',
-  },
-  {
-    name: 'David Chen',
-    role: 'Chief Technology Officer',
-    bio: 'Full-stack architect & ML engineer. Building the tech stack that powers the next generation of rides.',
-    image:
-      'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop&crop=face',
-  },
+  { name: 'James Whitfield', role: 'CEO', bio: '15+ years in mobility tech. Previously led operations at a top European ride-sharing platform.', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop&crop=face' },
+  { name: 'Sarah Mitchell', role: 'COO', bio: 'Former logistics director with a passion for creating seamless urban transport experiences.', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop&crop=face' },
+  { name: 'David Chen', role: 'CTO', bio: 'Full-stack architect & ML engineer. Building the tech stack that powers the next generation of rides.', image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop&crop=face' },
 ];
 
-/* ─── reusable reveal wrapper ─── */
-
-function RevealSection({
-  children,
-  className = '',
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-80px' });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 60 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{
-        duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94],
-        delay,
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-/* ─── stagger container + child variants ─── */
-
-const staggerContainer = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.12 } },
-};
-
-const staggerItem = {
-  hidden: { opacity: 0, y: 40 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
-  },
-};
-
-/* ─── floating orb ─── */
-
-function FloatingOrb({
-  className,
-  duration = 8,
-}: {
-  className: string;
-  duration?: number;
-}) {
-  return (
-    <motion.div
-      className={className}
-      animate={{ y: [0, -30, 0], scale: [1, 1.05, 1] }}
-      transition={{ duration, repeat: Infinity, ease: 'easeInOut' }}
-    />
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PAGE
-   ═══════════════════════════════════════════════════════════ */
-
 export default function AboutPage() {
-  const statsRef = useRef<HTMLDivElement>(null);
-  const statsInView = useInView(statsRef, { once: true, margin: '-80px' });
-
-  const valuesRef = useRef<HTMLDivElement>(null);
-  const valuesInView = useInView(valuesRef, { once: true, margin: '-80px' });
-
-  const leadersRef = useRef<HTMLDivElement>(null);
-  const leadersInView = useInView(leadersRef, { once: true, margin: '-80px' });
-
   return (
     <>
       <Navbar />
 
       {/* ═══════ HERO ═══════ */}
-      <section className="hero-dark relative overflow-hidden">
-        <div className="dot-grid absolute inset-0 pointer-events-none" />
-        <div className="noise-overlay absolute inset-0 pointer-events-none" />
+      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #000 0%, #060B14 60%, #0A1628 100%)' }}>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-secondary/[0.05] rounded-full blur-[140px] pointer-events-none" />
 
-        <FloatingOrb
-          className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-secondary/[0.06] rounded-full blur-[160px]"
-          duration={10}
-        />
-        <FloatingOrb
-          className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/[0.04] rounded-full blur-[120px]"
-          duration={12}
-        />
+        <div className="relative mx-auto max-w-7xl px-6 sm:px-8 pt-36 pb-20 lg:pt-44 lg:pb-28">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-5">Our Story</p>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-[-0.03em] text-white leading-[1.05]">
+              Driving the future of
+              <br />
+              <span className="text-white/25">urban mobility.</span>
+            </h1>
+            <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
+              RS CAB was built with one purpose — to make every journey safe, comfortable, and effortless. We&apos;re creating the ride-sharing experience the UK deserves.
+            </p>
+          </div>
 
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8 pt-36 pb-24 lg:pt-44 lg:pb-32 text-center">
-          <motion.span
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="pill mb-6 inline-block"
-          >
-            Our Story
-          </motion.span>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.1] max-w-4xl mx-auto"
-          >
-            Driving the future of{' '}
-            <span className="gradient-text">urban mobility.</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-6 text-lg sm:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed"
-          >
-            RS CAB was founded with a single purpose — to make every journey
-            safe, comfortable, and effortless. We&apos;re building the premium
-            ride-sharing experience the UK deserves.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.9, delay: 0.45 }}
-            className="mt-14 relative rounded-2xl overflow-hidden max-w-5xl mx-auto shadow-2xl shadow-black/30 bezel"
-          >
+          {/* Hero image */}
+          <div className="mt-16 relative rounded-2xl overflow-hidden max-w-5xl mx-auto border border-white/[0.06]">
             <Image
-              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=600&fit=crop"
+              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=500&fit=crop"
               alt="RS CAB team collaborating"
               width={1200}
-              height={600}
+              height={500}
               className="w-full h-auto object-cover"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-dark/60 via-transparent to-transparent" />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══════ OUR MISSION ═══════ */}
-      <section className="hero-dark relative py-24 lg:py-32 overflow-hidden">
-        <div className="line-grid absolute inset-0 pointer-events-none" />
-        <FloatingOrb
-          className="absolute -top-20 -right-20 w-[400px] h-[400px] bg-secondary/[0.04] rounded-full blur-[140px]"
-          duration={9}
-        />
-
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Text */}
-            <RevealSection>
-              <span className="pill mb-4 inline-block">Our Mission</span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15]">
-                Moving cities forward,{' '}
-                <span className="gradient-text">one ride at a time.</span>
-              </h2>
-              <p className="mt-6 text-lg text-white/40 leading-relaxed">
-                We believe mobility is a right, not a luxury. RS CAB connects
-                riders and drivers through cutting-edge technology, fair pricing,
-                and an uncompromising commitment to safety.
-              </p>
-              <p className="mt-4 text-lg text-white/40 leading-relaxed">
-                From airport transfers to cross-city commutes, our mission is to
-                become the most trusted name in ride-sharing across the United
-                Kingdom — and beyond.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-4">
-                <Link
-                  href="/services"
-                  className="btn-green inline-flex items-center gap-2"
-                >
-                  Explore Services <ArrowRight size={18} />
-                </Link>
-                <Link
-                  href="/contact"
-                  className="btn-outline-green inline-flex items-center gap-2"
-                >
-                  Contact Us
-                </Link>
-              </div>
-            </RevealSection>
-
-            {/* Image */}
-            <RevealSection delay={0.2}>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                className="card-dark p-0 overflow-hidden rounded-2xl bezel"
-              >
-                <Image
-                  src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop"
-                  alt="London cityscape"
-                  width={800}
-                  height={600}
-                  className="w-full h-[400px] object-cover"
-                />
-              </motion.div>
-            </RevealSection>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#060B14]/60 via-transparent to-transparent" />
           </div>
         </div>
       </section>
 
-      {/* ═══════ BY THE NUMBERS ═══════ */}
-      <section className="hero-dark relative py-24 lg:py-32">
-        <div className="line-grid absolute inset-0 pointer-events-none" />
-        <div className="noise-overlay absolute inset-0 pointer-events-none" />
+      {/* ═══════ MISSION — Split layout ═══════ */}
+      <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
+        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Our Mission</p>
+              <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em] leading-[1.1] mb-6">
+                Moving cities forward,
+                <br />
+                <span className="text-white/25">one ride at a time.</span>
+              </h2>
+              <p className="text-white/35 text-lg leading-relaxed mb-4">
+                We believe mobility is a right, not a luxury. RS CAB connects riders and drivers through cutting-edge tech, fair pricing, and an uncompromising commitment to safety.
+              </p>
+              <p className="text-white/35 text-lg leading-relaxed mb-8">
+                From airport transfers to cross-city commutes, our goal is to become the most trusted name in ride-sharing across the United Kingdom.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link href="/services" className="inline-flex items-center gap-2 bg-white text-black font-semibold text-sm px-6 py-3 rounded-full hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all">
+                  Explore Services <ArrowRight size={14} />
+                </Link>
+                <Link href="/contact" className="inline-flex items-center gap-2 text-sm font-medium text-white/50 px-6 py-3 rounded-full border border-white/[0.08] hover:border-white/20 hover:text-white/70 transition-all">
+                  Contact Us
+                </Link>
+              </div>
+            </div>
 
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8 text-center">
-          <RevealSection>
-            <span className="pill mb-4 inline-block">By the Numbers</span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15]">
-              Trusted by thousands,{' '}
-              <span className="gradient-text">every single day.</span>
-            </h2>
-          </RevealSection>
-
-          <motion.div
-            ref={statsRef}
-            variants={staggerContainer}
-            initial="hidden"
-            animate={statsInView ? 'show' : 'hidden'}
-            className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-16"
-          >
-            {stats.map((stat) => (
-              <motion.div
-                key={stat.label}
-                variants={staggerItem}
-                whileHover={{
-                  y: -6,
-                  transition: { type: 'spring', stiffness: 300 },
-                }}
-                className="card-dark text-center group hover:glow-green bezel"
-              >
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-secondary/10 mb-5 group-hover:bg-secondary/20 transition-colors">
-                  <stat.icon className="text-secondary" size={26} />
-                </div>
-                <p className="text-4xl sm:text-5xl font-black text-white tabular-nums">
-                  {stat.value}
-                </p>
-                <p className="mt-2 text-white/40 text-sm font-medium uppercase tracking-wider">
-                  {stat.label}
-                </p>
-              </motion.div>
-            ))}
-          </motion.div>
+            <div className="rounded-2xl overflow-hidden border border-white/[0.06]">
+              <Image
+                src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop"
+                alt="London cityscape"
+                width={800}
+                height={600}
+                className="w-full h-[400px] object-cover"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ═══════ OUR VALUES ═══════ */}
-      <section className="hero-dark relative py-24 lg:py-32 overflow-hidden">
-        <div className="dot-grid absolute inset-0 pointer-events-none" />
-        <FloatingOrb
-          className="absolute top-1/3 right-0 w-[350px] h-[350px] bg-accent/[0.05] rounded-full blur-[120px]"
-          duration={11}
-        />
-
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8 text-center">
-          <RevealSection>
-            <span className="pill mb-4 inline-block">Our Values</span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15] max-w-3xl mx-auto">
-              Principles that{' '}
-              <span className="gradient-text">define every ride.</span>
-            </h2>
-          </RevealSection>
-
-          <motion.div
-            ref={valuesRef}
-            variants={staggerContainer}
-            initial="hidden"
-            animate={valuesInView ? 'show' : 'hidden'}
-            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16"
-          >
-            {values.map((v) => (
-              <motion.div
-                key={v.title}
-                variants={staggerItem}
-                whileHover={{
-                  y: -8,
-                  transition: { type: 'spring', stiffness: 300 },
-                }}
-                className="glass-dark rounded-2xl p-8 text-left group hover:glow-green transition-all duration-300"
-              >
-                <div
-                  className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${v.gradient} mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}
-                >
-                  <v.icon className="text-white" size={26} />
+      {/* ═══════ STATS — Inline ═══════ */}
+      <section className="border-y border-white/[0.04]" style={{ background: '#060B14' }}>
+        <div className="mx-auto max-w-7xl px-6 sm:px-8 py-14">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((s) => (
+              <div key={s.label} className="text-center">
+                <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-white/[0.04] flex items-center justify-center">
+                  <s.icon size={18} className="text-secondary" />
                 </div>
-                <h3 className="text-xl font-bold text-white">{v.title}</h3>
-                <p className="mt-3 text-white/40 text-sm leading-relaxed">
-                  {v.description}
-                </p>
-              </motion.div>
+                <p className="text-3xl sm:text-4xl font-black text-white">{s.value}</p>
+                <p className="text-white/30 text-sm mt-1">{s.label}</p>
+              </div>
             ))}
-          </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════ VALUES — Horizontal cards with left accent ═══════ */}
+      <section className="py-28 lg:py-36" style={{ background: 'linear-gradient(180deg, #060B14 0%, #0A1628 100%)' }}>
+        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+          <div className="max-w-2xl mb-16">
+            <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Our Values</p>
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em] leading-[1.1]">
+              Principles behind
+              <br />
+              <span className="text-white/25">every ride.</span>
+            </h2>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            {values.map((v) => {
+              const Icon = v.icon;
+              return (
+                <div
+                  key={v.title}
+                  className="group rounded-2xl border border-white/[0.06] bg-white/[0.02] p-7 transition-all duration-400 hover:border-white/[0.10] hover:bg-white/[0.03]"
+                >
+                  <div className="flex items-start gap-5">
+                    <div className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: `${v.color}12` }}>
+                      <Icon size={22} style={{ color: v.color }} />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-bold text-lg mb-2">{v.title}</h3>
+                      <p className="text-white/35 text-sm leading-relaxed">{v.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {/* ═══════ LEADERSHIP ═══════ */}
-      <section className="hero-dark relative py-24 lg:py-32 overflow-hidden">
-        <div className="dot-grid absolute inset-0 pointer-events-none" />
-        <FloatingOrb
-          className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-accent/[0.04] rounded-full blur-[160px] -translate-y-1/2"
-          duration={10}
-        />
-
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8 text-center">
-          <RevealSection>
-            <span className="pill mb-4 inline-block">Leadership</span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15]">
-              Meet the team{' '}
-              <span className="gradient-text">behind the wheel.</span>
+      <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
+        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+          <div className="text-center mb-16">
+            <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Leadership</p>
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em]">
+              Meet the team.
             </h2>
-          </RevealSection>
+          </div>
 
-          <motion.div
-            ref={leadersRef}
-            variants={staggerContainer}
-            initial="hidden"
-            animate={leadersInView ? 'show' : 'hidden'}
-            className="grid sm:grid-cols-3 gap-8 mt-16"
-          >
-            {leaders.map((person) => (
-              <motion.div
-                key={person.name}
-                variants={staggerItem}
-                whileHover={{
-                  y: -8,
-                  transition: { type: 'spring', stiffness: 300 },
-                }}
-                className="glass-dark rounded-2xl p-8 text-center group hover:border-secondary/20 transition-all duration-300 bezel"
+          <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {leaders.map((p) => (
+              <div
+                key={p.name}
+                className="group rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 text-center transition-all duration-400 hover:border-white/[0.10]"
               >
-                <motion.div
-                  whileHover={{ scale: 1.08, rotate: 2 }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-                  className="relative w-28 h-28 mx-auto mb-6 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-secondary/30 transition-all"
-                >
-                  <Image
-                    src={person.image}
-                    alt={person.name}
-                    fill
-                    className="object-cover"
-                  />
-                </motion.div>
-                <span className="pill text-xs">{person.role}</span>
-                <h3 className="text-xl font-bold text-white mt-3">
-                  {person.name}
-                </h3>
-                <p className="mt-3 text-white/40 text-sm leading-relaxed">
-                  {person.bio}
-                </p>
-              </motion.div>
+                <div className="w-24 h-24 mx-auto mb-5 rounded-full overflow-hidden ring-1 ring-white/[0.06] group-hover:ring-secondary/20 transition-all">
+                  <Image src={p.image} alt={p.name} width={96} height={96} className="object-cover w-full h-full" />
+                </div>
+                <p className="inline-block text-[11px] uppercase tracking-wider text-secondary font-semibold px-3 py-1 rounded-full bg-secondary/[0.08] mb-3">{p.role}</p>
+                <h3 className="text-white font-bold text-lg">{p.name}</h3>
+                <p className="text-white/30 text-sm leading-relaxed mt-2">{p.bio}</p>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* ═══════ CTA ═══════ */}
-      <section className="hero-dark relative py-24 lg:py-32 overflow-hidden">
-        <div className="line-grid absolute inset-0 pointer-events-none" />
-        <FloatingOrb
-          className="absolute bottom-0 left-1/3 w-[500px] h-[500px] bg-secondary/[0.05] rounded-full blur-[160px]"
-          duration={10}
-        />
+      <section className="py-28 lg:py-36 relative" style={{ background: '#060B14' }}>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[250px] bg-secondary/[0.04] rounded-full blur-[100px] pointer-events-none" />
 
-        <RevealSection className="relative mx-auto max-w-4xl px-5 sm:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15]">
-            Ready to experience{' '}
-            <span className="gradient-text">RS CAB?</span>
+        <div className="relative mx-auto max-w-3xl px-6 sm:px-8 text-center">
+          <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em] mb-5">
+            Experience RS CAB.
           </h2>
-          <p className="mt-6 text-lg text-white/40 max-w-xl mx-auto leading-relaxed">
-            Join thousands of riders who trust RS CAB for safe, premium,
-            on-demand transport across the UK.
+          <p className="text-white/35 text-lg max-w-lg mx-auto mb-10">
+            Safe, premium, on-demand transport across the UK.
           </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-              <Link
-                href="/rider/book"
-                className="btn-green inline-flex items-center gap-2 text-lg"
-              >
-                <Zap size={20} />
-                Book a Ride
-              </Link>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
-              <Link
-                href="/driver"
-                className="btn-outline-green inline-flex items-center gap-2 text-lg"
-              >
-                Become a Driver <ArrowRight size={20} />
-              </Link>
-            </motion.div>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link href="/rider/book" className="group inline-flex items-center gap-2.5 bg-white text-black font-semibold text-[15px] px-8 py-4 rounded-full hover:shadow-[0_0_40px_rgba(255,255,255,0.12)] transition-all">
+              Book a Ride <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link href="/driver" className="inline-flex items-center gap-2 text-[15px] font-medium text-white/50 px-7 py-4 rounded-full border border-white/[0.08] hover:border-white/20 hover:text-white/70 transition-all">
+              Become a Driver
+            </Link>
           </div>
-        </RevealSection>
+        </div>
       </section>
 
       <Footer />

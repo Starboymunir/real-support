@@ -1,9 +1,7 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import Image from 'next/image';
+import Link from 'next/link';
 import {
   Plane,
   Building2,
@@ -12,446 +10,290 @@ import {
   Package,
   Car,
   ArrowRight,
-  Zap,
   Check,
   MapPin,
-} from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+} from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
-/* ═══════════════ DATA ═══════════════ */
+/* ── data ── */
 const services = [
   {
     icon: Plane,
-    title: "Airport Transfers",
-    description:
-      "Punctual pick-ups and drop-offs at all major UK airports. Flight tracking, meet-and-greet, and complimentary wait time included.",
-    image:
-      "https://images.unsplash.com/photo-1436491865332-7a61a109db05?w=600&h=400&fit=crop",
+    title: 'Airport Transfers',
+    description: 'Punctual pick-ups and drop-offs at all major UK airports. Flight tracking, meet-and-greet, and complimentary wait time included.',
+    image: 'https://images.unsplash.com/photo-1436491865332-7a61a109db05?w=600&h=400&fit=crop',
+    color: '#00E676',
   },
   {
     icon: Car,
-    title: "City Rides",
-    description:
-      "On-demand rides across the city in minutes. Smart routing, transparent pricing, and professional drivers — always.",
-    image:
-      "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=400&fit=crop",
+    title: 'City Rides',
+    description: 'On-demand rides across the city in minutes. Smart routing, transparent pricing, and professional drivers — always.',
+    image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=400&fit=crop',
+    color: '#00B0FF',
   },
   {
     icon: Building2,
-    title: "Corporate Travel",
-    description:
-      "Dedicated account management, monthly invoicing, and priority dispatch for your entire organisation.",
-    image:
-      "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=600&h=400&fit=crop",
+    title: 'Corporate Travel',
+    description: 'Dedicated account management, monthly invoicing, and priority dispatch for your entire organisation.',
+    image: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=600&h=400&fit=crop',
+    color: '#E040FB',
   },
   {
     icon: Route,
-    title: "Long Distance",
-    description:
-      "Comfortable inter-city journeys with fixed pricing. Sit back and relax while we handle the drive.",
-    image:
-      "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&h=400&fit=crop",
+    title: 'Long Distance',
+    description: 'Comfortable inter-city journeys with fixed pricing. Sit back and relax while we handle the drive.',
+    image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&h=400&fit=crop',
+    color: '#FFD600',
   },
   {
     icon: PartyPopper,
-    title: "Events & Weddings",
-    description:
-      "Arrive in style. Luxury vehicles for weddings, galas, proms, and special occasions with white-glove service.",
-    image:
-      "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=400&fit=crop",
+    title: 'Events & Weddings',
+    description: 'Arrive in style. Luxury vehicles for weddings, galas, proms, and special occasions with white-glove service.',
+    image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=400&fit=crop',
+    color: '#FF5252',
   },
   {
     icon: Package,
-    title: "Parcel Delivery",
-    description:
-      "Same-day courier service. Tracked, insured, and delivered by trusted RS CAB drivers across the city.",
-    image:
-      "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&h=400&fit=crop",
+    title: 'Parcel Delivery',
+    description: 'Same-day courier service. Tracked, insured, and delivered by trusted RS CAB drivers across the city.',
+    image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&h=400&fit=crop',
+    color: '#00E5FF',
   },
 ];
 
 const fleet = [
   {
-    name: "Economy",
-    type: "Sedan",
-    price: "from £5",
-    image:
-      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&h=400&fit=crop",
-    features: ["4 passengers", "2 bags", "AC & WiFi", "Cashless payment"],
+    name: 'Economy',
+    type: 'Sedan',
+    price: 'from £5',
+    image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&h=400&fit=crop',
+    features: ['4 passengers', '2 bags', 'AC & WiFi', 'Cashless payment'],
   },
   {
-    name: "Comfort",
-    type: "SUV",
-    price: "from £12",
-    image:
-      "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600&h=400&fit=crop",
-    features: ["4 passengers", "3 bags", "Leather seats", "Premium audio"],
+    name: 'Comfort',
+    type: 'SUV',
+    price: 'from £12',
+    image: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600&h=400&fit=crop',
+    features: ['4 passengers', '3 bags', 'Leather seats', 'Premium audio'],
   },
   {
-    name: "Premium",
-    type: "Luxury",
-    price: "from £25",
-    image:
-      "https://images.unsplash.com/photo-1563720223185-11003d516935?w=600&h=400&fit=crop",
-    features: [
-      "4 passengers",
-      "3 bags",
-      "Executive class",
-      "Complimentary water",
-    ],
+    name: 'Premium',
+    type: 'Luxury',
+    price: 'from £25',
+    image: 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=600&h=400&fit=crop',
+    features: ['4 passengers', '3 bags', 'Executive class', 'Complimentary water'],
   },
   {
-    name: "XL / Van",
-    type: "People Carrier",
-    price: "from £18",
-    image:
-      "https://images.unsplash.com/photo-1543465077-db45d34b88a5?w=600&h=400&fit=crop",
-    features: ["6 passengers", "5 bags", "Spacious cabin", "Group travel"],
+    name: 'XL / Van',
+    type: 'People Carrier',
+    price: 'from £18',
+    image: 'https://images.unsplash.com/photo-1543465077-db45d34b88a5?w=600&h=400&fit=crop',
+    features: ['6 passengers', '5 bags', 'Spacious cabin', 'Group travel'],
   },
 ];
 
 const cities = [
-  "London",
-  "Manchester",
-  "Birmingham",
-  "Leeds",
-  "Glasgow",
-  "Edinburgh",
-  "Liverpool",
-  "Bristol",
-  "Sheffield",
-  "Cardiff",
-  "Nottingham",
-  "Newcastle",
+  'London', 'Manchester', 'Birmingham', 'Leeds', 'Glasgow', 'Edinburgh',
+  'Liverpool', 'Bristol', 'Sheffield', 'Cardiff', 'Nottingham', 'Newcastle',
 ];
 
-/* ═══════════════ REVEAL COMPONENT ═══════════════ */
-function RevealSection({
-  children,
-  className = "",
-  delay = 0,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 60 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{
-        duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94],
-        delay,
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-/* ═══════════════ CARD HOVER VARIANTS ═══════════════ */
-const cardHover = {
-  rest: { scale: 1, y: 0 },
-  hover: {
-    scale: 1.02,
-    y: -6,
-    transition: { duration: 0.35, ease: "easeOut" },
-  },
-};
-
-const imageHover = {
-  rest: { scale: 1 },
-  hover: { scale: 1.08, transition: { duration: 0.5, ease: "easeOut" } },
-};
-
-/* ═══════════════ PAGE ═══════════════ */
 export default function ServicesPage() {
   return (
     <>
       <Navbar />
 
       {/* ═══════ HERO ═══════ */}
-      <section className="hero-dark relative overflow-hidden">
-        <div className="dot-grid absolute inset-0 pointer-events-none" />
-        <div className="noise-overlay absolute inset-0 pointer-events-none" />
-        <div className="absolute top-10 right-1/4 w-[600px] h-[600px] bg-secondary/[0.06] rounded-full blur-[180px]" />
-        <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-accent/[0.04] rounded-full blur-[120px]" />
+      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #000 0%, #060B14 60%, #0A1628 100%)' }}>
+        <div className="absolute top-0 right-1/4 w-[600px] h-[350px] bg-secondary/[0.04] rounded-full blur-[140px] pointer-events-none" />
 
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8 pt-36 pb-24 lg:pt-44 lg:pb-32 text-center">
-          <motion.span
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="pill mb-6 inline-block"
-          >
-            What We Offer
-          </motion.span>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.1] max-w-4xl mx-auto"
-          >
-            Every ride,{" "}
-            <span className="gradient-text">tailored to you.</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.3 }}
-            className="mt-6 text-lg sm:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed"
-          >
-            From quick city hops to luxury airport transfers — RS CAB offers a
-            complete suite of ride-sharing services designed around your needs.
-          </motion.p>
+        <div className="relative mx-auto max-w-7xl px-6 sm:px-8 pt-36 pb-20 lg:pt-44 lg:pb-28 text-center">
+          <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-5">What We Offer</p>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-[-0.03em] text-white leading-[1.05]">
+            Every ride,
+            <br />
+            <span className="text-white/25">tailored to you.</span>
+          </h1>
+          <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
+            From quick city hops to luxury airport transfers — RS CAB offers a complete suite of ride-sharing services designed around your needs.
+          </p>
         </div>
       </section>
 
-      {/* ═══════ OUR SERVICES ═══════ */}
-      <section className="hero-dark relative py-24 lg:py-32 overflow-hidden">
-        <div className="line-grid absolute inset-0 pointer-events-none" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-accent/[0.04] rounded-full blur-[160px]" />
-        <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-secondary/[0.05] rounded-full blur-[140px]" />
-
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-          <RevealSection className="text-center mb-16">
-            <span className="pill mb-4 inline-block">Services</span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15]">
-              A ride for{" "}
-              <span className="gradient-text">every occasion.</span>
+      {/* ═══════ SERVICES — Alternating rows ═══════ */}
+      <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
+        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+          <div className="max-w-2xl mb-20">
+            <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Services</p>
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em] leading-[1.1]">
+              A ride for
+              <br />
+              <span className="text-white/25">every occasion.</span>
             </h2>
-          </RevealSection>
+          </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((s, i) => (
-              <RevealSection key={s.title} delay={i * 0.1}>
-                <motion.div
-                  variants={cardHover}
-                  initial="rest"
-                  whileHover="hover"
-                  className="card-dark p-0 overflow-hidden group h-full"
+          <div className="space-y-6">
+            {services.map((s, i) => {
+              const Icon = s.icon;
+              const isEven = i % 2 === 0;
+              return (
+                <div
+                  key={s.title}
+                  className="group rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden transition-all duration-400 hover:border-white/[0.10] hover:bg-white/[0.03]"
                 >
-                  {/* Image */}
-                  <div className="relative h-48 overflow-hidden bezel rounded-b-none">
-                    <motion.div
-                      variants={imageHover}
-                      className="absolute inset-0"
-                    >
+                  <div className={`flex flex-col ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-stretch`}>
+                    {/* Image */}
+                    <div className="lg:w-2/5 relative overflow-hidden">
                       <Image
                         src={s.image}
                         alt={s.title}
-                        fill
-                        className="object-cover"
+                        width={600}
+                        height={400}
+                        className="w-full h-56 lg:h-full object-cover group-hover:scale-[1.03] transition-transform duration-700"
                       />
-                    </motion.div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark/60 to-transparent" />
-                    {/* Icon badge */}
-                    <div className="absolute bottom-4 left-4 inline-flex items-center justify-center w-11 h-11 rounded-xl bg-secondary/90 shadow-lg glow-green">
-                      <s.icon className="text-dark" size={22} />
+                      <div className={`absolute inset-0 bg-gradient-to-${isEven ? 'r' : 'l'} from-transparent to-[#0A1628]/80 hidden lg:block`} />
                     </div>
-                  </div>
-                  {/* Content */}
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-white">{s.title}</h3>
-                    <p className="mt-3 text-white/40 text-sm leading-relaxed">
-                      {s.description}
-                    </p>
-                    <Link
-                      href="/rider/book"
-                      className="inline-flex items-center gap-1.5 mt-5 text-sm font-semibold text-secondary hover:text-secondary-light transition-colors"
-                    >
-                      Learn More <ArrowRight size={16} />
-                    </Link>
-                  </div>
-                </motion.div>
-              </RevealSection>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ═══════ FLEET ═══════ */}
-      <section className="hero-dark relative py-24 lg:py-32 overflow-hidden">
-        <div className="dot-grid absolute inset-0 pointer-events-none" />
-        <div className="noise-overlay absolute inset-0 pointer-events-none" />
-        <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-secondary/[0.04] rounded-full blur-[150px] -translate-y-1/2" />
-
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-          <RevealSection className="text-center mb-16">
-            <span className="pill mb-4 inline-block">Our Fleet</span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15]">
-              Choose your{" "}
-              <span className="gradient-text">perfect ride.</span>
-            </h2>
-          </RevealSection>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {fleet.map((v, i) => (
-              <RevealSection key={v.name} delay={i * 0.12}>
-                <motion.div
-                  variants={cardHover}
-                  initial="rest"
-                  whileHover="hover"
-                  className="card-dark p-0 overflow-hidden group h-full"
-                >
-                  <div className="relative h-44 overflow-hidden bezel rounded-b-none">
-                    <motion.div
-                      variants={imageHover}
-                      className="absolute inset-0"
-                    >
-                      <Image
-                        src={v.image}
-                        alt={v.name}
-                        fill
-                        className="object-cover"
-                      />
-                    </motion.div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark/70 to-transparent" />
-                    {/* Price tag */}
-                    <div className="absolute bottom-3 right-3 pill text-xs font-bold text-secondary">
-                      {v.price}
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold text-white">{v.name}</h3>
-                    <p className="text-white/40 text-sm">{v.type}</p>
-                    <ul className="mt-4 space-y-2">
-                      {v.features.map((f) => (
-                        <li
-                          key={f}
-                          className="flex items-center gap-2 text-sm text-white/50"
+                    {/* Content */}
+                    <div className="lg:w-3/5 p-8 lg:p-10 flex flex-col justify-center">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${s.color}12` }}>
+                          <Icon size={20} style={{ color: s.color }} />
+                        </div>
+                        <h3 className="text-xl font-bold text-white">{s.title}</h3>
+                      </div>
+                      <p className="text-white/35 leading-relaxed mb-6">{s.description}</p>
+                      <div>
+                        <Link
+                          href="/rider/book"
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-secondary hover:gap-3 transition-all"
                         >
-                          <Check
-                            size={14}
-                            className="text-secondary shrink-0"
-                          />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
+                          Book Now <ArrowRight size={14} />
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                </motion.div>
-              </RevealSection>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* ═══════ COVERAGE ═══════ */}
-      <section className="hero-dark relative py-24 lg:py-32 overflow-hidden">
-        <div className="line-grid absolute inset-0 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-accent/[0.04] rounded-full blur-[160px]" />
+      {/* ═══════ FLEET — Horizontal cards ═══════ */}
+      <section className="py-28 lg:py-36" style={{ background: 'linear-gradient(180deg, #060B14 0%, #0A1628 100%)' }}>
+        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+          <div className="text-center mb-16">
+            <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Our Fleet</p>
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em]">
+              Choose your perfect ride.
+            </h2>
+          </div>
 
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Map */}
-            <RevealSection>
-              <div className="glass-dark rounded-2xl p-0 overflow-hidden relative bezel">
-                <Image
-                  src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&h=500&fit=crop"
-                  alt="Coverage map"
-                  width={800}
-                  height={500}
-                  className="w-full h-[380px] object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-dark/70 via-dark/30 to-transparent" />
-                <div className="absolute bottom-6 left-6 flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-secondary animate-pulse-glow" />
-                  <span className="text-white font-semibold text-sm">
-                    Live coverage across 50+ cities
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {fleet.map((v) => (
+              <div
+                key={v.name}
+                className="group rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden transition-all duration-400 hover:border-white/[0.10]"
+              >
+                <div className="relative h-44 overflow-hidden">
+                  <Image
+                    src={v.image}
+                    alt={v.name}
+                    width={600}
+                    height={400}
+                    className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#060B14]/70 to-transparent" />
+                  <span className="absolute bottom-3 right-3 text-xs font-bold text-secondary bg-secondary/[0.12] px-3 py-1 rounded-full">
+                    {v.price}
                   </span>
                 </div>
+                <div className="p-5">
+                  <h3 className="text-lg font-bold text-white">{v.name}</h3>
+                  <p className="text-white/30 text-sm mb-4">{v.type}</p>
+                  <ul className="space-y-2">
+                    {v.features.map((f) => (
+                      <li key={f} className="flex items-center gap-2 text-sm text-white/35">
+                        <Check size={13} className="text-secondary shrink-0" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            </RevealSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════ COVERAGE — Split layout ═══════ */}
+      <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
+        <div className="mx-auto max-w-7xl px-6 sm:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Map image */}
+            <div className="rounded-2xl overflow-hidden border border-white/[0.06] relative">
+              <Image
+                src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&h=500&fit=crop"
+                alt="Coverage map"
+                width={800}
+                height={500}
+                className="w-full h-[380px] object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A1628]/70 via-transparent to-transparent" />
+              <div className="absolute bottom-6 left-6 flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse" />
+                <span className="text-white text-sm font-medium">Live across 50+ cities</span>
+              </div>
+            </div>
 
             {/* City list */}
-            <RevealSection delay={0.15}>
-              <span className="pill mb-4 inline-block">Coverage</span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15]">
-                Wherever you are,{" "}
-                <span className="gradient-text">we&apos;re there.</span>
+            <div>
+              <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Coverage</p>
+              <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em] leading-[1.1] mb-6">
+                Wherever you are,
+                <br />
+                <span className="text-white/25">we&apos;re there.</span>
               </h2>
-              <p className="mt-6 text-lg text-white/40 leading-relaxed">
-                RS CAB operates across major cities in the United Kingdom, with
-                new locations launching every month.
+              <p className="text-white/35 text-lg leading-relaxed mb-10">
+                RS CAB operates across major cities in the United Kingdom, with new locations launching every month.
               </p>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-10">
-                {cities.map((city, i) => (
-                  <motion.div
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {cities.map((city) => (
+                  <div
                     key={city}
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-40px" }}
-                    transition={{
-                      duration: 0.5,
-                      ease: "easeOut",
-                      delay: i * 0.05,
-                    }}
-                    whileHover={{
-                      scale: 1.05,
-                      borderColor: "rgba(0, 230, 118, 0.3)",
-                    }}
-                    className="flex items-center gap-2.5 py-2.5 px-4 rounded-xl glass-card hover:bg-secondary/[0.06] transition-all cursor-default"
+                    className="flex items-center gap-2.5 py-2.5 px-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:border-white/[0.10] hover:bg-white/[0.04] transition-all"
                   >
-                    <MapPin size={15} className="text-secondary shrink-0" />
-                    <span className="text-sm font-medium text-white/70">
-                      {city}
-                    </span>
-                  </motion.div>
+                    <MapPin size={14} className="text-secondary shrink-0" />
+                    <span className="text-sm font-medium text-white/50">{city}</span>
+                  </div>
                 ))}
               </div>
-            </RevealSection>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ═══════ CTA ═══════ */}
-      <section className="hero-dark relative py-24 lg:py-32 overflow-hidden">
-        <div className="dot-grid absolute inset-0 pointer-events-none" />
-        <div className="noise-overlay absolute inset-0 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-secondary/[0.06] rounded-full blur-[200px]" />
+      <section className="py-28 lg:py-36 relative" style={{ background: '#060B14' }}>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[250px] bg-secondary/[0.04] rounded-full blur-[100px] pointer-events-none" />
 
-        <RevealSection className="relative mx-auto max-w-4xl px-5 sm:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15]">
-            Your next ride is{" "}
-            <span className="gradient-text">just a tap away.</span>
+        <div className="relative mx-auto max-w-3xl px-6 sm:px-8 text-center">
+          <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em] mb-5">
+            Your next ride is just a tap away.
           </h2>
-          <p className="mt-6 text-lg text-white/50 max-w-xl mx-auto leading-relaxed">
-            Download the RS CAB app or book online. Experience the premium
-            ride-sharing service trusted by thousands.
+          <p className="text-white/35 text-lg max-w-lg mx-auto mb-10">
+            Download the RS CAB app or book online. Experience the premium ride-sharing service trusted by thousands.
           </p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-            className="mt-10 flex flex-wrap justify-center gap-4"
-          >
-            <Link
-              href="/rider/book"
-              className="btn-green inline-flex items-center gap-2 text-lg"
-            >
-              <Zap size={20} />
-              Book Now
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link href="/rider/book" className="group inline-flex items-center gap-2.5 bg-white text-black font-semibold text-[15px] px-8 py-4 rounded-full hover:shadow-[0_0_40px_rgba(255,255,255,0.12)] transition-all">
+              Book Now <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
             </Link>
-            <Link
-              href="/contact"
-              className="btn-secondary inline-flex items-center gap-2 text-lg"
-            >
-              Get in Touch <ArrowRight size={20} />
+            <Link href="/contact" className="inline-flex items-center gap-2 text-[15px] font-medium text-white/50 px-7 py-4 rounded-full border border-white/[0.08] hover:border-white/20 hover:text-white/70 transition-all">
+              Get in Touch
             </Link>
-          </motion.div>
-        </RevealSection>
+          </div>
+        </div>
       </section>
 
       <Footer />

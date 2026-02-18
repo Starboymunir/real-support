@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={120} height={36} className="object-contain" />
+            <Image src="/images/brand/logo.png" alt="RS CAB" width={120} height={36} className="object-contain" />
           </div>
 
           {/* Lock icon */}

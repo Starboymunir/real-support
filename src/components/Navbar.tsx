@@ -46,7 +46,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 shrink-0 group py-2">
             <Image
-              src="https://www.real-support.co.uk/home/header%20logo.png"
+              src="/images/brand/logo.png"
               alt="RS CAB"
               width={100}
               height={34}
@@ -55,7 +55,7 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Center nav — desktop */}
+          {/* Center nav â€” desktop */}
           <div className="hidden lg:flex items-center gap-1 bg-white/[0.06] backdrop-blur-md rounded-full px-2 py-1.5 border border-white/[0.08]">
             {navLinks.map((link) => (
               <Link
@@ -68,7 +68,7 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right actions — desktop */}
+          {/* Right actions â€” desktop */}
           <div className="hidden lg:flex items-center gap-3">
             <Link
               href="/login"
@@ -86,7 +86,7 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Hamburger — mobile */}
+          {/* Hamburger â€” mobile */}
           <button
             onClick={() => setMobileOpen(true)}
             className="lg:hidden p-2 text-white/80 hover:text-white transition-colors"

@@ -12,18 +12,18 @@ export default function CompanyLoginPage() {
 
   return (
     <div className="min-h-screen flex" style={{ background: '#060B14' }}>
-      {/* Left — Form */}
+      {/* Left â€” Form */}
       <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative overflow-hidden">
         <div className="absolute top-20 -left-10 w-64 h-64 bg-secondary/[0.03] rounded-full blur-[100px] pointer-events-none" />
 
         <div className="w-full max-w-md relative z-10">
           <div className="lg:hidden flex justify-center mb-10 mt-6">
-            <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={140} height={42} className="object-contain max-h-12" />
+            <Image src="/images/brand/logo.png" alt="RS CAB" width={140} height={42} className="object-contain max-h-12" />
           </div>
 
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
             <div className="hidden lg:flex justify-center mb-8">
-              <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={100} height={30} className="object-contain" />
+              <Image src="/images/brand/logo.png" alt="RS CAB" width={100} height={30} className="object-contain" />
             </div>
 
             {/* Corporate badge */}
@@ -67,11 +67,11 @@ export default function CompanyLoginPage() {
 
             <div className="mt-6 pt-6 border-t border-white/[0.04]">
               <Link href="/company/dashboard" className="block w-full text-center py-2.5 rounded-lg bg-white/[0.03] text-white/40 text-xs font-medium hover:bg-white/[0.06] hover:text-white/60 transition-all border border-white/[0.04] mb-4">
-                Skip to Company Dashboard →
+                Skip to Company Dashboard â†’
               </Link>
               <p className="text-white/25 text-sm mb-2 text-center">Not a company account?</p>
               <div className="text-center">
-                <Link href="/login" className="text-secondary text-sm font-semibold hover:underline underline-offset-4">← Back to Rider Login</Link>
+                <Link href="/login" className="text-secondary text-sm font-semibold hover:underline underline-offset-4">â† Back to Rider Login</Link>
               </div>
             </div>
           </div>
@@ -90,9 +90,9 @@ export default function CompanyLoginPage() {
         </div>
       </div>
 
-      {/* Right — Hero Image */}
+      {/* Right â€” Hero Image */}
       <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
-        <Image src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=1600&fit=crop" alt="London business district" fill className="object-cover" priority />
+        <Image src="/images/auth/business-district.jpg" alt="London business district" fill className="object-cover" priority />
         <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#060B14]/60 to-[#060B14]" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#060B14] via-transparent to-[#060B14]/50" />
 

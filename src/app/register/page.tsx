@@ -17,18 +17,18 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex" style={{ background: '#060B14' }}>
-      {/* Left — Register Form */}
+      {/* Left â€” Register Form */}
       <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative overflow-hidden">
         <div className="absolute -top-20 -left-20 w-72 h-72 bg-secondary/[0.03] rounded-full blur-[100px] pointer-events-none" />
 
         <div className="w-full max-w-lg relative z-10">
           <div className="lg:hidden flex justify-center mb-8 mt-6">
-            <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={140} height={42} className="object-contain max-h-12" />
+            <Image src="/images/brand/logo.png" alt="RS CAB" width={140} height={42} className="object-contain max-h-12" />
           </div>
 
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
             <div className="hidden lg:flex justify-center mb-6">
-              <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={100} height={30} className="object-contain" />
+              <Image src="/images/brand/logo.png" alt="RS CAB" width={100} height={30} className="object-contain" />
             </div>
 
             <h2 className="text-3xl font-bold text-white text-center mb-2">Create Account</h2>
@@ -122,7 +122,7 @@ export default function RegisterPage() {
             </form>
 
             <div className="mt-4 text-center">
-              <Link href="/rider/dashboard" className="text-white/20 text-xs hover:text-white/40 transition-colors">Skip to Rider Dashboard →</Link>
+              <Link href="/rider/dashboard" className="text-white/20 text-xs hover:text-white/40 transition-colors">Skip to Rider Dashboard â†’</Link>
             </div>
 
             <p className="text-center text-white/35 mt-6 text-sm">
@@ -133,15 +133,15 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Right — Hero Image */}
+      {/* Right â€” Hero Image */}
       <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
-        <Image src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=1600&fit=crop" alt="Mountain landscape" fill className="object-cover" priority />
+        <Image src="/images/auth/mountain.jpg" alt="Mountain landscape" fill className="object-cover" priority />
         <div className="absolute inset-0 bg-gradient-to-l from-[#060B14] via-[#060B14]/70 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#060B14] via-transparent to-[#060B14]/40" />
 
         <div className="absolute inset-0 flex flex-col justify-between p-12 z-10">
           <div className="flex justify-end">
-            <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={140} height={42} className="object-contain" />
+            <Image src="/images/brand/logo.png" alt="RS CAB" width={140} height={42} className="object-contain" />
           </div>
 
           <div className="mb-16 text-right">

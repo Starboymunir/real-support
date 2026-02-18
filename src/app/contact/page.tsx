@@ -19,12 +19,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-/* ── data ── */
+/* â”€â”€ data â”€â”€ */
 const contactCards = [
   { icon: MapPin, label: 'Head Office', value: '71-75 Shelton Street, Covent Garden, London WC2H 9JQ', color: '#00E676' },
   { icon: Phone, label: 'Phone', value: '+44 20 7946 0958', href: 'tel:+442079460958', color: '#00B0FF' },
   { icon: Mail, label: 'Email', value: 'support@rscab.co.uk', href: 'mailto:support@rscab.co.uk', color: '#E040FB' },
-  { icon: Clock, label: 'Support Hours', value: 'Mon – Sun, 24 / 7', color: '#FFD600' },
+  { icon: Clock, label: 'Support Hours', value: 'Mon â€“ Sun, 24 / 7', color: '#FFD600' },
 ];
 
 const supportLinks = [
@@ -54,7 +54,7 @@ export default function ContactPage() {
     <>
       <Navbar />
 
-      {/* ═══════ HERO ═══════ */}
+      {/* â•â•â•â•â•â•â• HERO â•â•â•â•â•â•â• */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #000 0%, #060B14 60%, #0A1628 100%)' }}>
         <div className="absolute top-0 left-1/3 w-[500px] h-[300px] bg-secondary/[0.04] rounded-full blur-[140px] pointer-events-none" />
 
@@ -66,12 +66,12 @@ export default function ContactPage() {
             <span className="text-white/25">hear from you.</span>
           </h1>
           <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
-            Whether it&apos;s a question, feedback, or partnership opportunity — our team is here to help.
+            Whether it&apos;s a question, feedback, or partnership opportunity â€” our team is here to help.
           </p>
         </div>
       </section>
 
-      {/* ═══════ CONTACT CARDS ═══════ */}
+      {/* â•â•â•â•â•â•â• CONTACT CARDS â•â•â•â•â•â•â• */}
       <section className="border-y border-white/[0.04]" style={{ background: '#060B14' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8 py-14">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -96,7 +96,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* ═══════ FORM + MAP — Split layout ═══════ */}
+      {/* â•â•â•â•â•â•â• FORM + MAP â€” Split layout â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="grid lg:grid-cols-5 gap-12">
@@ -173,7 +173,7 @@ export default function ContactPage() {
             <div className="lg:col-span-2 flex flex-col gap-6">
               <div className="rounded-2xl overflow-hidden border border-white/[0.06] relative flex-1 min-h-[280px]">
                 <Image
-                  src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&h=500&fit=crop"
+                  src="/images/unsplash/map-coverage.jpg"
                   alt="RS CAB HQ location"
                   width={800}
                   height={500}

@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "RS CAB - Local Taxi Service You Can Trust",
   description: "RS CAB - Rides in seconds with service. Background-checked drivers, real-time tracking, and secure payments. Book airport transfers, city rides, and business transport.",
   icons: {
-    icon: "https://www.real-support.co.uk/home/header%20logo.png",
+    icon: "/images/brand/logo.png",
   },
 };
 

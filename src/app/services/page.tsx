@@ -16,48 +16,48 @@ import {
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-/* ── data ── */
+/* â”€â”€ data â”€â”€ */
 const services = [
   {
     icon: Plane,
     title: 'Airport Transfers',
     description: 'Punctual pick-ups and drop-offs at all major UK airports. Flight tracking, meet-and-greet, and complimentary wait time included.',
-    image: 'https://images.unsplash.com/photo-1436491865332-7a61a109db05?w=600&h=400&fit=crop',
+    image: '/images/services/airport.jpg',
     color: '#00E676',
   },
   {
     icon: Car,
     title: 'City Rides',
-    description: 'On-demand rides across the city in minutes. Smart routing, transparent pricing, and professional drivers — always.',
-    image: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&h=400&fit=crop',
+    description: 'On-demand rides across the city in minutes. Smart routing, transparent pricing, and professional drivers â€” always.',
+    image: '/images/services/city-rides.jpg',
     color: '#00B0FF',
   },
   {
     icon: Building2,
     title: 'Corporate Travel',
     description: 'Dedicated account management, monthly invoicing, and priority dispatch for your entire organisation.',
-    image: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=600&h=400&fit=crop',
+    image: '/images/services/corporate.jpg',
     color: '#E040FB',
   },
   {
     icon: Route,
     title: 'Long Distance',
     description: 'Comfortable inter-city journeys with fixed pricing. Sit back and relax while we handle the drive.',
-    image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&h=400&fit=crop',
+    image: '/images/services/long-distance.jpg',
     color: '#FFD600',
   },
   {
     icon: PartyPopper,
     title: 'Events & Weddings',
     description: 'Arrive in style. Luxury vehicles for weddings, galas, proms, and special occasions with white-glove service.',
-    image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=400&fit=crop',
+    image: '/images/services/wedding.jpg',
     color: '#FF5252',
   },
   {
     icon: Package,
     title: 'Parcel Delivery',
     description: 'Same-day courier service. Tracked, insured, and delivered by trusted RS CAB drivers across the city.',
-    image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&h=400&fit=crop',
+    image: '/images/services/parcel.jpg',
     color: '#00E5FF',
   },
 ];
@@ -66,29 +66,29 @@ const fleet = [
   {
     name: 'Economy',
     type: 'Sedan',
-    price: 'from £5',
-    image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&h=400&fit=crop',
+    price: 'from Â£5',
+    image: '/images/fleet/economy.jpg',
     features: ['4 passengers', '2 bags', 'AC & WiFi', 'Cashless payment'],
   },
   {
     name: 'Comfort',
     type: 'SUV',
-    price: 'from £12',
-    image: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600&h=400&fit=crop',
+    price: 'from Â£12',
+    image: '/images/fleet/comfort.jpg',
     features: ['4 passengers', '3 bags', 'Leather seats', 'Premium audio'],
   },
   {
     name: 'Premium',
     type: 'Luxury',
-    price: 'from £25',
-    image: 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=600&h=400&fit=crop',
+    price: 'from Â£25',
+    image: '/images/fleet/premium.jpg',
     features: ['4 passengers', '3 bags', 'Executive class', 'Complimentary water'],
   },
   {
     name: 'XL / Van',
     type: 'People Carrier',
-    price: 'from £18',
-    image: 'https://images.unsplash.com/photo-1543465077-db45d34b88a5?w=600&h=400&fit=crop',
+    price: 'from Â£18',
+    image: '/images/fleet/xl-van.jpg',
     features: ['6 passengers', '5 bags', 'Spacious cabin', 'Group travel'],
   },
 ];
@@ -103,7 +103,7 @@ export default function ServicesPage() {
     <>
       <Navbar />
 
-      {/* ═══════ HERO ═══════ */}
+      {/* â•â•â•â•â•â•â• HERO â•â•â•â•â•â•â• */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #000 0%, #060B14 60%, #0A1628 100%)' }}>
         <div className="absolute top-0 right-1/4 w-[600px] h-[350px] bg-secondary/[0.04] rounded-full blur-[140px] pointer-events-none" />
 
@@ -115,12 +115,12 @@ export default function ServicesPage() {
             <span className="text-white/25">tailored to you.</span>
           </h1>
           <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
-            From quick city hops to luxury airport transfers — RS CAB offers a complete suite of ride-sharing services designed around your needs.
+            From quick city hops to luxury airport transfers â€” RS CAB offers a complete suite of ride-sharing services designed around your needs.
           </p>
         </div>
       </section>
 
-      {/* ═══════ SERVICES — Alternating rows ═══════ */}
+      {/* â•â•â•â•â•â•â• SERVICES â€” Alternating rows â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="max-w-2xl mb-20">
@@ -180,7 +180,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* ═══════ FLEET — Horizontal cards ═══════ */}
+      {/* â•â•â•â•â•â•â• FLEET â€” Horizontal cards â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36" style={{ background: 'linear-gradient(180deg, #060B14 0%, #0A1628 100%)' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="text-center mb-16">
@@ -227,14 +227,14 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* ═══════ COVERAGE — Split layout ═══════ */}
+      {/* â•â•â•â•â•â•â• COVERAGE â€” Split layout â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Map image */}
             <div className="rounded-2xl overflow-hidden border border-white/[0.06] relative">
               <Image
-                src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&h=500&fit=crop"
+                src="/images/unsplash/map-coverage.jpg"
                 alt="Coverage map"
                 width={800}
                 height={500}
@@ -274,7 +274,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* ═══════ CTA ═══════ */}
+      {/* â•â•â•â•â•â•â• CTA â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36 relative" style={{ background: '#060B14' }}>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[250px] bg-secondary/[0.04] rounded-full blur-[100px] pointer-events-none" />
 

@@ -12,10 +12,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex" style={{ background: '#060B14' }}>
-      {/* Left — Hero Image */}
+      {/* Left â€” Hero Image */}
       <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
         <Image
-          src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&h=1600&fit=crop"
+          src="/images/auth/london-night.jpg"
           alt="London cityscape at night"
           fill
           className="object-cover"
@@ -25,7 +25,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#060B14] via-transparent to-[#060B14]/40" />
 
         <div className="absolute inset-0 flex flex-col justify-between p-12 z-10">
-          <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={160} height={48} className="object-contain" />
+          <Image src="/images/brand/logo.png" alt="RS CAB" width={160} height={48} className="object-contain" />
 
           <div className="mb-16">
             <h1 className="text-5xl font-black text-white leading-tight mb-4 tracking-[-0.02em]">
@@ -34,7 +34,7 @@ export default function LoginPage() {
               <span className="text-white/25">Ride Awaits</span>
             </h1>
             <p className="text-white/40 text-lg max-w-md">
-              Experience luxury transportation across London with RS CAB — where every journey is first class.
+              Experience luxury transportation across London with RS CAB â€” where every journey is first class.
             </p>
           </div>
 
@@ -42,7 +42,7 @@ export default function LoginPage() {
           <div className="absolute top-1/3 right-12 flex flex-col gap-4">
             {[
               { value: '15K+', label: 'Rides Completed', color: '#00E676' },
-              { value: '4.9★', label: 'Average Rating', color: '#00B0FF' },
+              { value: '4.9â˜…', label: 'Average Rating', color: '#00B0FF' },
               { value: '24/7', label: 'Availability', color: '#fff' },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-sm p-5">
@@ -54,20 +54,20 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right — Login Form */}
+      {/* Right â€” Login Form */}
       <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative">
         <div className="absolute top-20 right-20 w-64 h-64 bg-secondary/[0.03] rounded-full blur-[100px] pointer-events-none" />
 
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex justify-center mb-10 mt-6">
-            <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={140} height={42} className="object-contain max-h-12" />
+            <Image src="/images/brand/logo.png" alt="RS CAB" width={140} height={42} className="object-contain max-h-12" />
           </div>
 
           {/* Form card */}
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
             <div className="hidden lg:flex justify-center mb-8">
-              <Image src="https://www.real-support.co.uk/home/header%20logo.png" alt="RS CAB" width={100} height={30} className="object-contain" />
+              <Image src="/images/brand/logo.png" alt="RS CAB" width={100} height={30} className="object-contain" />
             </div>
 
             <h2 className="text-3xl font-bold text-white text-center mb-2">Welcome back</h2>
@@ -138,7 +138,7 @@ export default function LoginPage() {
 
             <div className="mt-6 pt-6 border-t border-white/[0.04] text-center">
               <Link href="/company/company-login" className="text-white/25 text-sm hover:text-white/50 transition-colors">
-                Company Login <span className="text-secondary">→</span>
+                Company Login <span className="text-secondary">â†’</span>
               </Link>
             </div>
           </div>

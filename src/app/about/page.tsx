@@ -16,25 +16,25 @@ import {
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-/* ── data ── */
+/* â”€â”€ data â”€â”€ */
 const stats = [
   { icon: Car, value: '15K+', label: 'Rides' },
   { icon: Users, value: '500+', label: 'Drivers' },
   { icon: MapPin, value: '50+', label: 'Cities' },
-  { icon: Star, value: '4.9★', label: 'Rating' },
+  { icon: Star, value: '4.9â˜…', label: 'Rating' },
 ];
 
 const values = [
   { icon: Shield, title: 'Safety First', desc: 'Every driver background-checked, every vehicle inspected, every ride tracked in real time.', color: '#00E676' },
-  { icon: Eye, title: 'Transparency', desc: 'No hidden fees, no surge surprises. You see the price before you book — always.', color: '#00B0FF' },
+  { icon: Eye, title: 'Transparency', desc: 'No hidden fees, no surge surprises. You see the price before you book â€” always.', color: '#00B0FF' },
   { icon: Clock, title: 'Reliability', desc: 'On-time pickups, every time. Smart dispatch ensures you arrive without delay.', color: '#E040FB' },
   { icon: Zap, title: 'Innovation', desc: 'AI-powered routing, seamless payments, constant improvements to your experience.', color: '#FFD600' },
 ];
 
 const leaders = [
-  { name: 'James Whitfield', role: 'CEO', bio: '15+ years in mobility tech. Previously led operations at a top European ride-sharing platform.', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop&crop=face' },
-  { name: 'Sarah Mitchell', role: 'COO', bio: 'Former logistics director with a passion for creating seamless urban transport experiences.', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop&crop=face' },
-  { name: 'David Chen', role: 'CTO', bio: 'Full-stack architect & ML engineer. Building the tech stack that powers the next generation of rides.', image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop&crop=face' },
+  { name: 'James Whitfield', role: 'CEO', bio: '15+ years in mobility tech. Previously led operations at a top European ride-sharing platform.', image: '/images/team/james.jpg' },
+  { name: 'Sarah Mitchell', role: 'COO', bio: 'Former logistics director with a passion for creating seamless urban transport experiences.', image: '/images/team/sarah.jpg' },
+  { name: 'David Chen', role: 'CTO', bio: 'Full-stack architect & ML engineer. Building the tech stack that powers the next generation of rides.', image: '/images/team/david.jpg' },
 ];
 
 export default function AboutPage() {
@@ -42,7 +42,7 @@ export default function AboutPage() {
     <>
       <Navbar />
 
-      {/* ═══════ HERO ═══════ */}
+      {/* â•â•â•â•â•â•â• HERO â•â•â•â•â•â•â• */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #000 0%, #060B14 60%, #0A1628 100%)' }}>
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-secondary/[0.05] rounded-full blur-[140px] pointer-events-none" />
 
@@ -55,14 +55,14 @@ export default function AboutPage() {
               <span className="text-white/25">urban mobility.</span>
             </h1>
             <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
-              RS CAB was built with one purpose — to make every journey safe, comfortable, and effortless. We&apos;re creating the ride-sharing experience the UK deserves.
+              RS CAB was built with one purpose â€” to make every journey safe, comfortable, and effortless. We&apos;re creating the ride-sharing experience the UK deserves.
             </p>
           </div>
 
           {/* Hero image */}
           <div className="mt-16 relative rounded-2xl overflow-hidden max-w-5xl mx-auto border border-white/[0.06]">
             <Image
-              src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=500&fit=crop"
+              src="/images/unsplash/team-collab.jpg"
               alt="RS CAB team collaborating"
               width={1200}
               height={500}
@@ -74,7 +74,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ═══════ MISSION — Split layout ═══════ */}
+      {/* â•â•â•â•â•â•â• MISSION â€” Split layout â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -103,7 +103,7 @@ export default function AboutPage() {
 
             <div className="rounded-2xl overflow-hidden border border-white/[0.06]">
               <Image
-                src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop"
+                src="/images/unsplash/london-city.jpg"
                 alt="London cityscape"
                 width={800}
                 height={600}
@@ -114,7 +114,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ═══════ STATS — Inline ═══════ */}
+      {/* â•â•â•â•â•â•â• STATS â€” Inline â•â•â•â•â•â•â• */}
       <section className="border-y border-white/[0.04]" style={{ background: '#060B14' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8 py-14">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
@@ -131,7 +131,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ═══════ VALUES — Horizontal cards with left accent ═══════ */}
+      {/* â•â•â•â•â•â•â• VALUES â€” Horizontal cards with left accent â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36" style={{ background: 'linear-gradient(180deg, #060B14 0%, #0A1628 100%)' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="max-w-2xl mb-16">
@@ -167,7 +167,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ═══════ LEADERSHIP ═══════ */}
+      {/* â•â•â•â•â•â•â• LEADERSHIP â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="text-center mb-16">
@@ -195,7 +195,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ═══════ CTA ═══════ */}
+      {/* â•â•â•â•â•â•â• CTA â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36 relative" style={{ background: '#060B14' }}>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[250px] bg-secondary/[0.04] rounded-full blur-[100px] pointer-events-none" />
 

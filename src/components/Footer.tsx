@@ -67,7 +67,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <Link href="/" className="inline-block mb-5">
               <Image
-                src="https://www.real-support.co.uk/home/header%20logo.png"
+                src="/images/brand/logo.png"
                 alt="RS CAB"
                 width={120}
                 height={40}

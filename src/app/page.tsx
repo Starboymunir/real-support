@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -20,7 +20,7 @@ import {
   Fingerprint,
 } from 'lucide-react';
 
-/* ── Animated counter ── */
+/* -- Animated counter -- */
 function useCounter(end: number, duration = 2000) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
@@ -48,7 +48,7 @@ function useCounter(end: number, duration = 2000) {
   return { count, ref };
 }
 
-/* ── Data ── */
+/* -- Data -- */
 const features = [
   {
     icon: Shield,
@@ -102,23 +102,23 @@ const testimonials = [
     name: 'Sarah Mitchell',
     role: 'Business Traveller',
     text: 'RS CAB has transformed my airport commute. The driver was already waiting when I landed. Impeccable service, every single time.',
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face',
+    image: '/images/testimonials/sarah.jpg',
   },
   {
     name: 'James Cooper',
     role: 'Daily Commuter',
     text: "I switched from Uber six months ago. Fixed pricing, no surge — I save about £200 a month. The drivers are genuinely friendly.",
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
+    image: '/images/testimonials/marcus.jpg',
   },
   {
     name: 'Priya Sharma',
     role: 'University Student',
     text: "Reliable at 3am just like 3pm. The app tracking gives my parents peace of mind too.",
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face',
+    image: '/images/testimonials/emily.jpg',
   },
 ];
 
-/* ── Stat Counter ── */
+/* -- Stat Counter -- */
 function Stat({ value, suffix, label }: { value: number; suffix: string; label: string }) {
   const { count, ref } = useCounter(value);
   return (
@@ -147,7 +147,7 @@ export default function Home() {
     <>
       <Navbar />
 
-      {/* ═══════ HERO ═══════ */}
+      {/* ------- HERO ------- */}
       <section ref={heroRef} className="relative min-h-screen flex items-center overflow-hidden" style={{ background: 'linear-gradient(180deg, #000 0%, #060B14 50%, #0A1628 100%)' }}>
         {/* Single subtle gradient accent */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-secondary/[0.07] to-transparent rounded-full blur-[120px] pointer-events-none" />
@@ -243,7 +243,7 @@ export default function Home() {
                     </div>
 
                     <Link href="/rider/book" className="block w-full text-center bg-white text-black font-semibold py-3 rounded-xl text-sm hover:bg-white/90 transition-colors mt-1">
-                      Get Quote →
+                      Get Quote ?
                     </Link>
                   </div>
 
@@ -274,19 +274,19 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* ═══════ TRUST BAR ═══════ */}
+      {/* ------- TRUST BAR ------- */}
       <section className="border-y border-white/[0.04]" style={{ background: '#060B14' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8 py-14">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-4">
             <Stat value={15000} suffix="+" label="Rides Completed" />
             <Stat value={500} suffix="+" label="Professional Drivers" />
             <Stat value={50} suffix="+" label="Cities Covered" />
-            <Stat value={49} suffix="★" label="Average Rating" />
+            <Stat value={49} suffix="?" label="Average Rating" />
           </div>
         </div>
       </section>
 
-      {/* ═══════ FEATURES — Bento Grid ═══════ */}
+      {/* ------- FEATURES — Bento Grid ------- */}
       <section className="py-28 lg:py-36 relative" style={{ background: 'linear-gradient(180deg, #060B14 0%, #0A1628 100%)' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="max-w-2xl mb-16">
@@ -335,7 +335,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════ AIRPORTS ═══════ */}
+      {/* ------- AIRPORTS ------- */}
       <section className="py-28 lg:py-36 relative" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-14">
@@ -367,7 +367,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════ HOW IT WORKS ═══════ */}
+      {/* ------- HOW IT WORKS ------- */}
       <section className="py-28 lg:py-36 relative" style={{ background: 'linear-gradient(180deg, #0A1628 0%, #060B14 100%)' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
@@ -431,7 +431,7 @@ export default function Home() {
                     {/* Map */}
                     <div className="relative h-[200px] rounded-xl overflow-hidden mb-4">
                       <Image
-                        src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=400&h=300&fit=crop"
+                        src="/images/unsplash/map-coverage.jpg"
                         alt="Map"
                         fill
                         className="object-cover opacity-50"
@@ -471,7 +471,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════ TESTIMONIALS ═══════ */}
+      {/* ------- TESTIMONIALS ------- */}
       <section className="py-28 lg:py-36" style={{ background: '#060B14' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -542,7 +542,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════ APP DOWNLOAD ═══════ */}
+      {/* ------- APP DOWNLOAD ------- */}
       <section className="py-28 lg:py-36" style={{ background: 'linear-gradient(180deg, #060B14 0%, #0A1628 100%)' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="relative rounded-3xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
@@ -578,7 +578,7 @@ export default function Home() {
                 <div className="flex justify-center">
                   <div className="relative w-[220px] h-[440px] rounded-[2.5rem] border border-white/[0.06] bg-[#0a0a0a] overflow-hidden shadow-2xl shadow-black/40">
                     <Image
-                      src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=800&fit=crop"
+                      src="/images/unsplash/london-city.jpg"
                       alt="RS CAB App"
                       fill
                       className="object-cover opacity-20"
@@ -600,7 +600,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════ CTA ═══════ */}
+      {/* ------- CTA ------- */}
       <section className="py-28 lg:py-36 relative" style={{ background: '#060B14' }}>
         {/* Single centered glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-secondary/[0.04] rounded-full blur-[120px] pointer-events-none" />

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Lock, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -23,7 +24,12 @@ export default function ForgotPasswordPage() {
       />
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-md mx-4">
+      <motion.div
+        className="relative z-10 w-full max-w-md mx-4"
+        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
         <div className="glass-dark rounded-3xl p-8 sm:p-10 neon-border">
           {/* Logo */}
           <div className="flex justify-center mb-8">
@@ -38,13 +44,26 @@ export default function ForgotPasswordPage() {
 
           {/* Lock icon in glowing circle */}
           <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 rounded-full bg-secondary/10 flex items-center justify-center glow-green animate-pulse-glow">
-              <Lock className="w-9 h-9 text-secondary" />
-            </div>
+            <motion.div
+              className="relative"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.3, type: 'spring' }}
+            >
+              <motion.div
+                className="absolute inset-0 w-20 h-20 rounded-full bg-secondary/10"
+                animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0, 0.3] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <div className="w-20 h-20 rounded-full bg-secondary/10 flex items-center justify-center glow-green animate-pulse-glow relative">
+                <Lock className="w-9 h-9 text-secondary" />
+              </div>
+            </motion.div>
           </div>
 
+          <AnimatePresence mode="wait">
           {!submitted ? (
-            <>
+            <motion.div key="form" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
               <h2 className="text-3xl font-bold text-white text-center mb-2">
                 Forgot Password?
               </h2>
@@ -73,16 +92,18 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 {/* Submit */}
-                <button
+                <motion.button
                   type="submit"
                   className="w-full py-4 bg-secondary text-dark font-bold rounded-xl text-lg hover:shadow-[0_8px_30px_rgba(0,230,118,0.35)] hover:-translate-y-0.5 transition-all"
+                  whileHover={{ scale: 1.02, boxShadow: '0 8px 30px rgba(0,230,118,0.35)' }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Send Reset Link
-                </button>
+                </motion.button>
               </form>
-            </>
+            </motion.div>
           ) : (
-            <>
+            <motion.div key="success" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
               {/* Success state */}
               <div className="flex justify-center mb-6">
                 <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center">
@@ -105,8 +126,9 @@ export default function ForgotPasswordPage() {
               >
                 Didn&apos;t receive? Resend
               </button>
-            </>
+            </motion.div>
           )}
+          </AnimatePresence>
 
           {/* Back to login */}
           <div className="mt-8 text-center">
@@ -119,7 +141,7 @@ export default function ForgotPasswordPage() {
             </Link>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

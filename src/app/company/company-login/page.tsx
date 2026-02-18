@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, Building2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function CompanyLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,7 +14,7 @@ export default function CompanyLoginPage() {
   return (
     <div className="min-h-screen hero-dark line-grid flex">
       {/* Left — Form */}
-      <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative overflow-hidden">
+      <motion.div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative overflow-hidden" initial={{ opacity: 0, x: -60 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
         {/* Decorative elements */}
         <div className="absolute top-20 -left-10 w-64 h-64 bg-secondary/5 rounded-full blur-3xl animate-morph pointer-events-none" />
         <div className="absolute bottom-20 right-10 w-48 h-48 bg-accent/5 rounded-full blur-3xl animate-morph pointer-events-none" style={{ animationDelay: "4s" }} />
@@ -45,7 +46,7 @@ export default function CompanyLoginPage() {
 
             {/* Corporate badge */}
             <div className="flex justify-center mb-6">
-              <span className="badge-green">
+              <span className="pill">
                 <Building2 className="w-3.5 h-3.5" />
                 Corporate Portal
               </span>
@@ -61,7 +62,7 @@ export default function CompanyLoginPage() {
             {/* Form */}
             <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
               {/* Company Email */}
-              <div>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
                 <label className="block text-white/50 text-sm font-medium mb-2">Company Email</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
@@ -73,10 +74,10 @@ export default function CompanyLoginPage() {
                     className="input-dark pl-12"
                   />
                 </div>
-              </div>
+              </motion.div>
 
               {/* Password */}
-              <div>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
                 <label className="block text-white/50 text-sm font-medium mb-2">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
@@ -95,7 +96,7 @@ export default function CompanyLoginPage() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Forgot password */}
               <div className="text-right">
@@ -108,13 +109,15 @@ export default function CompanyLoginPage() {
               </div>
 
               {/* Submit */}
-              <button
+              <motion.button
                 type="submit"
                 className="btn-primary w-full text-center flex items-center justify-center gap-2 py-4 text-lg"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Building2 className="w-5 h-5" />
                 Sign In
-              </button>
+              </motion.button>
             </form>
 
             {/* Rider login link */}
@@ -138,7 +141,7 @@ export default function CompanyLoginPage() {
           </div>
 
           {/* Trust indicators */}
-          <div className="mt-8 flex justify-center gap-6">
+          <motion.div className="mt-8 flex justify-center gap-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}>
             <div className="flex items-center gap-2 text-white/20 text-xs">
               <div className="w-2 h-2 rounded-full bg-secondary/60" />
               256-bit Encryption
@@ -147,12 +150,12 @@ export default function CompanyLoginPage() {
               <div className="w-2 h-2 rounded-full bg-secondary/60" />
               GDPR Compliant
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Right — Hero Image (hidden on mobile) */}
-      <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
+      <motion.div className="hidden lg:block lg:w-[55%] relative overflow-hidden" initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
         <Image
           src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=1600&fit=crop"
           alt="London business district"
@@ -168,43 +171,49 @@ export default function CompanyLoginPage() {
         <div className="absolute inset-0 z-20 flex flex-col justify-between p-12">
           {/* Top right decorative */}
           <div className="flex justify-end">
-            <span className="badge-green">Enterprise Solutions</span>
+            <span className="pill">Enterprise Solutions</span>
           </div>
 
           {/* Tagline */}
           <div className="mb-16">
-            <h1 className="text-5xl font-bold text-white leading-tight mb-4">
+            <motion.h1 className="text-5xl font-bold text-white leading-tight mb-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
               Manage Your<br />
               <span className="gradient-text">Fleet & Team</span>
-            </h1>
-            <p className="text-white/50 text-lg max-w-md">
+            </motion.h1>
+            <motion.p className="text-white/50 text-lg max-w-md" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }}>
               Powerful tools for corporate transportation management. Track rides, manage employees, and optimize costs.
-            </p>
+            </motion.p>
           </div>
 
           {/* Floating stat cards */}
           <div className="absolute top-1/3 right-16 flex flex-col gap-4 z-30">
-            <div className="glass-dark rounded-2xl p-5 animate-float glow-green">
+            <motion.div className="glass-dark rounded-2xl p-5 animate-float glow-green" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.6 }}>
               <p className="text-secondary font-bold text-2xl">156</p>
               <p className="text-white/50 text-sm">Partner Companies</p>
-            </div>
-            <div
+            </motion.div>
+            <motion.div
               className="glass-dark rounded-2xl p-5 animate-float"
               style={{ animationDelay: "1.5s" }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
             >
               <p className="text-accent font-bold text-2xl">23K</p>
               <p className="text-white/50 text-sm">Business Rides</p>
-            </div>
-            <div
+            </motion.div>
+            <motion.div
               className="glass-dark rounded-2xl p-5 animate-float"
               style={{ animationDelay: "3s" }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1.0 }}
             >
               <p className="text-white font-bold text-2xl">99.8%</p>
               <p className="text-white/50 text-sm">Uptime SLA</p>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

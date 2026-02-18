@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useRef, FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   MapPin,
   Phone,
@@ -18,6 +19,36 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+/* ─── RevealSection ─── */
+function RevealSection({
+  children,
+  className = "",
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 60 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{
+        duration: 0.8,
+        ease: [0.25, 0.46, 0.45, 0.94],
+        delay,
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/* ─── Data ─── */
 const contactCards = [
   {
     icon: MapPin,
@@ -51,7 +82,8 @@ const supportLinks = [
   {
     icon: HelpCircle,
     title: "FAQ",
-    description: "Answers to common questions about rides, payments, and more.",
+    description:
+      "Answers to common questions about rides, payments, and more.",
     href: "/rider/support",
   },
   {
@@ -77,6 +109,22 @@ const subjects = [
   "Other",
 ];
 
+/* ─── Stagger helpers ─── */
+const staggerContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12 } },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 30 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
+};
+
+/* ═══════════════════════════════════════════ */
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -97,7 +145,6 @@ export default function ContactPage() {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    // Simulate submission
     setSubmitted(true);
   }
 
@@ -108,176 +155,230 @@ export default function ContactPage() {
       {/* ═══════ HERO ═══════ */}
       <section className="hero-dark relative overflow-hidden">
         <div className="dot-grid absolute inset-0 pointer-events-none" />
-        <div className="absolute top-20 left-1/3 w-[500px] h-[500px] bg-secondary/[0.06] rounded-full blur-[160px]" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/[0.04] rounded-full blur-[120px]" />
+        <div className="noise-overlay absolute inset-0 pointer-events-none" />
+
+        {/* Floating gradient orbs */}
+        <div className="absolute top-20 left-1/3 w-[500px] h-[500px] bg-secondary/[0.06] rounded-full blur-[160px] animate-[float_8s_ease-in-out_infinite]" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-accent/[0.04] rounded-full blur-[120px] animate-[float-delayed_10s_ease-in-out_infinite]" />
+        <div className="absolute top-1/2 right-10 w-[300px] h-[300px] bg-violet-500/[0.04] rounded-full blur-[140px] animate-[float_12s_ease-in-out_infinite_2s]" />
 
         <div className="relative mx-auto max-w-7xl px-5 sm:px-8 pt-36 pb-24 lg:pt-44 lg:pb-28 text-center">
-          <span className="badge-green mb-6 inline-block">Get In Touch</span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.1] max-w-4xl mx-auto">
+          <motion.span
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="pill mb-6 inline-block"
+          >
+            Get In Touch
+          </motion.span>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15 }}
+            className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.1] max-w-4xl mx-auto"
+          >
             We&apos;d love to{" "}
             <span className="gradient-text">hear from you.</span>
-          </h1>
-          <p className="mt-6 text-lg sm:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed">
-            Whether it&apos;s a question, feedback, or partnership opportunity —
-            our team is here to help.
-          </p>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+            className="mt-6 text-lg sm:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed"
+          >
+            Whether it&apos;s a question, feedback, or partnership opportunity
+            — our team is here to help.
+          </motion.p>
         </div>
       </section>
 
       {/* ═══════ CONTACT FORM + INFO ═══════ */}
-      <section className="bg-light py-24 lg:py-32">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+      <section className="relative bg-dark py-24 lg:py-32 overflow-hidden">
+        {/* Decorative orbs */}
+        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-secondary/[0.04] rounded-full blur-[180px] pointer-events-none" />
+        <div className="absolute -bottom-40 -right-40 w-[400px] h-[400px] bg-accent/[0.03] rounded-full blur-[160px] pointer-events-none" />
+
+        <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
           <div className="grid lg:grid-cols-5 gap-12">
             {/* ── Form (3 cols) ── */}
-            <div className="lg:col-span-3">
-              <div className="card-premium">
-                {submitted ? (
-                  <div className="text-center py-16">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-secondary/10 mb-6">
-                      <CheckCircle2
-                        className="text-secondary"
-                        size={40}
-                      />
-                    </div>
-                    <h3 className="text-2xl font-bold text-text-primary">
-                      Message Sent!
-                    </h3>
-                    <p className="mt-3 text-text-secondary max-w-md mx-auto">
-                      Thank you for reaching out. Our team will get back to you
-                      within 24 hours.
-                    </p>
-                    <button
-                      onClick={() => {
-                        setSubmitted(false);
-                        setFormData({
-                          name: "",
-                          email: "",
-                          phone: "",
-                          subject: "",
-                          message: "",
-                        });
-                      }}
-                      className="btn-outline-green mt-8 inline-flex items-center gap-2"
+            <RevealSection className="lg:col-span-3">
+              <div className="card-dark bezel p-8 sm:p-10">
+                <AnimatePresence mode="wait">
+                  {submitted ? (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.4 }}
+                      className="text-center py-16"
                     >
-                      Send Another Message
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <h2 className="text-2xl font-bold text-text-primary mb-1">
-                      Send us a message
-                    </h2>
-                    <p className="text-text-secondary text-sm mb-8">
-                      Fill in the form below and we&apos;ll respond as soon as
-                      possible.
-                    </p>
-
-                    <form
-                      onSubmit={handleSubmit}
-                      className="space-y-5"
-                    >
-                      <div className="grid sm:grid-cols-2 gap-5">
-                        <div>
-                          <label className="block text-sm font-medium text-text-primary mb-1.5">
-                            Full Name
-                          </label>
-                          <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                            placeholder="John Doe"
-                            className="input-field"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-text-primary mb-1.5">
-                            Email
-                          </label>
-                          <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            placeholder="john@example.com"
-                            className="input-field"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid sm:grid-cols-2 gap-5">
-                        <div>
-                          <label className="block text-sm font-medium text-text-primary mb-1.5">
-                            Phone
-                          </label>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            placeholder="+44 7700 900000"
-                            className="input-field"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-text-primary mb-1.5">
-                            Subject
-                          </label>
-                          <select
-                            name="subject"
-                            value={formData.subject}
-                            onChange={handleChange}
-                            required
-                            className="input-field"
-                          >
-                            <option value="" disabled>
-                              Select a subject
-                            </option>
-                            {subjects.map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-text-primary mb-1.5">
-                          Message
-                        </label>
-                        <textarea
-                          name="message"
-                          value={formData.message}
-                          onChange={handleChange}
-                          required
-                          rows={5}
-                          placeholder="Tell us how we can help..."
-                          className="input-field resize-none"
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-secondary/10 glow-green mb-6">
+                        <CheckCircle2
+                          className="text-secondary"
+                          size={40}
                         />
                       </div>
-
-                      <button
-                        type="submit"
-                        className="btn-green w-full sm:w-auto inline-flex items-center justify-center gap-2"
+                      <h3 className="text-2xl font-bold text-white">
+                        Message Sent!
+                      </h3>
+                      <p className="mt-3 text-white/40 max-w-md mx-auto">
+                        Thank you for reaching out. Our team will get back to
+                        you within 24 hours.
+                      </p>
+                      <motion.button
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => {
+                          setSubmitted(false);
+                          setFormData({
+                            name: "",
+                            email: "",
+                            phone: "",
+                            subject: "",
+                            message: "",
+                          });
+                        }}
+                        className="btn-outline-green mt-8 inline-flex items-center gap-2"
                       >
-                        <Send size={18} />
-                        Send Message
-                      </button>
-                    </form>
-                  </>
-                )}
+                        Send Another Message
+                      </motion.button>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="form"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <h2 className="text-2xl font-bold text-white mb-1">
+                        Send us a message
+                      </h2>
+                      <p className="text-white/40 text-sm mb-8">
+                        Fill in the form below and we&apos;ll respond as soon as
+                        possible.
+                      </p>
+
+                      <form onSubmit={handleSubmit} className="space-y-5">
+                        <div className="grid sm:grid-cols-2 gap-5">
+                          <div>
+                            <label className="block text-sm font-medium text-white mb-1.5">
+                              Full Name
+                            </label>
+                            <input
+                              type="text"
+                              name="name"
+                              value={formData.name}
+                              onChange={handleChange}
+                              required
+                              placeholder="John Doe"
+                              className="input-field"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-white mb-1.5">
+                              Email
+                            </label>
+                            <input
+                              type="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleChange}
+                              required
+                              placeholder="john@example.com"
+                              className="input-field"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid sm:grid-cols-2 gap-5">
+                          <div>
+                            <label className="block text-sm font-medium text-white mb-1.5">
+                              Phone
+                            </label>
+                            <input
+                              type="tel"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleChange}
+                              placeholder="+44 7700 900000"
+                              className="input-field"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-white mb-1.5">
+                              Subject
+                            </label>
+                            <select
+                              name="subject"
+                              value={formData.subject}
+                              onChange={handleChange}
+                              required
+                              className="input-field"
+                            >
+                              <option value="" disabled>
+                                Select a subject
+                              </option>
+                              {subjects.map((s) => (
+                                <option key={s} value={s}>
+                                  {s}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-1.5">
+                            Message
+                          </label>
+                          <textarea
+                            name="message"
+                            value={formData.message}
+                            onChange={handleChange}
+                            required
+                            rows={5}
+                            placeholder="Tell us how we can help..."
+                            className="input-field resize-none"
+                          />
+                        </div>
+
+                        <motion.button
+                          type="submit"
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          className="btn-green w-full sm:w-auto inline-flex items-center justify-center gap-2"
+                        >
+                          <Send size={18} />
+                          Send Message
+                        </motion.button>
+                      </form>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
+            </RevealSection>
 
             {/* ── Contact Info (2 cols) ── */}
-            <div className="lg:col-span-2 flex flex-col gap-5">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, margin: "-80px" }}
+              className="lg:col-span-2 flex flex-col gap-5"
+            >
               {contactCards.map((c) => (
-                <div
+                <motion.div
                   key={c.label}
-                  className="card-premium flex items-start gap-4 border-l-4 border-l-secondary/60 hover:border-l-secondary transition-colors"
+                  variants={staggerItem}
+                  whileHover={{
+                    y: -4,
+                    transition: { duration: 0.25 },
+                  }}
+                  className="glass-dark rounded-2xl p-5 flex items-start gap-4 border-l-4 border-l-secondary/60 hover:border-l-secondary transition-colors"
                 >
                   <div
                     className={`shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${c.gradient} shadow-lg`}
@@ -285,25 +386,25 @@ export default function ContactPage() {
                     <c.icon className="text-white" size={22} />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-white/30">
                       {c.label}
                     </p>
                     {c.href ? (
                       <a
                         href={c.href}
-                        className="text-text-primary font-semibold hover:text-secondary-dark transition-colors"
+                        className="text-white font-semibold hover:text-secondary transition-colors"
                       >
                         {c.value}
                       </a>
                     ) : (
-                      <p className="text-text-primary font-semibold text-sm leading-relaxed">
+                      <p className="text-white font-semibold text-sm leading-relaxed">
                         {c.value}
                       </p>
                     )}
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -311,79 +412,115 @@ export default function ContactPage() {
       {/* ═══════ FIND US ═══════ */}
       <section className="hero-dark relative py-24 lg:py-32 overflow-hidden">
         <div className="line-grid absolute inset-0 pointer-events-none" />
+        <div className="noise-overlay absolute inset-0 pointer-events-none" />
+
+        {/* Floating gradient orbs */}
+        <div className="absolute top-10 right-1/4 w-[350px] h-[350px] bg-secondary/[0.05] rounded-full blur-[150px] pointer-events-none animate-[float_9s_ease-in-out_infinite]" />
+        <div className="absolute bottom-10 left-1/4 w-[300px] h-[300px] bg-accent/[0.04] rounded-full blur-[130px] pointer-events-none animate-[float-delayed_11s_ease-in-out_infinite]" />
 
         <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-          <div className="text-center mb-12">
-            <span className="badge-green mb-4 inline-block">Find Us</span>
+          <RevealSection className="text-center mb-12">
+            <span className="pill mb-4 inline-block">Find Us</span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15]">
               Visit our{" "}
               <span className="gradient-text">headquarters.</span>
             </h2>
-          </div>
+          </RevealSection>
 
-          <div className="relative rounded-2xl overflow-hidden max-w-5xl mx-auto shadow-2xl shadow-black/30">
-            <Image
-              src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1200&h=400&fit=crop"
-              alt="Map view of RS CAB HQ location"
-              width={1200}
-              height={400}
-              className="w-full h-[340px] object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-dark/70 via-dark/30 to-transparent" />
-            {/* Pin */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full flex flex-col items-center">
-              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shadow-lg animate-pulse-glow">
-                <MapPin className="text-dark" size={20} />
+          <RevealSection delay={0.2}>
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              transition={{ duration: 0.4 }}
+              className="relative rounded-2xl overflow-hidden max-w-5xl mx-auto shadow-2xl shadow-black/30 neon-border"
+            >
+              <Image
+                src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1200&h=400&fit=crop"
+                alt="Map view of RS CAB HQ location"
+                width={1200}
+                height={400}
+                className="w-full h-[340px] object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark/70 via-dark/30 to-transparent" />
+
+              {/* Pin */}
+              <motion.div
+                initial={{ y: -30, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full flex flex-col items-center"
+              >
+                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shadow-lg animate-pulse-glow">
+                  <MapPin className="text-dark" size={20} />
+                </div>
+                <div className="w-0.5 h-6 bg-secondary/50" />
+              </motion.div>
+
+              {/* Address overlay */}
+              <div className="absolute bottom-6 left-6 right-6 sm:left-8">
+                <p className="text-white font-bold text-lg">RS CAB HQ</p>
+                <p className="text-white/50 text-sm">
+                  71-75 Shelton Street, Covent Garden, London WC2H 9JQ
+                </p>
               </div>
-              <div className="w-0.5 h-6 bg-secondary/50" />
-            </div>
-            {/* Address overlay */}
-            <div className="absolute bottom-6 left-6 right-6 sm:left-8">
-              <p className="text-white font-bold text-lg">RS CAB HQ</p>
-              <p className="text-white/50 text-sm">
-                71-75 Shelton Street, Covent Garden, London WC2H 9JQ
-              </p>
-            </div>
-          </div>
+            </motion.div>
+          </RevealSection>
         </div>
       </section>
 
       {/* ═══════ SUPPORT LINKS ═══════ */}
-      <section className="bg-light py-24 lg:py-32">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <div className="text-center mb-14">
-            <span className="badge-green mb-4 inline-block">
-              Quick Links
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-text-primary leading-[1.15]">
+      <section className="relative bg-dark py-24 lg:py-32 overflow-hidden">
+        {/* Decorative orbs */}
+        <div className="absolute top-20 left-10 w-[400px] h-[400px] bg-emerald-500/[0.03] rounded-full blur-[160px] pointer-events-none" />
+        <div className="absolute bottom-20 right-10 w-[350px] h-[350px] bg-accent/[0.04] rounded-full blur-[140px] pointer-events-none" />
+
+        <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
+          <RevealSection className="text-center mb-14">
+            <span className="pill mb-4 inline-block">Quick Links</span>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-[1.15]">
               Need something else?
             </h2>
-          </div>
+          </RevealSection>
 
-          <div className="grid sm:grid-cols-3 gap-6 stagger-children">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-80px" }}
+            className="grid sm:grid-cols-3 gap-6"
+          >
             {supportLinks.map((item) => (
-              <Link
-                key={item.title}
-                href={item.href}
-                className="card-premium group flex items-start gap-4"
-              >
-                <div className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-secondary/10 group-hover:bg-secondary/20 transition-colors">
-                  <item.icon className="text-secondary" size={24} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-text-primary group-hover:text-secondary-dark transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="mt-1 text-text-secondary text-sm leading-relaxed">
-                    {item.description}
-                  </p>
-                  <span className="inline-flex items-center gap-1 mt-3 text-sm font-semibold text-secondary-dark">
-                    Visit <ArrowRight size={14} />
-                  </span>
-                </div>
-              </Link>
+              <motion.div key={item.title} variants={staggerItem}>
+                <Link
+                  href={item.href}
+                  className="group block"
+                >
+                  <motion.div
+                    whileHover={{
+                      y: -6,
+                      transition: { duration: 0.25 },
+                    }}
+                    className="card-dark bezel p-6 flex items-start gap-4 h-full"
+                  >
+                    <div className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-secondary/10 group-hover:bg-secondary/20 transition-colors">
+                      <item.icon className="text-secondary" size={24} />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white group-hover:text-secondary transition-colors">
+                        {item.title}
+                      </h3>
+                      <p className="mt-1 text-white/40 text-sm leading-relaxed">
+                        {item.description}
+                      </p>
+                      <span className="inline-flex items-center gap-1 mt-3 text-sm font-semibold text-secondary group-hover:gap-2 transition-all">
+                        Visit <ArrowRight size={14} />
+                      </span>
+                    </div>
+                  </motion.div>
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 

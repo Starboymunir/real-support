@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, User, Phone } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,7 +25,12 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen hero-dark dot-grid flex">
       {/* Left — Register Form */}
-      <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, x: -60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8 }}
+        className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative overflow-hidden"
+      >
         {/* Decorative blobs */}
         <div className="absolute -top-20 -left-20 w-72 h-72 bg-secondary/5 rounded-full blur-3xl animate-morph pointer-events-none" />
         <div className="absolute bottom-10 right-10 w-56 h-56 bg-accent/5 rounded-full blur-3xl animate-morph pointer-events-none" style={{ animationDelay: "4s" }} />
@@ -63,7 +69,7 @@ export default function RegisterPage() {
 
             {/* Social signup */}
             <div className="flex gap-3 mb-5">
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm hover:bg-gray-100 transition-all hover:-translate-y-0.5">
+              <motion.button whileHover={{ scale: 1.05, y: -2 }} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm hover:bg-gray-100 transition-all">
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -71,13 +77,13 @@ export default function RegisterPage() {
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
                 Google
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1877F2] text-white font-semibold text-sm hover:bg-[#166FE5] transition-all hover:-translate-y-0.5">
+              </motion.button>
+              <motion.button whileHover={{ scale: 1.05, y: -2 }} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1877F2] text-white font-semibold text-sm hover:bg-[#166FE5] transition-all">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
                 Facebook
-              </button>
+              </motion.button>
             </div>
 
             {/* OR divider */}
@@ -90,7 +96,7 @@ export default function RegisterPage() {
             {/* Form */}
             <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
               {/* Name row */}
-              <div className="grid grid-cols-2 gap-3">
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} className="grid grid-cols-2 gap-3">
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
@@ -111,13 +117,13 @@ export default function RegisterPage() {
                     className="input-dark pl-12"
                   />
                 </div>
-              </div>
+              </motion.div>
 
               {/* Phone */}
-              <div className="relative">
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }} className="relative">
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                 <div className="absolute left-12 top-1/2 -translate-y-1/2 flex items-center">
-                  <span className="badge-green text-xs py-1 px-2">+44</span>
+                  <span className="pill text-xs py-1 px-2">+44</span>
                 </div>
                 <input
                   type="tel"
@@ -126,10 +132,10 @@ export default function RegisterPage() {
                   onChange={(e) => update("phone", e.target.value)}
                   className="input-dark pl-24"
                 />
-              </div>
+              </motion.div>
 
               {/* Email */}
-              <div className="relative">
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }} className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                 <input
                   type="email"
@@ -138,10 +144,10 @@ export default function RegisterPage() {
                   onChange={(e) => update("email", e.target.value)}
                   className="input-dark pl-12"
                 />
-              </div>
+              </motion.div>
 
               {/* Password */}
-              <div className="relative">
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.6 }} className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                 <input
                   type={showPassword ? "text" : "password"}
@@ -157,10 +163,10 @@ export default function RegisterPage() {
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
-              </div>
+              </motion.div>
 
               {/* Confirm Password */}
-              <div className="relative">
+              <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.7 }} className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                 <input
                   type={showConfirm ? "text" : "password"}
@@ -176,7 +182,7 @@ export default function RegisterPage() {
                 >
                   {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
-              </div>
+              </motion.div>
 
               {/* Terms */}
               <label className="flex items-start gap-3 cursor-pointer group">
@@ -204,12 +210,14 @@ export default function RegisterPage() {
               </label>
 
               {/* Submit */}
-              <button
+              <motion.button
                 type="submit"
-                className="w-full py-4 bg-secondary text-dark font-bold rounded-xl text-lg hover:shadow-[0_8px_30px_rgba(0,230,118,0.35)] hover:-translate-y-0.5 transition-all"
+                whileHover={{ scale: 1.02, boxShadow: '0 8px 30px rgba(0,230,118,0.35)' }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-4 bg-secondary text-dark font-bold rounded-xl text-lg hover:-translate-y-0.5 transition-all"
               >
                 Create Account
-              </button>
+              </motion.button>
             </form>
 
             {/* Demo dashboard link */}
@@ -234,10 +242,15 @@ export default function RegisterPage() {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Right — Hero Image (hidden on mobile) */}
-      <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, x: 60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="hidden lg:block lg:w-[55%] relative overflow-hidden"
+      >
         <Image
           src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=1600&fit=crop"
           alt="Mountain landscape"
@@ -264,31 +277,34 @@ export default function RegisterPage() {
 
           {/* Tagline */}
           <div className="mb-16 text-right">
-            <h1 className="text-5xl font-bold text-white leading-tight mb-4">
+            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5 }} className="text-5xl font-bold text-white leading-tight mb-4">
               Start Your<br />
               <span className="gradient-text">Journey Today</span>
-            </h1>
-            <p className="text-white/50 text-lg max-w-md ml-auto">
+            </motion.h1>
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.7 }} className="text-white/50 text-lg max-w-md ml-auto">
               Join thousands of riders who trust RS CAB for safe, reliable, and premium transportation.
-            </p>
+            </motion.p>
           </div>
 
           {/* Floating stat cards */}
           <div className="absolute top-1/3 left-12 flex flex-col gap-4 z-30">
-            <div className="glass-dark rounded-2xl p-5 animate-float glow-green">
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.6 }} className="glass-dark rounded-2xl p-5 animate-float glow-green">
               <p className="text-secondary font-bold text-2xl">50K+</p>
               <p className="text-white/50 text-sm">Happy Riders</p>
-            </div>
-            <div
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.9 }}
               className="glass-dark rounded-2xl p-5 animate-float"
               style={{ animationDelay: "1.5s" }}
             >
               <p className="text-accent font-bold text-2xl">200+</p>
               <p className="text-white/50 text-sm">Professional Drivers</p>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -30,7 +30,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
       type="button"
       onClick={onChange}
       className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
-        checked ? 'bg-secondary' : 'bg-gray-300'
+        checked ? 'bg-secondary' : 'bg-white/[0.1]'
       }`}
     >
       <span
@@ -89,20 +89,20 @@ export default function RiderProfilePage() {
   return (
     <DashboardLayout role="rider" userName="John Doe" pageTitle="My Profile">
       {/* ── Profile Header ──────────────────────────────────────── */}
-      <div className="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-gray-100 mb-8 card-hover">
+      <div className="bg-white/[0.02] rounded-2xl p-6 sm:p-8 border border-white/[0.06] mb-8 hover:bg-white/[0.04] transition-all">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-          <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-3xl font-bold text-white shrink-0 ring-4 ring-primary/10">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center text-3xl font-bold text-white shrink-0 ring-4 ring-secondary/20">
             JD
           </div>
 
           <div className="text-center sm:text-left flex-1">
-            <h2 className="text-2xl font-bold text-text-primary">John Doe</h2>
-            <p className="text-text-secondary mt-0.5">john.doe@email.com</p>
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-3 text-sm text-text-muted">
-              <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-full">
-                <Calendar size={14} className="text-primary" /> Member since Jan 2025
+            <h2 className="text-2xl font-bold text-white">John Doe</h2>
+            <p className="text-white/60 mt-0.5">john.doe@email.com</p>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-3 text-sm text-white/40">
+              <span className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.04] px-3 py-1 rounded-full">
+                <Calendar size={14} className="text-secondary" /> Member since Jan 2025
               </span>
-              <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-full">
+              <span className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.04] px-3 py-1 rounded-full">
                 <Car size={14} className="text-secondary" /> 24 rides
               </span>
             </div>
@@ -114,10 +114,10 @@ export default function RiderProfilePage() {
         {/* ════════ Left Column (2/3) ════════════════════════════ */}
         <div className="lg:col-span-2 space-y-8">
           {/* ── Personal Information ─────────────────────────────── */}
-          <div className="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-gray-100 card-hover">
-            <h3 className="text-lg font-semibold text-text-primary mb-6 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <User size={18} className="text-primary" />
+          <div className="bg-white/[0.02] rounded-2xl p-6 sm:p-8 border border-white/[0.06] hover:bg-white/[0.04] transition-all">
+            <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                <User size={18} className="text-secondary" />
               </div>
               Personal Information
             </h3>
@@ -144,7 +144,7 @@ export default function RiderProfilePage() {
                 icon={Mail}
                 value="john.doe@email.com"
                 disabled
-                className="bg-gray-50 cursor-not-allowed opacity-70"
+                className="bg-white/[0.02] cursor-not-allowed opacity-50"
               />
 
               <Input
@@ -171,8 +171,8 @@ export default function RiderProfilePage() {
           </div>
 
           {/* ── Ride Preferences ─────────────────────────────────── */}
-          <div className="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-gray-100 card-hover">
-            <h3 className="text-lg font-semibold text-text-primary mb-6 flex items-center gap-2">
+          <div className="bg-white/[0.02] rounded-2xl p-6 sm:p-8 border border-white/[0.06] hover:bg-white/[0.04] transition-all">
+            <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
                 <Car size={18} className="text-secondary" />
               </div>
@@ -181,7 +181,7 @@ export default function RiderProfilePage() {
 
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                <label className="block text-sm font-medium text-white mb-1.5">
                   Preferred Vehicle Type
                 </label>
                 <select
@@ -197,7 +197,7 @@ export default function RiderProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                <label className="block text-sm font-medium text-white mb-1.5">
                   Default Payment Method
                 </label>
                 <select
@@ -213,8 +213,8 @@ export default function RiderProfilePage() {
           </div>
 
           {/* ── Notification Preferences ─────────────────────────── */}
-          <div className="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-gray-100 card-hover">
-            <h3 className="text-lg font-semibold text-text-primary mb-6 flex items-center gap-2">
+          <div className="bg-white/[0.02] rounded-2xl p-6 sm:p-8 border border-white/[0.06] hover:bg-white/[0.04] transition-all">
+            <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
                 <Bell size={18} className="text-accent" />
               </div>
@@ -225,11 +225,11 @@ export default function RiderProfilePage() {
               {toggles.map((n) => (
                 <div
                   key={n.label}
-                  className="flex items-center justify-between p-4 rounded-xl bg-gray-50/80 hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.04] transition-colors"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-text-primary">{n.label}</p>
-                    <p className="text-xs text-text-muted mt-0.5">{n.desc}</p>
+                    <p className="text-sm font-semibold text-white">{n.label}</p>
+                    <p className="text-xs text-white/40 mt-0.5">{n.desc}</p>
                   </div>
                   <Toggle checked={n.checked} onChange={n.toggle} />
                 </div>
@@ -241,46 +241,46 @@ export default function RiderProfilePage() {
         {/* ════════ Right Column (1/3) ═══════════════════════════ */}
         <div className="space-y-6">
           {/* ── Account Card ─────────────────────────────────────── */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 card-hover">
-            <h3 className="text-lg font-semibold text-text-primary mb-5 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Shield size={18} className="text-primary" />
+          <div className="bg-white/[0.02] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.04] transition-all">
+            <h3 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                <Shield size={18} className="text-secondary" />
               </div>
               Account
             </h3>
 
             <div className="space-y-3">
-              <button className="w-full flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left group">
+              <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors text-left group">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Lock size={16} className="text-primary" />
+                  <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center">
+                    <Lock size={16} className="text-secondary" />
                   </div>
-                  <span className="text-sm font-semibold text-text-primary">Change Password</span>
+                  <span className="text-sm font-semibold text-white">Change Password</span>
                 </div>
-                <ChevronRight size={16} className="text-text-muted group-hover:text-primary transition-colors" />
+                <ChevronRight size={16} className="text-white/40 group-hover:text-secondary transition-colors" />
               </button>
 
-              <button className="w-full flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left group">
+              <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] transition-colors text-left group">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-secondary/10 flex items-center justify-center">
                     <CreditCard size={16} className="text-secondary" />
                   </div>
-                  <span className="text-sm font-semibold text-text-primary">Payment Methods</span>
+                  <span className="text-sm font-semibold text-white">Payment Methods</span>
                 </div>
-                <ChevronRight size={16} className="text-text-muted group-hover:text-primary transition-colors" />
+                <ChevronRight size={16} className="text-white/40 group-hover:text-secondary transition-colors" />
               </button>
             </div>
           </div>
 
           {/* ── Danger Zone ──────────────────────────────────────── */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-error/30">
+          <div className="bg-white/[0.02] rounded-2xl p-6 border border-error/30">
             <h3 className="text-lg font-semibold text-error mb-2 flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-error/10 flex items-center justify-center">
                 <Trash2 size={18} className="text-error" />
               </div>
               Danger Zone
             </h3>
-            <p className="text-sm text-text-muted mb-5 leading-relaxed">
+            <p className="text-sm text-white/40 mb-5 leading-relaxed">
               Once you delete your account, all of your data will be permanently removed. This action cannot be undone.
             </p>
             <Button

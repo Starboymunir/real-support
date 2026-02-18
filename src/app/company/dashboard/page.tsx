@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import {
   CalendarCheck,
   Users,
@@ -14,244 +16,289 @@ import {
   ArrowUpRight,
   Clock,
   MapPin,
+  Building2,
+  Zap,
+  Trophy,
+  Activity,
 } from 'lucide-react';
 
-/* ───── Helpers ───── */
+/* ─── animated counter ─── */
+function useCounter(end: number, dur = 1200) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    let s = 0;
+    const step = end / (dur / 16);
+    const id = setInterval(() => {
+      s += step;
+      if (s >= end) { setN(end); clearInterval(id); } else setN(Math.floor(s));
+    }, 16);
+    return () => clearInterval(id);
+  }, [end, dur]);
+  return n;
+}
+
+/* ─── arc progress ─── */
+function ArcProgress({ value, size = 44, stroke = 4, color = 'var(--color-secondary)' }: { value: number; size?: number; stroke?: number; color?: string }) {
+  const r = (size - stroke) / 2;
+  const c = r * 2 * Math.PI;
+  const offset = c - (value / 100) * c;
+  return (
+    <svg width={size} height={size} className="-rotate-90">
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
+    </svg>
+  );
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
+  }),
+};
+
 function getStatusStyle(status: string) {
   switch (status) {
-    case 'Completed':
-      return 'bg-success/10 text-success';
-    case 'In Progress':
-      return 'bg-info/10 text-info';
-    case 'Cancelled':
-      return 'bg-error/10 text-error';
-    default:
-      return 'bg-gray-100 text-gray-600';
+    case 'Completed': return 'bg-secondary/10 text-secondary border border-secondary/20';
+    case 'In Progress': return 'bg-accent/10 text-accent border border-accent/20';
+    case 'Cancelled': return 'bg-error/10 text-error border border-error/20';
+    default: return 'bg-white/[0.06] text-white/40';
   }
 }
 
 function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
+  return name.split(' ').map((w) => w[0]).join('').toUpperCase();
 }
 
-/* ───── Dummy data ───── */
-const stats = [
-  {
-    label: 'Total Bookings',
-    value: '156',
-    icon: CalendarCheck,
-    change: '+12%',
-    color: 'bg-primary/10 text-primary',
-  },
-  {
-    label: 'Active Employees',
-    value: '23',
-    icon: Users,
-    change: '+3',
-    color: 'bg-secondary/10 text-secondary',
-  },
-  {
-    label: 'Monthly Spend',
-    value: '£4,230',
-    icon: PoundSterling,
-    change: '-8%',
-    color: 'bg-info/10 text-info',
-  },
-  {
-    label: 'Avg Cost / Trip',
-    value: '£18.50',
-    icon: TrendingUp,
-    change: '-£1.20',
-    color: 'bg-warning/10 text-warning',
-  },
-];
-
 const recentBookings = [
-  {
-    employee: 'Sarah Mitchell',
-    date: '18 Feb 2026',
-    route: 'Kings Cross → Canary Wharf',
-    cost: '£22.00',
-    status: 'Completed',
-  },
-  {
-    employee: 'James Harlow',
-    date: '17 Feb 2026',
-    route: 'Heathrow T5 → Paddington',
-    cost: '£38.50',
-    status: 'In Progress',
-  },
-  {
-    employee: 'Priya Sharma',
-    date: '17 Feb 2026',
-    route: 'Liverpool St → Shoreditch',
-    cost: '£12.00',
-    status: 'Completed',
-  },
-  {
-    employee: 'Tom Walker',
-    date: '16 Feb 2026',
-    route: 'Waterloo → Westminster',
-    cost: '£9.50',
-    status: 'Cancelled',
-  },
-  {
-    employee: 'Emma Collins',
-    date: '16 Feb 2026',
-    route: 'Bank → London Bridge',
-    cost: '£8.00',
-    status: 'Completed',
-  },
+  { employee: 'Sarah Mitchell', date: '18 Feb 2026', route: 'Kings Cross → Canary Wharf', cost: '£22.00', status: 'Completed' },
+  { employee: 'James Harlow', date: '17 Feb 2026', route: 'Heathrow T5 → Paddington', cost: '£38.50', status: 'In Progress' },
+  { employee: 'Priya Sharma', date: '17 Feb 2026', route: 'Liverpool St → Shoreditch', cost: '£12.00', status: 'Completed' },
+  { employee: 'Tom Walker', date: '16 Feb 2026', route: 'Waterloo → Westminster', cost: '£9.50', status: 'Cancelled' },
+  { employee: 'Emma Collins', date: '16 Feb 2026', route: 'Bank → London Bridge', cost: '£8.00', status: 'Completed' },
 ];
 
 const topEmployees = [
-  { name: 'Sarah Mitchell', rides: 28, spent: '£620' },
-  { name: 'James Harlow', rides: 22, spent: '£510' },
-  { name: 'Priya Sharma', rides: 19, spent: '£380' },
-  { name: 'Tom Walker', rides: 15, spent: '£305' },
-  { name: 'Emma Collins', rides: 12, spent: '£240' },
+  { name: 'Sarah Mitchell', rides: 28, spent: '£620', pct: 95 },
+  { name: 'James Harlow', rides: 22, spent: '£510', pct: 78 },
+  { name: 'Priya Sharma', rides: 19, spent: '£380', pct: 58 },
+  { name: 'Tom Walker', rides: 15, spent: '£305', pct: 47 },
+  { name: 'Emma Collins', rides: 12, spent: '£240', pct: 37 },
 ];
 
 export default function CompanyDashboardPage() {
+  const bookings = useCounter(156);
+  const employees = useCounter(23, 800);
+  const monthSpend = useCounter(4230);
+  const activeRides = useCounter(7, 600);
+
   return (
     <DashboardLayout role="company" userName="Acme Corp">
-      {/* Welcome Header */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-text-primary">
-          Welcome back, <span className="gradient-text">Acme Corp</span>
-        </h2>
-        <p className="mt-1 text-text-secondary">
-          Here&rsquo;s an overview of your corporate ride activity.
-        </p>
-      </div>
+      <div className="space-y-6">
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 card-hover"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div
-                className={`w-11 h-11 rounded-lg flex items-center justify-center ${s.color}`}
-              >
-                <s.icon size={22} />
+        {/* ═══════ HERO WELCOME ═══════ */}
+        <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
+          <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8">
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-accent/[0.04] rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute -bottom-12 left-1/4 w-48 h-48 bg-secondary/[0.03] rounded-full blur-[60px] pointer-events-none" />
+
+            <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+              <div>
+                <div className="badge-green mb-3"><Building2 size={12} /> Corporate Account</div>
+                <h2 className="text-2xl sm:text-3xl font-black text-white">
+                  Welcome back, <span className="gradient-text">Acme Corp</span>
+                </h2>
+                <p className="mt-1.5 text-white/40 text-sm">Here&rsquo;s your corporate ride activity overview.</p>
               </div>
-              <span className="text-xs font-semibold text-secondary flex items-center gap-0.5">
-                {s.change} <ArrowUpRight size={14} />
-              </span>
+
+              <div className="flex flex-wrap gap-3">
+                <Button variant="green" href="/company/bookings" size="sm">
+                  <Plus size={16} /> New Booking
+                </Button>
+                <Button variant="outline" href="/company/employees" size="sm">
+                  <UserPlus size={16} /> Add Employee
+                </Button>
+                <Button variant="ghost" href="/company/reports" size="sm">
+                  <BarChart3 size={16} /> Reports
+                </Button>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-text-primary">{s.value}</p>
-            <p className="text-sm text-text-secondary mt-1">{s.label}</p>
           </div>
-        ))}
-      </div>
+        </motion.div>
 
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-3 mb-8">
-        <Button variant="primary" href="/company/bookings">
-          <Plus size={18} /> New Booking
-        </Button>
-        <Button variant="green" href="/company/employees">
-          <UserPlus size={18} /> Add Employee
-        </Button>
-        <Button variant="outline" href="/company/reports">
-          <BarChart3 size={18} /> View Reports
-        </Button>
-      </div>
+        {/* ═══════ BENTO STAT GRID ═══════ */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Bookings — hero stat */}
+          <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp} className="col-span-2">
+            <div className="relative h-full overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-accent/[0.06] via-white/[0.02] to-transparent p-6">
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-accent/[0.08] rounded-full blur-[50px] pointer-events-none" />
+              <div className="relative flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                      <CalendarCheck size={20} className="text-accent" />
+                    </div>
+                    <span className="text-white/40 text-sm font-medium">Total Bookings</span>
+                  </div>
+                  <p className="text-4xl font-black text-white tabular-nums">{bookings}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-bold">
+                      <ArrowUpRight size={12} /> 12%
+                    </span>
+                    <span className="text-white/25 text-xs">vs last month</span>
+                  </div>
+                </div>
+                {/* Mini sparkline */}
+                <svg width="120" height="50" className="hidden sm:block" viewBox="0 0 120 50">
+                  <defs>
+                    <linearGradient id="compSparkGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.2" />
+                      <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,35 L20,30 L40,32 L60,20 L80,25 L100,12 L120,8" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M0,35 L20,30 L40,32 L60,20 L80,25 L100,12 L120,8 L120,50 L0,50Z" fill="url(#compSparkGrad)" />
+                </svg>
+              </div>
+            </div>
+          </motion.div>
 
-      {/* Main Grid — Table + Sidebar */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Recent Bookings Table */}
-        <div className="xl:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-text-primary">Recent Bookings</h3>
-            <Link
-              href="/company/bookings"
-              className="text-sm text-primary font-medium hover:underline"
-            >
-              View All
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-text-secondary">
-                  <th className="text-left px-6 py-3 font-medium">Employee</th>
-                  <th className="text-left px-6 py-3 font-medium">Date</th>
-                  <th className="text-left px-6 py-3 font-medium">Route</th>
-                  <th className="text-left px-6 py-3 font-medium">Cost</th>
-                  <th className="text-left px-6 py-3 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {recentBookings.map((b, i) => (
-                  <tr key={i} className="hover:bg-gray-50/60 transition-colors">
-                    <td className="px-6 py-4 font-medium text-text-primary">{b.employee}</td>
-                    <td className="px-6 py-4 text-text-secondary">{b.date}</td>
-                    <td className="px-6 py-4 text-text-secondary">
-                      <span className="flex items-center gap-1.5">
-                        <MapPin size={14} className="text-primary shrink-0" />
-                        {b.route}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-text-primary">{b.cost}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusStyle(b.status)}`}
-                      >
-                        {b.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Active Employees */}
+          <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
+            <div className="h-full rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 hover:bg-white/[0.04] transition-all group">
+              <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <Users size={20} className="text-secondary" />
+              </div>
+              <p className="text-3xl font-black text-white tabular-nums">{employees}</p>
+              <p className="text-white/30 text-xs font-medium mt-1">Active Employees</p>
+              <div className="mt-2 flex items-center gap-1">
+                <span className="text-secondary text-xs font-semibold flex items-center gap-0.5"><ArrowUpRight size={11} />3</span>
+                <span className="text-white/20 text-[10px]">new</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Monthly Spend */}
+          <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp}>
+            <div className="h-full rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 hover:bg-white/[0.04] transition-all group">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <PoundSterling size={20} className="text-orange-400" />
+                </div>
+                <ArcProgress value={68} size={40} stroke={4} color="#FB923C" />
+              </div>
+              <p className="text-3xl font-black text-white tabular-nums">£{monthSpend.toLocaleString()}</p>
+              <p className="text-white/30 text-xs font-medium mt-1">Monthly Spend</p>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Top Employees */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-text-primary mb-4">Top Employees</h3>
-            <ul className="space-y-3">
-              {topEmployees.map((emp, i) => (
-                <li key={i} className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
-                    {getInitials(emp.name)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text-primary truncate">
-                      {emp.name}
-                    </p>
-                    <p className="text-xs text-text-muted">{emp.rides} rides</p>
-                  </div>
-                  <span className="text-sm font-semibold text-text-primary">{emp.spent}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {/* ═══════ BOOKINGS TABLE + SIDEBAR ═══════ */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Recent Bookings */}
+          <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp} className="xl:col-span-2">
+            <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-accent via-secondary to-accent" />
 
-          {/* Active Bookings Gradient Card */}
-          <div className="bg-gradient-to-br from-primary to-primary-light rounded-xl shadow-sm p-6 text-white">
-            <div className="flex items-center gap-3 mb-3">
-              <Clock size={22} />
-              <h3 className="text-lg font-semibold">Active Bookings</h3>
+              <div className="flex items-center justify-between px-6 py-5">
+                <h3 className="text-lg font-bold text-white">Recent Bookings</h3>
+                <Link href="/company/bookings" className="text-sm text-accent font-semibold hover:text-accent-light transition-colors flex items-center gap-1">
+                  View All <ArrowUpRight size={14} />
+                </Link>
+              </div>
+
+              <div className="px-6 pb-6 space-y-3">
+                {recentBookings.map((b, i) => (
+                  <div key={i} className="group flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300">
+                    {/* Employee */}
+                    <div className="flex items-center gap-3 sm:w-40 shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center text-secondary text-xs font-bold">
+                        {getInitials(b.employee)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{b.employee}</p>
+                        <p className="text-[10px] text-white/25">{b.date}</p>
+                      </div>
+                    </div>
+
+                    {/* Route */}
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <MapPin size={13} className="text-secondary shrink-0" />
+                      <p className="text-sm text-white/60 truncate">{b.route}</p>
+                    </div>
+
+                    {/* Cost + Status */}
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-sm font-black text-white tabular-nums">{b.cost}</span>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusStyle(b.status)}`}>{b.status}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="text-4xl font-bold mb-1">7</p>
-            <p className="text-white/70 text-sm mb-4">rides currently in progress</p>
-            <Link
-              href="/company/bookings"
-              className="inline-flex items-center gap-1 text-sm font-semibold text-white hover:underline"
-            >
-              View All <ArrowUpRight size={16} />
-            </Link>
+          </motion.div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Top Employees */}
+            <motion.div initial="hidden" animate="visible" custom={5} variants={fadeUp}>
+              <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent" />
+
+                <div className="flex items-center gap-2 mb-5">
+                  <Trophy size={16} className="text-yellow-400" />
+                  <h3 className="text-lg font-bold text-white">Top Employees</h3>
+                </div>
+
+                <div className="space-y-3">
+                  {topEmployees.map((emp, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.03] hover:bg-white/[0.04] transition-all">
+                      {/* Rank */}
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ${
+                        i === 0 ? 'bg-yellow-500/10 text-yellow-400' : i === 1 ? 'bg-gray-400/10 text-gray-400' : i === 2 ? 'bg-orange-600/10 text-orange-500' : 'bg-white/[0.04] text-white/20'
+                      }`}>
+                        {i + 1}
+                      </div>
+                      {/* Avatar */}
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center text-secondary text-[10px] font-bold">
+                        {getInitials(emp.name)}
+                      </div>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{emp.name}</p>
+                        <p className="text-[10px] text-white/25">{emp.rides} rides</p>
+                      </div>
+                      <span className="text-sm font-bold text-white tabular-nums">{emp.spent}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Active Bookings */}
+            <motion.div initial="hidden" animate="visible" custom={6} variants={fadeUp}>
+              <div className="relative overflow-hidden rounded-2xl border border-secondary/20 bg-gradient-to-br from-secondary/[0.08] via-dark-surface to-accent/[0.04] p-6">
+                <div className="absolute -top-12 -right-12 w-32 h-32 bg-secondary/[0.1] rounded-full blur-[40px] pointer-events-none" />
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-secondary/10 border border-secondary/20 flex items-center justify-center">
+                      <Activity size={20} className="text-secondary" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white">Active Now</h3>
+                  </div>
+                  <p className="text-5xl font-black text-white tabular-nums">{activeRides}</p>
+                  <p className="text-white/40 text-sm mt-1">rides currently in progress</p>
+                  <Link
+                    href="/company/bookings"
+                    className="inline-flex items-center gap-1.5 mt-4 text-sm font-bold text-secondary hover:text-secondary-light transition-colors"
+                  >
+                    View All <ArrowUpRight size={14} />
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>

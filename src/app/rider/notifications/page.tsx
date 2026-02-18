@@ -158,7 +158,7 @@ export default function NotificationsPage() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <h2 className="text-2xl sm:text-3xl font-bold text-text-primary">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">
             Notifications
           </h2>
           {unreadCount > 0 && (
@@ -183,8 +183,8 @@ export default function NotificationsPage() {
             onClick={() => setActiveFilter(tab.value)}
             className={`px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
               activeFilter === tab.value
-                ? 'bg-primary text-white shadow-md'
-                : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
+                ? 'bg-secondary text-dark'
+                : 'bg-white/[0.04] text-white/40 hover:bg-white/[0.06]'
             }`}
           >
             {tab.label}
@@ -195,9 +195,9 @@ export default function NotificationsPage() {
       {/* ── Notification List ───────────────────────────────────── */}
       <div className="space-y-3">
         {filtered.length === 0 && (
-          <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-100 text-center">
-            <Bell size={40} className="text-text-muted mx-auto mb-3 opacity-30" />
-            <p className="text-text-muted text-sm">No notifications in this category.</p>
+          <div className="bg-white/[0.02] rounded-2xl p-12 border border-white/[0.06] text-center">
+            <Bell size={40} className="text-white/40 mx-auto mb-3 opacity-30" />
+            <p className="text-white/40 text-sm">No notifications in this category.</p>
           </div>
         )}
 
@@ -209,11 +209,11 @@ export default function NotificationsPage() {
           return (
             <div
               key={n.id}
-              className={`bg-white rounded-xl shadow-sm border transition-all duration-200 cursor-pointer ${
+              className={`bg-white/[0.02] rounded-2xl border transition-all duration-200 cursor-pointer ${
                 !n.read
-                  ? 'border-l-4 border-l-secondary border-t border-r border-b border-t-gray-100 border-r-gray-100 border-b-gray-100 bg-secondary/[0.02]'
-                  : 'border-gray-100'
-              } ${isOpen ? 'ring-1 ring-primary/10' : 'card-hover'}`}
+                  ? 'border-l-4 border-l-secondary border-t border-r border-b border-t-white/[0.06] border-r-white/[0.06] border-b-white/[0.06] bg-secondary/[0.04]'
+                  : 'border-white/[0.06]'
+              } ${isOpen ? 'ring-1 ring-secondary/20' : 'hover:bg-white/[0.04] transition-all'}`}
               onClick={() => toggleExpand(n.id)}
             >
               <div className="p-5 flex items-start gap-4">
@@ -231,7 +231,7 @@ export default function NotificationsPage() {
                       <div className="flex items-center gap-2">
                         <h4
                           className={`text-sm font-semibold truncate ${
-                            !n.read ? 'text-text-primary' : 'text-text-secondary'
+                            !n.read ? 'text-white' : 'text-white/60'
                           }`}
                         >
                           {n.title}
@@ -240,17 +240,17 @@ export default function NotificationsPage() {
                           <span className="w-2 h-2 rounded-full bg-secondary shrink-0" />
                         )}
                       </div>
-                      <p className="text-sm text-text-muted mt-0.5 line-clamp-1">
+                      <p className="text-sm text-white/40 mt-0.5 line-clamp-1">
                         {n.description}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs text-text-muted whitespace-nowrap">{n.time}</span>
+                      <span className="text-xs text-white/40 whitespace-nowrap">{n.time}</span>
                       {isOpen ? (
-                        <ChevronUp size={14} className="text-primary" />
+                        <ChevronUp size={14} className="text-secondary" />
                       ) : (
-                        <ChevronDown size={14} className="text-text-muted" />
+                        <ChevronDown size={14} className="text-white/40" />
                       )}
                     </div>
                   </div>
@@ -260,8 +260,8 @@ export default function NotificationsPage() {
               {/* Expanded Detail */}
               {isOpen && n.detail && (
                 <div className="px-5 pb-5 pl-20">
-                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-                    <p className="text-sm text-text-secondary leading-relaxed">
+                  <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                    <p className="text-sm text-white/60 leading-relaxed">
                       {n.detail}
                     </p>
                     {n.type === 'ride' && n.title.includes('Rate') && (

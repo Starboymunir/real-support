@@ -58,10 +58,10 @@ export default function EarningsPage() {
   const data = periodData[activePeriod];
 
   const summaryCards = [
-    { label: 'Total Earnings', value: data.earnings, icon: DollarSign, color: 'bg-green-50 text-green-600', change: '+12%' },
-    { label: 'Total Rides', value: data.rides, icon: Car, color: 'bg-blue-50 text-blue-600', change: '+8%' },
-    { label: 'Average per Ride', value: data.average, icon: TrendingUp, color: 'bg-purple-50 text-purple-600', change: '+3%' },
-    { label: 'Tips', value: data.tips, icon: Coins, color: 'bg-yellow-50 text-yellow-600', change: '+15%' },
+    { label: 'Total Earnings', value: data.earnings, icon: DollarSign, color: 'bg-secondary/10 text-secondary', change: '+12%' },
+    { label: 'Total Rides', value: data.rides, icon: Car, color: 'bg-accent/10 text-accent', change: '+8%' },
+    { label: 'Average per Ride', value: data.average, icon: TrendingUp, color: 'bg-purple-500/10 text-purple-400', change: '+3%' },
+    { label: 'Tips', value: data.tips, icon: Coins, color: 'bg-yellow-500/10 text-yellow-400', change: '+15%' },
   ];
 
   const periods: { key: Period; label: string }[] = [
@@ -77,8 +77,8 @@ export default function EarningsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-text-primary">Earnings Overview</h1>
-            <p className="text-text-secondary mt-1">Track your income and payment history</p>
+            <h1 className="text-2xl font-bold text-white">Earnings Overview</h1>
+            <p className="text-white/60 mt-1">Track your income and payment history</p>
           </div>
           <Button variant="green">
             <Banknote size={18} />
@@ -87,15 +87,15 @@ export default function EarningsPage() {
         </div>
 
         {/* Period Tabs */}
-        <div className="flex gap-2 bg-white rounded-xl border border-gray-100 p-1.5 shadow-sm w-fit">
+        <div className="flex gap-2 bg-white/[0.03] rounded-xl border border-white/[0.06] p-1.5 w-fit">
           {periods.map((p) => (
             <button
               key={p.key}
               onClick={() => setActivePeriod(p.key)}
               className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activePeriod === p.key
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-gray-50'
+                  ? 'bg-secondary text-dark'
+                  : 'text-white/40 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
               {p.label}
@@ -110,38 +110,38 @@ export default function EarningsPage() {
             return (
               <div
                 key={card.label}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 card-hover"
+                className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-5 hover:bg-white/[0.04] transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.color}`}>
                     <CardIcon size={20} />
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-green-50 text-green-600">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-secondary/10 text-secondary">
                     <ArrowUpRight size={12} />
                     {card.change}
                   </span>
                 </div>
-                <p className="text-2xl font-bold text-text-primary tabular-nums">{card.value}</p>
-                <p className="text-sm text-text-muted mt-0.5">{card.label}</p>
+                <p className="text-2xl font-bold text-white tabular-nums">{card.value}</p>
+                <p className="text-sm text-white/40 mt-0.5">{card.label}</p>
               </div>
             );
           })}
         </div>
 
         {/* Earnings Breakdown */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-text-primary mb-6">Earnings Breakdown</h3>
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+          <h3 className="text-lg font-bold text-white mb-6">Earnings Breakdown</h3>
           <div className="space-y-5">
             {breakdownData.map((item) => (
               <div key={item.label}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-text-primary">{item.label}</span>
+                  <span className="text-sm font-medium text-white">{item.label}</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold text-text-primary tabular-nums">{item.amount}</span>
-                    <span className="text-xs font-semibold text-text-muted tabular-nums w-10 text-right">{item.percent}%</span>
+                    <span className="text-sm font-semibold text-white tabular-nums">{item.amount}</span>
+                    <span className="text-xs font-semibold text-white/40 tabular-nums w-10 text-right">{item.percent}%</span>
                   </div>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                <div className="w-full bg-white/[0.06] rounded-full h-2.5 overflow-hidden">
                   <div
                     className={`h-full rounded-full bg-gradient-to-r ${item.color} transition-all duration-700`}
                     style={{ width: `${item.percent}%` }}
@@ -153,9 +153,9 @@ export default function EarningsPage() {
         </div>
 
         {/* Transaction History */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-text-primary">Transaction History</h3>
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+          <div className="p-6 border-b border-white/[0.06] flex items-center justify-between">
+            <h3 className="text-lg font-bold text-white">Transaction History</h3>
             <Button variant="outline" size="sm">
               <Download size={16} />
               Export
@@ -164,42 +164,42 @@ export default function EarningsPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Route</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
+                <tr className="bg-white/[0.03]">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-white/30 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-white/30 uppercase tracking-wider">Time</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-white/30 uppercase tracking-wider">Route</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-white/30 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-white/30 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-white/[0.06]">
                 {transactions.map((tx, i) => (
-                  <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={i} className="hover:bg-white/[0.03] transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <Calendar size={14} className="text-text-muted" />
-                        <span className="text-sm text-text-primary">{tx.date}</span>
+                        <Calendar size={14} className="text-white/40" />
+                        <span className="text-sm text-white">{tx.date}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <Clock size={14} className="text-text-muted" />
-                        <span className="text-sm text-text-primary">{tx.time}</span>
+                        <Clock size={14} className="text-white/40" />
+                        <span className="text-sm text-white">{tx.time}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-sm">
                         <MapPin size={14} className="text-secondary shrink-0" />
-                        <span className="text-text-primary">{tx.from}</span>
-                        <span className="text-text-muted">→</span>
-                        <span className="text-text-primary">{tx.to}</span>
+                        <span className="text-white">{tx.from}</span>
+                        <span className="text-white/40">→</span>
+                        <span className="text-white">{tx.to}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-text-primary tabular-nums">{tx.amount}</span>
+                      <span className="text-sm font-semibold text-white tabular-nums">{tx.amount}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-600">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-secondary/10 text-secondary">
                         <CheckCircle size={12} />
                         Completed
                       </span>
@@ -212,29 +212,29 @@ export default function EarningsPage() {
         </div>
 
         {/* Payouts */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-text-primary mb-6">Recent Payouts</h3>
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+          <h3 className="text-lg font-bold text-white mb-6">Recent Payouts</h3>
           <div className="space-y-4">
             {payouts.map((payout, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100"
+                className="flex items-center justify-between p-4 bg-white/[0.03] rounded-xl border border-white/[0.06]"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center">
-                    <Building2 size={20} className="text-green-600" />
+                  <div className="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center">
+                    <Building2 size={20} className="text-secondary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-text-primary">{payout.amount}</p>
-                    <p className="text-sm text-text-muted">{payout.method}</p>
+                    <p className="font-semibold text-white">{payout.amount}</p>
+                    <p className="text-sm text-white/40">{payout.method}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-600 mb-1">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-secondary/10 text-secondary mb-1">
                     <CheckCircle size={12} />
                     Completed
                   </span>
-                  <p className="text-xs text-text-muted">{payout.date}</p>
+                  <p className="text-xs text-white/40">{payout.date}</p>
                 </div>
               </div>
             ))}

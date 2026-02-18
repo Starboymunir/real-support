@@ -52,8 +52,8 @@ export default function BookRide() {
       <div className="space-y-8">
         {/* ── Header ── */}
         <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
-          <h1 className="text-2xl font-bold text-text-primary">Where are you going?</h1>
-          <p className="text-text-muted mt-1">Plan your trip and choose the perfect ride.</p>
+          <h1 className="text-2xl font-bold text-white">Where are you going?</h1>
+          <p className="text-white/40 mt-1">Plan your trip and choose the perfect ride.</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -65,9 +65,9 @@ export default function BookRide() {
               animate="visible"
               custom={1}
               variants={fadeUp}
-              className="bg-white rounded-xl border border-gray-100 p-6 card-premium transition-all duration-200"
+              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6 card-premium transition-all duration-200"
             >
-              <h2 className="text-lg font-semibold text-text-primary mb-5">Route Details</h2>
+              <h2 className="text-lg font-semibold text-white mb-5">Route Details</h2>
 
               <div className="relative pl-8 space-y-4">
                 {/* Vertical line */}
@@ -96,7 +96,7 @@ export default function BookRide() {
                         </div>
                         <button
                           onClick={() => removeStop(idx)}
-                          className="mb-1 p-2 rounded-lg text-text-muted hover:text-error hover:bg-error/10 transition-colors"
+                          className="mb-1 p-2 rounded-lg text-white/40 hover:text-error hover:bg-error/10 transition-colors"
                         >
                           <X size={18} />
                         </button>
@@ -108,7 +108,7 @@ export default function BookRide() {
                 {stops.length < 2 && (
                   <button
                     onClick={addStop}
-                    className="flex items-center gap-2 text-sm font-medium text-accent hover:text-primary transition-colors"
+                    className="flex items-center gap-2 text-sm font-medium text-secondary hover:text-secondary-light transition-colors"
                   >
                     <Plus size={16} /> Add a stop
                   </button>
@@ -135,9 +135,9 @@ export default function BookRide() {
               animate="visible"
               custom={2}
               variants={fadeUp}
-              className="bg-white rounded-xl border border-gray-100 p-6"
+              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6"
             >
-              <h2 className="text-lg font-semibold text-text-primary mb-5">Choose Your Vehicle</h2>
+              <h2 className="text-lg font-semibold text-white mb-5">Choose Your Vehicle</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {vehicles.map((v) => {
@@ -146,25 +146,25 @@ export default function BookRide() {
                     <button
                       key={v.id}
                       onClick={() => setSelectedVehicle(v.id)}
-                      className={`relative text-left rounded-xl border-2 p-5 transition-all duration-200 cursor-pointer ${
+                      className={`relative text-left rounded-2xl border-2 p-5 transition-all duration-200 cursor-pointer ${
                         active
-                          ? 'border-primary bg-primary/[0.03] shadow-md'
-                          : 'border-gray-100 hover:border-gray-200 hover:shadow-sm'
+                          ? 'border-secondary bg-secondary/[0.06]'
+                          : 'border-white/[0.06] hover:border-white/[0.1]'
                       }`}
                     >
                       {active && (
-                        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-secondary flex items-center justify-center">
                           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                             <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         </div>
                       )}
                       <span className="text-2xl">{v.emoji}</span>
-                      <h3 className="text-base font-semibold text-text-primary mt-2">{v.name}</h3>
-                      <p className="text-xs text-text-muted mt-0.5">{v.desc}</p>
+                      <h3 className="text-base font-semibold text-white mt-2">{v.name}</h3>
+                      <p className="text-xs text-white/40 mt-0.5">{v.desc}</p>
                       <div className="flex items-center justify-between mt-3">
-                        <span className="text-sm font-bold text-text-primary">from {v.from}</span>
-                        <span className="text-xs text-text-muted flex items-center gap-1">
+                        <span className="text-sm font-bold text-white">from {v.from}</span>
+                        <span className="text-xs text-white/40 flex items-center gap-1">
                           <Clock size={12} /> {v.eta}
                         </span>
                       </div>
@@ -180,59 +180,59 @@ export default function BookRide() {
               animate="visible"
               custom={3}
               variants={fadeUp}
-              className="bg-white rounded-xl border border-gray-100 p-6"
+              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6"
             >
-              <h2 className="text-lg font-semibold text-text-primary mb-5">Payment Method</h2>
+              <h2 className="text-lg font-semibold text-white mb-5">Payment Method</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
                   onClick={() => setPaymentMethod('card')}
-                  className={`flex items-center gap-4 rounded-xl border-2 p-4 transition-all duration-200 cursor-pointer ${
+                  className={`flex items-center gap-4 rounded-2xl border-2 p-4 transition-all duration-200 cursor-pointer ${
                     paymentMethod === 'card'
-                      ? 'border-primary bg-primary/[0.03]'
-                      : 'border-gray-100 hover:border-gray-200'
+                      ? 'border-secondary bg-secondary/[0.06]'
+                      : 'border-white/[0.06] hover:border-white/[0.1]'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    paymentMethod === 'card' ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-text-muted'
+                    paymentMethod === 'card' ? 'bg-secondary/10 text-secondary' : 'bg-white/[0.06] text-white/40'
                   }`}>
                     <CreditCard size={20} />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-semibold text-text-primary">Card</p>
-                    <p className="text-xs text-text-muted">Visa ending 4242</p>
+                    <p className="text-sm font-semibold text-white">Card</p>
+                    <p className="text-xs text-white/40">Visa ending 4242</p>
                   </div>
                   <div className="ml-auto">
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      paymentMethod === 'card' ? 'border-primary' : 'border-gray-300'
+                      paymentMethod === 'card' ? 'border-secondary' : 'border-white/[0.15]'
                     }`}>
-                      {paymentMethod === 'card' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                      {paymentMethod === 'card' && <div className="w-2.5 h-2.5 rounded-full bg-secondary" />}
                     </div>
                   </div>
                 </button>
 
                 <button
                   onClick={() => setPaymentMethod('cash')}
-                  className={`flex items-center gap-4 rounded-xl border-2 p-4 transition-all duration-200 cursor-pointer ${
+                  className={`flex items-center gap-4 rounded-2xl border-2 p-4 transition-all duration-200 cursor-pointer ${
                     paymentMethod === 'cash'
-                      ? 'border-primary bg-primary/[0.03]'
-                      : 'border-gray-100 hover:border-gray-200'
+                      ? 'border-secondary bg-secondary/[0.06]'
+                      : 'border-white/[0.06] hover:border-white/[0.1]'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    paymentMethod === 'cash' ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-text-muted'
+                    paymentMethod === 'cash' ? 'bg-secondary/10 text-secondary' : 'bg-white/[0.06] text-white/40'
                   }`}>
                     <Banknote size={20} />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-semibold text-text-primary">Cash</p>
-                    <p className="text-xs text-text-muted">Pay driver directly</p>
+                    <p className="text-sm font-semibold text-white">Cash</p>
+                    <p className="text-xs text-white/40">Pay driver directly</p>
                   </div>
                   <div className="ml-auto">
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      paymentMethod === 'cash' ? 'border-primary' : 'border-gray-300'
+                      paymentMethod === 'cash' ? 'border-secondary' : 'border-white/[0.15]'
                     }`}>
-                      {paymentMethod === 'cash' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                      {paymentMethod === 'cash' && <div className="w-2.5 h-2.5 rounded-full bg-secondary" />}
                     </div>
                   </div>
                 </button>
@@ -248,9 +248,9 @@ export default function BookRide() {
               animate="visible"
               custom={4}
               variants={fadeUp}
-              className="bg-white rounded-xl border border-gray-100 p-6 card-premium transition-all duration-200 sticky top-6"
+              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6 card-premium transition-all duration-200 sticky top-6"
             >
-              <h2 className="text-lg font-semibold text-text-primary mb-5">Ride Summary</h2>
+              <h2 className="text-lg font-semibold text-white mb-5">Ride Summary</h2>
 
               {/* Route */}
               <div className="relative pl-7 space-y-3 mb-5">
@@ -258,48 +258,48 @@ export default function BookRide() {
                 <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-secondary/20 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-secondary" />
                 </div>
-                <p className="text-sm text-text-muted">Pickup location</p>
+                <p className="text-sm text-white/40">Pickup location</p>
 
                 <div className="absolute left-0 bottom-1 w-4 h-4 rounded-full bg-accent/20 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-accent" />
                 </div>
-                <p className="text-sm text-text-muted">Drop-off location</p>
+                <p className="text-sm text-white/40">Drop-off location</p>
               </div>
 
-              <div className="space-y-3 border-t border-gray-100 pt-4">
+              <div className="space-y-3 border-t border-white/[0.06] pt-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-text-muted flex items-center gap-2"><Car size={15} /> Vehicle</span>
-                  <span className="font-medium text-text-primary capitalize">{selectedVehicle}</span>
+                  <span className="text-white/40 flex items-center gap-2"><Car size={15} /> Vehicle</span>
+                  <span className="font-medium text-white capitalize">{selectedVehicle}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-text-muted">Est. Fare</span>
-                  <span className="font-bold text-text-primary">£12 – £16</span>
+                  <span className="text-white/40">Est. Fare</span>
+                  <span className="font-bold text-white">£12 – £16</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-text-muted flex items-center gap-2"><Users size={15} /> Passengers</span>
+                  <span className="text-white/40 flex items-center gap-2"><Users size={15} /> Passengers</span>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setPassengers(Math.max(1, passengers - 1))}
-                      className="w-7 h-7 rounded-md border border-gray-200 text-text-muted hover:border-primary hover:text-primary transition-colors flex items-center justify-center text-sm font-semibold"
+                      className="w-7 h-7 rounded-md border border-white/[0.1] text-white/40 hover:border-secondary hover:text-secondary transition-colors flex items-center justify-center text-sm font-semibold"
                     >
                       −
                     </button>
-                    <span className="font-medium text-text-primary w-5 text-center">{passengers}</span>
+                    <span className="font-medium text-white w-5 text-center">{passengers}</span>
                     <button
                       onClick={() => setPassengers(Math.min(8, passengers + 1))}
-                      className="w-7 h-7 rounded-md border border-gray-200 text-text-muted hover:border-primary hover:text-primary transition-colors flex items-center justify-center text-sm font-semibold"
+                      className="w-7 h-7 rounded-md border border-white/[0.1] text-white/40 hover:border-secondary hover:text-secondary transition-colors flex items-center justify-center text-sm font-semibold"
                     >
                       +
                     </button>
                   </div>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-text-muted flex items-center gap-2"><CreditCard size={15} /> Payment</span>
-                  <span className="font-medium text-text-primary capitalize">{paymentMethod}</span>
+                  <span className="text-white/40 flex items-center gap-2"><CreditCard size={15} /> Payment</span>
+                  <span className="font-medium text-white capitalize">{paymentMethod}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-text-muted flex items-center gap-2"><StickyNote size={15} /> Notes</span>
-                  <span className="text-text-muted italic">None</span>
+                  <span className="text-white/40 flex items-center gap-2"><StickyNote size={15} /> Notes</span>
+                  <span className="text-white/40 italic">None</span>
                 </div>
               </div>
 
@@ -316,7 +316,7 @@ export default function BookRide() {
               animate="visible"
               custom={5}
               variants={fadeUp}
-              className="bg-gradient-to-br from-primary to-primary-light rounded-xl p-5 text-white"
+              className="bg-gradient-to-br from-primary to-primary-light rounded-2xl p-5 text-white border border-white/[0.08]"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center">

@@ -25,7 +25,7 @@ function getStatusStyle(status: string) {
     case 'Scheduled':
       return 'bg-warning/10 text-warning';
     default:
-      return 'bg-gray-100 text-gray-600';
+      return 'bg-white/[0.06] text-white/40';
   }
 }
 
@@ -136,8 +136,8 @@ export default function CompanyBookingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-text-primary">Company Bookings</h2>
-          <p className="text-text-secondary mt-1">Manage all corporate ride bookings</p>
+          <h2 className="text-2xl font-bold text-white">Company Bookings</h2>
+          <p className="text-white/60 mt-1">Manage all corporate ride bookings</p>
         </div>
         <Button variant="primary" href="/company/bookings">
           <Plus size={18} /> New Booking
@@ -145,17 +145,17 @@ export default function CompanyBookingsPage() {
       </div>
 
       {/* Filter Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+      <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-5 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Date From */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1.5">
+            <label className="block text-sm font-medium text-white mb-1.5">
               Date From
             </label>
             <div className="relative">
               <Calendar
                 size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
               />
               <input type="date" className="input-field pl-10" defaultValue="2026-02-01" />
             </div>
@@ -163,13 +163,13 @@ export default function CompanyBookingsPage() {
 
           {/* Date To */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1.5">
+            <label className="block text-sm font-medium text-white mb-1.5">
               Date To
             </label>
             <div className="relative">
               <Calendar
                 size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
               />
               <input type="date" className="input-field pl-10" defaultValue="2026-02-18" />
             </div>
@@ -177,7 +177,7 @@ export default function CompanyBookingsPage() {
 
           {/* Employee */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1.5">
+            <label className="block text-sm font-medium text-white mb-1.5">
               Employee
             </label>
             <select
@@ -193,7 +193,7 @@ export default function CompanyBookingsPage() {
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1.5">
+            <label className="block text-sm font-medium text-white mb-1.5">
               Status
             </label>
             <select
@@ -210,11 +210,11 @@ export default function CompanyBookingsPage() {
       </div>
 
       {/* Bookings Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+      <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] overflow-hidden mb-6">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 text-text-secondary">
+              <tr className="bg-white/[0.03] text-white/30">
                 <th className="text-left px-5 py-3.5 font-medium">ID</th>
                 <th className="text-left px-5 py-3.5 font-medium">Employee</th>
                 <th className="text-left px-5 py-3.5 font-medium">Date</th>
@@ -225,22 +225,22 @@ export default function CompanyBookingsPage() {
                 <th className="text-left px-5 py-3.5 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-white/[0.04]">
               {filtered.map((b) => (
-                <tr key={b.id} className="hover:bg-gray-50/60 transition-colors">
-                  <td className="px-5 py-4 font-mono text-xs text-primary font-semibold">
+                <tr key={b.id} className="hover:bg-white/[0.04] transition-colors">
+                  <td className="px-5 py-4 font-mono text-xs text-accent font-semibold">
                     {b.id}
                   </td>
-                  <td className="px-5 py-4 font-medium text-text-primary">{b.employee}</td>
-                  <td className="px-5 py-4 text-text-secondary">{b.date}</td>
-                  <td className="px-5 py-4 text-text-secondary">
+                  <td className="px-5 py-4 font-medium text-white">{b.employee}</td>
+                  <td className="px-5 py-4 text-white/60">{b.date}</td>
+                  <td className="px-5 py-4 text-white/60">
                     <span className="flex items-center gap-1.5">
-                      <MapPin size={14} className="text-primary shrink-0" />
+                      <MapPin size={14} className="text-secondary shrink-0" />
                       {b.pickup} → {b.dropoff}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-text-secondary">{b.vehicle}</td>
-                  <td className="px-5 py-4 font-semibold text-text-primary">{b.cost}</td>
+                  <td className="px-5 py-4 text-white/60">{b.vehicle}</td>
+                  <td className="px-5 py-4 font-semibold text-white">{b.cost}</td>
                   <td className="px-5 py-4">
                     <span
                       className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusStyle(b.status)}`}
@@ -251,7 +251,7 @@ export default function CompanyBookingsPage() {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
                       <button
-                        className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                        className="p-1.5 rounded-lg text-accent hover:bg-accent/10 transition-colors"
                         title="View"
                       >
                         <Eye size={16} />
@@ -277,14 +277,14 @@ export default function CompanyBookingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         {/* Summary */}
         <div className="flex items-center gap-6 text-sm">
-          <p className="text-text-secondary">
+          <p className="text-white/60">
             Showing{' '}
-            <span className="font-semibold text-text-primary">{filtered.length}</span>{' '}
+            <span className="font-semibold text-white">{filtered.length}</span>{' '}
             bookings
           </p>
-          <p className="text-text-secondary">
+          <p className="text-white/60">
             Total Cost:{' '}
-            <span className="font-semibold text-text-primary">
+            <span className="font-semibold text-white">
               £{totalCost.toFixed(2)}
             </span>
           </p>

@@ -30,9 +30,9 @@ const variantClasses: Record<string, string> = {
   green:
     'bg-gradient-to-br from-secondary to-secondary-light text-white hover:shadow-lg hover:-translate-y-0.5',
   outline:
-    'border border-gray-300 text-text-primary hover:border-primary hover:text-primary',
+    'border border-white/[0.12] text-white hover:border-secondary hover:text-secondary',
   ghost:
-    'text-text-secondary hover:bg-gray-100 hover:text-text-primary',
+    'text-white/60 hover:bg-white/[0.06] hover:text-white',
 };
 
 export default function Button({

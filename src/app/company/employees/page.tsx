@@ -109,8 +109,8 @@ export default function CompanyEmployeesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-text-primary">Employees</h2>
-          <p className="text-text-secondary mt-1">
+          <h2 className="text-2xl font-bold text-white">Employees</h2>
+          <p className="text-white/60 mt-1">
             Manage employee ride privileges and limits
           </p>
         </div>
@@ -122,8 +122,8 @@ export default function CompanyEmployeesPage() {
 
       {/* Expandable Add Employee Form */}
       {showForm && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-text-primary mb-5">
+        <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6 mb-6">
+          <h3 className="text-lg font-semibold text-white mb-5">
             Add New Employee
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -148,7 +148,7 @@ export default function CompanyEmployeesPage() {
               required
             />
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1.5">
+              <label className="block text-sm font-medium text-white mb-1.5">
                 Department
               </label>
               <select className="input-field" defaultValue="">
@@ -189,7 +189,7 @@ export default function CompanyEmployeesPage() {
         <div className="relative flex-1 max-w-md">
           <Search
             size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
           />
           <input
             type="text"
@@ -207,8 +207,8 @@ export default function CompanyEmployeesPage() {
               onClick={() => setActiveDept(dept)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeDept === dept
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
+                  ? 'bg-secondary text-dark'
+                  : 'bg-white/[0.04] text-white/40 hover:bg-white/[0.06]'
               }`}
             >
               {dept}
@@ -226,24 +226,24 @@ export default function CompanyEmployeesPage() {
           return (
             <div
               key={emp.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 card-hover"
+              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6 hover:bg-white/[0.04] transition-all"
             >
               {/* Top row: avatar + info + badge */}
               <div className="flex items-start gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold shrink-0">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 text-secondary flex items-center justify-center text-sm font-bold shrink-0">
                   {getInitials(emp.firstName, emp.lastName)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-base font-semibold text-text-primary truncate">
+                  <h4 className="text-base font-semibold text-white truncate">
                     {emp.firstName} {emp.lastName}
                   </h4>
-                  <p className="text-sm text-text-secondary truncate">{emp.email}</p>
+                  <p className="text-sm text-white/60 truncate">{emp.email}</p>
                 </div>
                 <span
                   className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
                     emp.status === 'Active'
                       ? 'bg-success/10 text-success'
-                      : 'bg-gray-100 text-gray-500'
+                      : 'bg-white/[0.06] text-white/40'
                   }`}
                 >
                   {emp.status}
@@ -252,19 +252,19 @@ export default function CompanyEmployeesPage() {
 
               {/* 3-stat Info Grid */}
               <div className="grid grid-cols-3 gap-3 mb-5">
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="text-xs text-text-muted mb-0.5">Department</p>
-                  <p className="text-sm font-semibold text-text-primary">
+                <div className="bg-white/[0.03] rounded-lg p-3 border border-white/[0.04] text-center">
+                  <p className="text-xs text-white/40 mb-0.5">Department</p>
+                  <p className="text-sm font-semibold text-white">
                     {emp.department}
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="text-xs text-text-muted mb-0.5">Rides</p>
-                  <p className="text-sm font-semibold text-text-primary">{emp.rides}</p>
+                <div className="bg-white/[0.03] rounded-lg p-3 border border-white/[0.04] text-center">
+                  <p className="text-xs text-white/40 mb-0.5">Rides</p>
+                  <p className="text-sm font-semibold text-white">{emp.rides}</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="text-xs text-text-muted mb-0.5">Spent</p>
-                  <p className="text-sm font-semibold text-text-primary">
+                <div className="bg-white/[0.03] rounded-lg p-3 border border-white/[0.04] text-center">
+                  <p className="text-xs text-white/40 mb-0.5">Spent</p>
+                  <p className="text-sm font-semibold text-white">
                     {emp.totalSpend}
                   </p>
                 </div>
@@ -273,12 +273,12 @@ export default function CompanyEmployeesPage() {
               {/* Budget Progress Bar */}
               <div className="mb-4">
                 <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-text-muted">Budget used</span>
-                  <span className="font-semibold text-text-primary">
+                  <span className="text-white/40">Budget used</span>
+                  <span className="font-semibold text-white">
                     {emp.totalSpend} / £{emp.limit}
                   </span>
                 </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-primary to-secondary transition-all"
                     style={{ width: `${pct}%` }}
@@ -287,11 +287,11 @@ export default function CompanyEmployeesPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-                <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium text-primary hover:bg-primary/5 transition-colors">
+              <div className="flex items-center gap-2 pt-3 border-t border-white/[0.06]">
+                <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium text-accent hover:bg-accent/[0.06] transition-colors">
                   <Edit3 size={15} /> Edit
                 </button>
-                <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium text-error hover:bg-error/5 transition-colors">
+                <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium text-error hover:bg-error/[0.06] transition-colors">
                   <UserX size={15} /> Deactivate
                 </button>
               </div>
@@ -303,7 +303,7 @@ export default function CompanyEmployeesPage() {
       {/* Empty State */}
       {filtered.length === 0 && (
         <div className="text-center py-16">
-          <p className="text-text-muted text-lg">No employees match your filters.</p>
+          <p className="text-white/40 text-lg">No employees match your filters.</p>
         </div>
       )}
     </DashboardLayout>

@@ -77,7 +77,7 @@ export default function DashboardLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA]">
+    <div className="min-h-screen bg-dark">
       {/* ── Sidebar (desktop) ── */}
       <aside
         className={`fixed top-0 left-0 z-40 h-full bg-dark border-r border-white/5 transition-all duration-300 hidden lg:flex flex-col ${
@@ -231,25 +231,25 @@ export default function DashboardLayout({
       {/* ── Main content ── */}
       <div className={`transition-all duration-300 ${collapsed ? 'lg:ml-20' : 'lg:ml-[260px]'}`}>
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-100 h-16 lg:h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 mt-16 lg:mt-0">
+        <header className="sticky top-0 z-30 bg-dark-surface/80 backdrop-blur-xl border-b border-white/[0.06] h-16 lg:h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 mt-16 lg:mt-0">
           <div>
-            <h1 className="text-lg font-bold text-text-primary">{pageTitle}</h1>
+            <h1 className="text-lg font-bold text-white">{pageTitle}</h1>
           </div>
           <div className="flex items-center gap-3">
             <Link
               href={`/${role}/notifications`}
-              className="relative p-2.5 rounded-xl text-text-secondary hover:bg-gray-100 transition-colors"
+              className="relative p-2.5 rounded-xl text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-colors"
             >
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-secondary ring-2 ring-white" />
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-secondary ring-2 ring-dark-surface" />
             </Link>
-            <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-gray-200">
+            <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-white/[0.08]">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center text-secondary text-xs font-bold">
                 {getInitials(userName)}
               </div>
               <div>
-                <p className="text-sm font-semibold text-text-primary">{userName}</p>
-                <p className="text-xs text-text-muted capitalize">{role}</p>
+                <p className="text-sm font-semibold text-white">{userName}</p>
+                <p className="text-xs text-white/40 capitalize">{role}</p>
               </div>
             </div>
           </div>

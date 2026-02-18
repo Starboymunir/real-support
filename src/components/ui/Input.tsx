@@ -17,7 +17,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-text-primary mb-1.5"
+            className="block text-sm font-medium text-white mb-1.5"
           >
             {label}
           </label>
@@ -25,7 +25,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
         <div className="relative">
           {Icon && (
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
               <Icon size={18} />
             </span>
           )}

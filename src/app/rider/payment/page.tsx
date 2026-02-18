@@ -56,10 +56,10 @@ export default function PaymentPage() {
     <DashboardLayout role="rider" userName="John Doe" pageTitle="Payment Methods">
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="mb-8">
-        <h2 className="text-2xl sm:text-3xl font-bold text-text-primary mb-1">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">
           Payment Methods
         </h2>
-        <p className="text-text-secondary">Manage your cards and view transaction history.</p>
+        <p className="text-white/60">Manage your cards and view transaction history.</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -70,18 +70,18 @@ export default function PaymentPage() {
             {savedCards.map((card) => (
               <div
                 key={card.id}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 card-hover"
+                className="bg-white/[0.02] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.04] transition-all"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div
-                      className={`w-16 h-11 rounded-lg bg-gradient-to-br ${cardGradients[card.type]} flex items-center justify-center shrink-0 shadow-md`}
+                      className={`w-16 h-11 rounded-lg bg-gradient-to-br ${cardGradients[card.type]} flex items-center justify-center shrink-0`}
                     >
                       <CreditCard size={22} className="text-white" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-text-primary">
+                        <p className="font-semibold text-white">
                           {card.type} •••• {card.last4}
                         </p>
                         {card.isDefault && (
@@ -90,7 +90,7 @@ export default function PaymentPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-text-muted mt-0.5">Expires {card.expiry}</p>
+                      <p className="text-sm text-white/40 mt-0.5">Expires {card.expiry}</p>
                     </div>
                   </div>
 
@@ -114,13 +114,13 @@ export default function PaymentPage() {
           </div>
 
           {/* ── Add New Card ─────────────────────────────────────── */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] overflow-hidden">
             {!showAddForm ? (
               <button
                 onClick={() => setShowAddForm(true)}
-                className="w-full p-6 border-2 border-dashed border-gray-200 rounded-xl hover:border-primary hover:bg-primary/5 transition-all duration-200 flex items-center justify-center gap-3 text-text-secondary hover:text-primary group"
+                className="w-full p-6 border-2 border-dashed border-white/[0.08] rounded-2xl hover:border-secondary hover:bg-secondary/[0.04] transition-all duration-200 flex items-center justify-center gap-3 text-white/40 hover:text-secondary group"
               >
-                <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                <div className="w-10 h-10 rounded-full bg-white/[0.06] group-hover:bg-secondary/10 flex items-center justify-center transition-colors">
                   <Plus size={20} />
                 </div>
                 <span className="font-semibold">Add New Card</span>
@@ -128,17 +128,17 @@ export default function PaymentPage() {
             ) : (
               <div className="p-6 sm:p-8">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-text-primary flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <CreditCard size={18} className="text-primary" />
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                      <CreditCard size={18} className="text-secondary" />
                     </div>
                     Add New Card
                   </h3>
                   <button
                     onClick={() => setShowAddForm(false)}
-                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                    className="w-8 h-8 rounded-full bg-white/[0.06] hover:bg-white/[0.1] flex items-center justify-center transition-colors"
                   >
-                    <X size={16} className="text-text-muted" />
+                    <X size={16} className="text-white/40" />
                   </button>
                 </div>
 
@@ -176,7 +176,7 @@ export default function PaymentPage() {
                     onChange={(e) => setCardName(e.target.value)}
                   />
 
-                  <div className="flex items-center gap-2 text-xs text-text-muted bg-gray-50 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-xs text-white/40 bg-white/[0.03] border border-white/[0.04] rounded-lg p-3">
                     <Shield size={14} className="text-success shrink-0" />
                     <span>Your payment info is secured with 256-bit SSL encryption</span>
                   </div>
@@ -195,10 +195,10 @@ export default function PaymentPage() {
           </div>
 
           {/* ── Transaction History ──────────────────────────────── */}
-          <div className="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-gray-100 card-hover">
-            <h3 className="text-lg font-semibold text-text-primary mb-6 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <ArrowUpRight size={18} className="text-primary" />
+          <div className="bg-white/[0.02] rounded-2xl p-6 sm:p-8 border border-white/[0.06] hover:bg-white/[0.04] transition-all">
+            <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                <ArrowUpRight size={18} className="text-secondary" />
               </div>
               Transaction History
             </h3>
@@ -207,20 +207,20 @@ export default function PaymentPage() {
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left py-3 px-4 text-text-muted font-medium">Date</th>
-                    <th className="text-left py-3 px-4 text-text-muted font-medium">Amount</th>
-                    <th className="text-left py-3 px-4 text-text-muted font-medium">Ride ID</th>
-                    <th className="text-left py-3 px-4 text-text-muted font-medium">Status</th>
+                  <tr className="border-b border-white/[0.06]">
+                    <th className="text-left py-3 px-4 text-white/30 font-medium">Date</th>
+                    <th className="text-left py-3 px-4 text-white/30 font-medium">Amount</th>
+                    <th className="text-left py-3 px-4 text-white/30 font-medium">Ride ID</th>
+                    <th className="text-left py-3 px-4 text-white/30 font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {transactions.map((tx) => (
-                    <tr key={tx.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-3.5 px-4 text-text-primary font-medium">{tx.date}</td>
-                      <td className="py-3.5 px-4 text-text-primary font-semibold">{tx.amount}</td>
+                    <tr key={tx.id} className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors">
+                      <td className="py-3.5 px-4 text-white font-medium">{tx.date}</td>
+                      <td className="py-3.5 px-4 text-white font-semibold">{tx.amount}</td>
                       <td className="py-3.5 px-4">
-                        <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-text-secondary">
+                        <span className="font-mono text-xs bg-white/[0.06] px-2 py-1 rounded text-white/50">
                           {tx.ride}
                         </span>
                       </td>
@@ -249,9 +249,9 @@ export default function PaymentPage() {
             {/* Mobile cards */}
             <div className="sm:hidden space-y-3">
               {transactions.map((tx) => (
-                <div key={tx.id} className="p-4 rounded-xl bg-gray-50">
+                <div key={tx.id} className="p-4 rounded-xl bg-white/[0.03]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-text-primary">{tx.amount}</span>
+                    <span className="text-sm font-semibold text-white">{tx.amount}</span>
                     <span
                       className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                         tx.status === 'Paid'
@@ -262,9 +262,9 @@ export default function PaymentPage() {
                       {tx.status}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-text-muted">
+                  <div className="flex items-center justify-between text-xs text-white/40">
                     <span>{tx.date}</span>
-                    <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded">{tx.ride}</span>
+                    <span className="font-mono bg-white/[0.08] px-1.5 py-0.5 rounded">{tx.ride}</span>
                   </div>
                 </div>
               ))}
@@ -275,33 +275,33 @@ export default function PaymentPage() {
         {/* ════════ Right Column (1/3) ═══════════════════════════ */}
         <div className="space-y-6">
           {/* ── Payment Summary ──────────────────────────────────── */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 card-hover">
-            <h3 className="text-lg font-semibold text-text-primary mb-5 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Wallet size={18} className="text-primary" />
+          <div className="bg-white/[0.02] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.04] transition-all">
+            <h3 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                <Wallet size={18} className="text-secondary" />
               </div>
               Payment Summary
             </h3>
 
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-gray-50">
-                <p className="text-xs text-text-muted font-medium uppercase tracking-wider">Total Spent</p>
-                <p className="text-2xl font-bold text-text-primary mt-1">£342.80</p>
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04]">
+                <p className="text-xs text-white/30 font-medium uppercase tracking-wider">Total Spent</p>
+                <p className="text-2xl font-bold text-white mt-1">£342.80</p>
               </div>
-              <div className="p-4 rounded-xl bg-gray-50">
-                <p className="text-xs text-text-muted font-medium uppercase tracking-wider">This Month</p>
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04]">
+                <p className="text-xs text-white/30 font-medium uppercase tracking-wider">This Month</p>
                 <p className="text-2xl font-bold gradient-text mt-1">£65.50</p>
               </div>
-              <div className="p-4 rounded-xl bg-gray-50">
-                <p className="text-xs text-text-muted font-medium uppercase tracking-wider">Saved Cards</p>
-                <p className="text-2xl font-bold text-text-primary mt-1">2</p>
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04]">
+                <p className="text-xs text-white/30 font-medium uppercase tracking-wider">Saved Cards</p>
+                <p className="text-2xl font-bold text-white mt-1">2</p>
               </div>
             </div>
           </div>
 
           {/* ── Secure Payments ──────────────────────────────────── */}
-          <div className="bg-gradient-to-br from-primary to-primary-light rounded-xl p-6 text-white shadow-lg">
-            <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center mb-4">
+          <div className="bg-gradient-to-br from-secondary/[0.12] via-dark-surface to-accent/[0.06] rounded-2xl p-6 text-white border border-secondary/20">
+            <div className="w-12 h-12 rounded-xl bg-secondary/10 border border-secondary/20 flex items-center justify-center mb-4">
               <Shield size={24} className="text-white" />
             </div>
             <h3 className="text-lg font-bold mb-2">Secure Payments</h3>

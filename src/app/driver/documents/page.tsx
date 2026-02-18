@@ -84,10 +84,10 @@ const initialDocuments: Document[] = [
 ];
 
 const statusConfig: Record<DocStatus, { label: string; color: string; bgColor: string; borderColor: string; icon: React.ElementType }> = {
-  approved: { label: 'Approved', color: 'text-green-700', bgColor: 'bg-green-50', borderColor: 'border-green-200', icon: Check },
-  pending: { label: 'Pending Review', color: 'text-yellow-700', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200', icon: Clock },
-  rejected: { label: 'Rejected', color: 'text-red-700', bgColor: 'bg-red-50', borderColor: 'border-red-200', icon: XCircle },
-  not_uploaded: { label: 'Not Uploaded', color: 'text-gray-500', bgColor: 'bg-gray-50', borderColor: 'border-gray-200', icon: AlertCircle },
+  approved: { label: 'Approved', color: 'text-green-400', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/20', icon: Check },
+  pending: { label: 'Pending Review', color: 'text-yellow-400', bgColor: 'bg-yellow-500/10', borderColor: 'border-yellow-500/20', icon: Clock },
+  rejected: { label: 'Rejected', color: 'text-red-400', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/20', icon: XCircle },
+  not_uploaded: { label: 'Not Uploaded', color: 'text-white/40', bgColor: 'bg-white/[0.03]', borderColor: 'border-white/[0.08]', icon: AlertCircle },
 };
 
 export default function DocumentsPage() {
@@ -97,7 +97,7 @@ export default function DocumentsPage() {
     <DashboardLayout role="driver" userName="New Driver" pageTitle="Documents">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Progress Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-white/[0.08] rounded-full h-2 overflow-hidden">
           <div
             className="h-full rounded-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
             style={{ width: '100%' }}
@@ -120,14 +120,14 @@ export default function DocumentsPage() {
                         ? 'bg-secondary text-white shadow-lg shadow-secondary/30'
                         : isActive
                         ? 'bg-gradient-to-br from-primary to-primary-light text-white shadow-lg shadow-primary/30'
-                        : 'bg-gray-100 text-text-muted border-2 border-gray-200'
+                        : 'bg-white/[0.04] text-white/40 border-2 border-white/[0.08]'
                     }`}
                   >
                     {isDone ? <Check size={20} /> : <StepIcon size={20} />}
                   </div>
                   <span
                     className={`text-xs font-semibold whitespace-nowrap ${
-                      isActive ? 'text-primary' : isDone ? 'text-secondary' : 'text-text-muted'
+                      isActive ? 'text-secondary' : isDone ? 'text-secondary' : 'text-white/40'
                     }`}
                   >
                     {step.label}
@@ -144,10 +144,10 @@ export default function DocumentsPage() {
         </div>
 
         {/* Documents Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-8">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-text-primary">Required Documents</h2>
-            <p className="text-text-secondary mt-1">
+            <h2 className="text-2xl font-bold text-white">Required Documents</h2>
+            <p className="text-white/60 mt-1">
               Upload all required documents to complete your application
             </p>
           </div>
@@ -161,7 +161,7 @@ export default function DocumentsPage() {
               return (
                 <div
                   key={doc.id}
-                  className={`rounded-xl border ${status.borderColor} p-6 transition-all duration-200`}
+                  className={`rounded-2xl border ${status.borderColor} p-6 transition-all duration-200`}
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
@@ -172,8 +172,8 @@ export default function DocumentsPage() {
                         <DocIcon size={20} className={status.color} />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-text-primary">{doc.label}</h3>
-                        <p className="text-sm text-text-muted">{doc.description}</p>
+                        <h3 className="font-semibold text-white">{doc.label}</h3>
+                        <p className="text-sm text-white/40">{doc.description}</p>
                       </div>
                     </div>
                     <span
@@ -186,9 +186,9 @@ export default function DocumentsPage() {
 
                   {/* Rejection Message */}
                   {doc.status === 'rejected' && doc.rejectionMessage && (
-                    <div className="flex items-start gap-2 mb-4 p-3 bg-red-50 border border-red-100 rounded-lg">
-                      <XCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
-                      <p className="text-sm text-red-700">{doc.rejectionMessage}</p>
+                    <div className="flex items-start gap-2 mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                      <XCircle size={16} className="text-red-400 mt-0.5 shrink-0" />
+                      <p className="text-sm text-red-400">{doc.rejectionMessage}</p>
                     </div>
                   )}
 
@@ -198,37 +198,37 @@ export default function DocumentsPage() {
                       {['Front', 'Back'].map((side) => (
                         <div
                           key={side}
-                          className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-secondary/50 hover:bg-secondary/5 transition-all duration-300 cursor-pointer group"
+                          className="border-2 border-dashed border-white/[0.08] rounded-xl p-6 text-center hover:border-secondary/40 hover:bg-secondary/[0.04] transition-all duration-300 cursor-pointer group"
                         >
                           <Upload
                             size={22}
-                            className="mx-auto mb-2 text-text-muted group-hover:text-secondary transition-colors"
+                            className="mx-auto mb-2 text-white/40 group-hover:text-secondary transition-colors"
                           />
-                          <p className="text-sm font-medium text-text-primary">
+                          <p className="text-sm font-medium text-white">
                             Upload {side}
                           </p>
-                          <p className="text-xs text-text-muted mt-1">PNG, JPG (max 5MB)</p>
+                          <p className="text-xs text-white/40 mt-1">PNG, JPG (max 5MB)</p>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-secondary/50 hover:bg-secondary/5 transition-all duration-300 cursor-pointer group mb-4">
+                    <div className="border-2 border-dashed border-white/[0.08] rounded-xl p-6 text-center hover:border-secondary/40 hover:bg-secondary/[0.04] transition-all duration-300 cursor-pointer group mb-4">
                       <Upload
                         size={22}
-                        className="mx-auto mb-2 text-text-muted group-hover:text-secondary transition-colors"
+                        className="mx-auto mb-2 text-white/40 group-hover:text-secondary transition-colors"
                       />
-                      <p className="text-sm font-medium text-text-primary">
+                      <p className="text-sm font-medium text-white">
                         Click to upload or drag and drop
                       </p>
-                      <p className="text-xs text-text-muted mt-1">PNG, JPG or PDF (max 5MB)</p>
+                      <p className="text-xs text-white/40 mt-1">PNG, JPG or PDF (max 5MB)</p>
                     </div>
                   )}
 
                   {/* Expiry Date */}
                   {(doc.expiry || doc.status !== 'not_uploaded') && (
                     <div className="flex items-center gap-2">
-                      <Calendar size={16} className="text-text-muted" />
-                      <label className="text-sm font-medium text-text-secondary">Expiry Date</label>
+                      <Calendar size={16} className="text-white/40" />
+                      <label className="text-sm font-medium text-white/60">Expiry Date</label>
                       <input
                         type="date"
                         className="input-field max-w-[200px] text-sm py-2 px-3"
@@ -244,13 +244,13 @@ export default function DocumentsPage() {
           {/* Review Notice */}
           <div className="mt-8 flex items-center gap-3 p-4 bg-info/5 border border-info/20 rounded-xl">
             <Info size={20} className="text-info shrink-0" />
-            <p className="text-sm text-text-secondary">
-              Your application will be reviewed within <strong className="text-text-primary">48 hours</strong> after all documents are submitted. You&apos;ll receive a notification once approved.
+            <p className="text-sm text-white/60">
+              Your application will be reviewed within <strong className="text-white">48 hours</strong> after all documents are submitted. You&apos;ll receive a notification once approved.
             </p>
           </div>
 
           {/* Buttons */}
-          <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-100">
+          <div className="flex items-center justify-between pt-6 mt-6 border-t border-white/[0.06]">
             <Button variant="outline" href="/driver/vehicle">
               <ArrowLeft size={18} />
               Back

@@ -113,13 +113,13 @@ export default function SupportPage() {
     <DashboardLayout role="rider" userName="John Doe" pageTitle="Support">
       {/* ── Header & Search ─────────────────────────────────────── */}
       <div className="text-center max-w-2xl mx-auto mb-10">
-        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-          <HelpCircle size={32} className="text-primary" />
+        <div className="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center mx-auto mb-4">
+          <HelpCircle size={32} className="text-secondary" />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-text-primary mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
           How can we help?
         </h2>
-        <p className="text-text-secondary mb-6">
+        <p className="text-white/60 mb-6">
           Search our FAQ or get in touch with our dedicated support team.
         </p>
         <Input
@@ -135,10 +135,10 @@ export default function SupportPage() {
         {/* ════════ Left Column (2/3) ════════════════════════════ */}
         <div className="lg:col-span-2 space-y-8">
           {/* ── FAQ Accordion ────────────────────────────────────── */}
-          <div className="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-gray-100 card-hover">
-            <h3 className="text-lg font-semibold text-text-primary mb-6 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <HelpCircle size={18} className="text-primary" />
+          <div className="bg-white/[0.02] rounded-2xl p-6 sm:p-8 border border-white/[0.06] hover:bg-white/[0.04] transition-all">
+            <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                <HelpCircle size={18} className="text-secondary" />
               </div>
               Frequently Asked Questions
             </h3>
@@ -146,8 +146,8 @@ export default function SupportPage() {
             <div className="space-y-3">
               {filteredFaqs.length === 0 && (
                 <div className="text-center py-8">
-                  <Search size={32} className="text-text-muted mx-auto mb-3 opacity-40" />
-                  <p className="text-text-muted text-sm">No results found for &ldquo;{searchQuery}&rdquo;</p>
+                  <Search size={32} className="text-white/40 mx-auto mb-3 opacity-40" />
+                  <p className="text-white/40 text-sm">No results found for &ldquo;{searchQuery}&rdquo;</p>
                 </div>
               )}
 
@@ -158,7 +158,7 @@ export default function SupportPage() {
                   <div
                     key={idx}
                     className={`rounded-xl border transition-all duration-200 ${
-                      isOpen ? 'border-primary/20 bg-primary/5' : 'border-gray-100 bg-gray-50/60 hover:bg-gray-50'
+                      isOpen ? 'border-secondary/20 bg-secondary/[0.04]' : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04]'
                     }`}
                   >
                     <button
@@ -167,24 +167,24 @@ export default function SupportPage() {
                     >
                       <div
                         className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                          isOpen ? 'bg-primary/10' : 'bg-gray-100'
+                          isOpen ? 'bg-secondary/10' : 'bg-white/[0.06]'
                         }`}
                       >
-                        <Icon size={16} className={isOpen ? 'text-primary' : 'text-text-muted'} />
+                        <Icon size={16} className={isOpen ? 'text-secondary' : 'text-white/40'} />
                       </div>
-                      <span className="flex-1 text-sm font-semibold text-text-primary">
+                      <span className="flex-1 text-sm font-semibold text-white">
                         {faq.question}
                       </span>
                       {isOpen ? (
-                        <ChevronUp size={16} className="text-primary shrink-0" />
+                        <ChevronUp size={16} className="text-secondary shrink-0" />
                       ) : (
-                        <ChevronDown size={16} className="text-text-muted shrink-0" />
+                        <ChevronDown size={16} className="text-white/40 shrink-0" />
                       )}
                     </button>
 
                     {isOpen && (
                       <div className="px-4 pb-4 pl-16">
-                        <p className="text-sm text-text-secondary leading-relaxed">
+                        <p className="text-sm text-white/60 leading-relaxed">
                           {faq.answer}
                         </p>
                       </div>
@@ -196,8 +196,8 @@ export default function SupportPage() {
           </div>
 
           {/* ── Submit a Ticket ──────────────────────────────────── */}
-          <div className="bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-gray-100 card-hover">
-            <h3 className="text-lg font-semibold text-text-primary mb-6 flex items-center gap-2">
+          <div className="bg-white/[0.02] rounded-2xl p-6 sm:p-8 border border-white/[0.06] hover:bg-white/[0.04] transition-all">
+            <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
                 <Send size={18} className="text-secondary" />
               </div>
@@ -214,7 +214,7 @@ export default function SupportPage() {
               />
 
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                <label className="block text-sm font-medium text-white mb-1.5">
                   Category
                 </label>
                 <select
@@ -232,7 +232,7 @@ export default function SupportPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                <label className="block text-sm font-medium text-white mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -259,16 +259,16 @@ export default function SupportPage() {
             return (
               <div
                 key={c.label}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 card-hover"
+                className="bg-white/[0.02] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.04] transition-all"
               >
                 <div className="flex items-start gap-4">
                   <div className={`w-11 h-11 rounded-xl ${c.bg} flex items-center justify-center shrink-0`}>
                     <Icon size={20} className={c.color} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-text-primary">{c.label}</p>
+                    <p className="text-sm font-semibold text-white">{c.label}</p>
                     <p className={`text-sm font-bold mt-0.5 ${c.color}`}>{c.value}</p>
-                    <p className="text-xs text-text-muted mt-1 leading-relaxed">{c.desc}</p>
+                    <p className="text-xs text-white/40 mt-1 leading-relaxed">{c.desc}</p>
                   </div>
                 </div>
               </div>
@@ -276,13 +276,13 @@ export default function SupportPage() {
           })}
 
           {/* ── Response Time ────────────────────────────────────── */}
-          <div className="bg-gradient-to-br from-primary to-primary-light rounded-xl p-6 text-white shadow-lg">
-            <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center mb-4">
+          <div className="bg-gradient-to-br from-secondary/[0.12] via-dark-surface to-accent/[0.06] rounded-2xl p-6 text-white border border-secondary/20">
+            <div className="w-12 h-12 rounded-xl bg-secondary/10 border border-secondary/20 flex items-center justify-center mb-4">
               <Clock size={24} className="text-white" />
             </div>
             <h3 className="text-lg font-bold mb-1">Typical Response Time</h3>
             <p className="text-3xl font-extrabold gradient-text mt-2">Under 2 Hours</p>
-            <p className="text-sm text-white/70 mt-2 leading-relaxed">
+            <p className="text-sm text-white/50 mt-2 leading-relaxed">
               Our support team aims to respond to all tickets within 2 hours during business hours.
             </p>
           </div>

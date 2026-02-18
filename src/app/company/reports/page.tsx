@@ -81,10 +81,10 @@ export default function CompanyReportsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-text-primary">
+          <h2 className="text-2xl font-bold text-white">
             Reports &amp; Analytics
           </h2>
-          <p className="text-text-secondary mt-1">
+          <p className="text-white/60 mt-1">
             Comprehensive insights into your corporate ride activity
           </p>
         </div>
@@ -106,8 +106,8 @@ export default function CompanyReportsPage() {
             onClick={() => setActivePeriod(period)}
             className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activePeriod === period
-                ? 'bg-primary text-white shadow-sm'
-                : 'bg-white border border-gray-200 text-text-secondary hover:border-primary hover:text-primary'
+                ? 'bg-secondary text-dark'
+                : 'bg-white/[0.03] border border-white/[0.06] text-white/40 hover:border-secondary hover:text-secondary'
             }`}
           >
             {period}
@@ -120,15 +120,15 @@ export default function CompanyReportsPage() {
         {overviewCards.map((card) => (
           <div
             key={card.label}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 card-hover"
+            className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6 hover:bg-white/[0.04] transition-all"
           >
             <div
               className={`w-11 h-11 rounded-lg flex items-center justify-center ${card.color} mb-4`}
             >
               <card.icon size={22} />
             </div>
-            <p className="text-2xl font-bold text-text-primary">{card.value}</p>
-            <p className="text-sm text-text-secondary mt-1">{card.label}</p>
+            <p className="text-2xl font-bold text-white">{card.value}</p>
+            <p className="text-sm text-white/60 mt-1">{card.label}</p>
           </div>
         ))}
       </div>
@@ -136,43 +136,43 @@ export default function CompanyReportsPage() {
       {/* Department Breakdown + Spending Trend */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
         {/* Department Breakdown */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-text-primary">
+        <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06]">
+          <div className="px-6 py-4 border-b border-white/[0.06]">
+            <h3 className="text-lg font-semibold text-white">
               Department Breakdown
             </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 text-text-secondary">
+                <tr className="bg-white/[0.03] text-white/30">
                   <th className="text-left px-6 py-3 font-medium">Department</th>
                   <th className="text-left px-6 py-3 font-medium">Trips</th>
                   <th className="text-left px-6 py-3 font-medium">Total Cost</th>
                   <th className="text-left px-6 py-3 font-medium">Avg Cost</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-white/[0.04]">
                 {departmentBreakdown.map((dept) => (
                   <tr
                     key={dept.department}
-                    className="hover:bg-gray-50/60 transition-colors"
+                    className="hover:bg-white/[0.04] transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <div
                           className={`w-2 h-2 rounded-full ${deptColors[dept.department] || 'bg-gray-400'}`}
                         />
-                        <span className="font-medium text-text-primary">
+                        <span className="font-medium text-white">
                           {dept.department}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-text-secondary">{dept.trips}</td>
-                    <td className="px-6 py-4 font-semibold text-text-primary">
+                    <td className="px-6 py-4 text-white/60">{dept.trips}</td>
+                    <td className="px-6 py-4 font-semibold text-white">
                       {dept.totalCost}
                     </td>
-                    <td className="px-6 py-4 text-text-secondary">{dept.avgCost}</td>
+                    <td className="px-6 py-4 text-white/60">{dept.avgCost}</td>
                   </tr>
                 ))}
               </tbody>
@@ -181,32 +181,32 @@ export default function CompanyReportsPage() {
         </div>
 
         {/* Spending Trend Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-text-primary">Spending Trend</h3>
-            <span className="text-xs text-text-muted">Last 6 months</span>
+            <h3 className="text-lg font-semibold text-white">Spending Trend</h3>
+            <span className="text-xs text-white/40">Last 6 months</span>
           </div>
 
           {/* Bar Chart */}
           <div className="flex items-end gap-3 h-52">
             {spendingTrend.map((s) => (
               <div key={s.month} className="flex-1 flex flex-col items-center gap-2">
-                <span className="text-xs font-semibold text-text-primary">
+                <span className="text-xs font-semibold text-white">
                   £{(s.amount / 1000).toFixed(1)}k
                 </span>
                 <div
                   className="w-full rounded-t-lg bg-gradient-to-t from-primary to-secondary transition-all"
                   style={{ height: `${(s.amount / maxSpend) * 100}%` }}
                 />
-                <span className="text-xs text-text-muted">{s.month}</span>
+                <span className="text-xs text-white/40">{s.month}</span>
               </div>
             ))}
           </div>
 
           {/* Trend Summary */}
-          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 text-sm">
+          <div className="mt-4 pt-4 border-t border-white/[0.06] flex items-center gap-2 text-sm">
             <TrendingUp size={16} className="text-secondary" />
-            <span className="text-text-secondary">
+            <span className="text-white/60">
               <span className="font-semibold text-secondary">+8.2%</span> vs previous
               period
             </span>
@@ -215,31 +215,31 @@ export default function CompanyReportsPage() {
       </div>
 
       {/* Top Routes */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-text-primary">Top Routes</h3>
-          <p className="text-sm text-text-secondary mt-0.5">
+      <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06]">
+        <div className="px-6 py-4 border-b border-white/[0.06]">
+          <h3 className="text-lg font-semibold text-white">Top Routes</h3>
+          <p className="text-sm text-white/60 mt-0.5">
             Most frequently booked routes this period
           </p>
         </div>
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-white/[0.04]">
           {topRoutes.map((r, i) => (
             <div
               key={i}
-              className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/60 transition-colors"
+              className="flex items-center gap-4 px-6 py-4 hover:bg-white/[0.04] transition-colors"
             >
-              <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-sm font-bold shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-accent/10 text-accent flex items-center justify-center text-sm font-bold shrink-0">
                 {i + 1}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary flex items-center gap-1.5">
-                  <MapPin size={14} className="text-primary shrink-0" />
+                <p className="text-sm font-medium text-white flex items-center gap-1.5">
+                  <MapPin size={14} className="text-secondary shrink-0" />
                   {r.route}
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-sm font-semibold text-text-primary">{r.count} trips</p>
-                <p className="text-xs text-text-muted">avg {r.avgCost}</p>
+                <p className="text-sm font-semibold text-white">{r.count} trips</p>
+                <p className="text-xs text-white/40">avg {r.avgCost}</p>
               </div>
             </div>
           ))}

@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { documentsApi } from '@/lib/services';
 import {
   User,
   Car,
@@ -91,10 +93,58 @@ const statusConfig: Record<DocStatus, { label: string; color: string; bgColor: s
 };
 
 export default function DocumentsPage() {
-  const [documents] = useState<Document[]>(initialDocuments);
+  const { user } = useRequireAuth();
+  const [documents, setDocuments] = useState<Document[]>(initialDocuments);
+  const [uploading, setUploading] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState('');
+
+  // Fetch existing documents from API
+  const fetchDocuments = useCallback(async () => {
+    if (!user?.driver?.id) return;
+    try {
+      const [driverDocs, carDocs] = await Promise.allSettled([
+        documentsApi.getDriverDocuments(user.driver.id),
+        documentsApi.getCarDocuments(user.driver.id),
+      ]);
+      // If we get real docs, map status
+      if (driverDocs.status === 'fulfilled' && driverDocs.value) {
+        // Keep UI structure, just know docs exist
+      }
+    } catch { /* keep initial */ }
+  }, [user]);
+
+  useEffect(() => { fetchDocuments(); }, [fetchDocuments]);
+
+  const handleFileUpload = async (docId: string, file: File) => {
+    if (!user?.driver?.id) return;
+    setUploading(docId);
+    setUploadError('');
+    try {
+      const uploadMap: Record<string, (body: { driverId: string; documentUrl: string; expiryDate?: string }) => Promise<unknown>> = {
+        'driving-license': documentsApi.uploadDrivingLicense,
+        'vehicle-insurance': documentsApi.uploadInsurance,
+        'mot-certificate': documentsApi.uploadMot,
+        'phv-license': documentsApi.uploadPCO,
+        'dbs-certificate': documentsApi.uploadPassport,
+      };
+      // First upload the file
+      const uploaded = await documentsApi.uploadFile(file);
+      const fileUrl = (uploaded as { url?: string })?.url || '';
+      const uploadFn = uploadMap[docId];
+      if (uploadFn) {
+        await uploadFn({ driverId: user.driver.id, documentUrl: fileUrl });
+      }
+      // Update local state
+      setDocuments(prev => prev.map(d => d.id === docId ? { ...d, status: 'pending' as DocStatus } : d));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploading(null);
+    }
+  };
 
   return (
-    <DashboardLayout role="driver" userName="New Driver" pageTitle="Documents">
+    <DashboardLayout role="driver" pageTitle="Documents">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Progress Bar */}
         <div className="w-full bg-white/[0.08] rounded-full h-2 overflow-hidden">

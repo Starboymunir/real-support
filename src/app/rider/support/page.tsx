@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { contactApi } from '@/lib/services/contact';
 import {
   Search,
   HelpCircle,
@@ -69,11 +71,34 @@ const faqs = [
 /* ------------------------------------------------------------------ */
 
 export default function SupportPage() {
+  const { user } = useRequireAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [subject, setSubject] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [submitError, setSubmitError] = useState('');
+
+  const handleSubmitTicket = useCallback(async () => {
+    if (!user || !subject || !description) return;
+    setSubmitStatus('loading');
+    setSubmitError('');
+    try {
+      await contactApi.create({
+        name: `${user.firstName} ${user.lastName || ''}`.trim(),
+        email: user.emailAddress,
+        phone_number: user.phone_number || '',
+        reason: `[${category || 'other'}] ${subject}: ${description}`,
+      });
+      setSubmitStatus('success');
+      setSubject(''); setCategory(''); setDescription('');
+      setTimeout(() => setSubmitStatus('idle'), 3000);
+    } catch (err: unknown) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to submit ticket');
+      setSubmitStatus('error');
+    }
+  }, [user, subject, category, description]);
 
   const filteredFaqs = faqs.filter(
     (faq) =>
@@ -110,7 +135,7 @@ export default function SupportPage() {
   ];
 
   return (
-    <DashboardLayout role="rider" userName="John Doe" pageTitle="Support">
+    <DashboardLayout role="rider" pageTitle="Support">
       {/* ── Header & Search ─────────────────────────────────────── */}
       <div className="text-center max-w-2xl mx-auto mb-10">
         <div className="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center mx-auto mb-4">
@@ -244,8 +269,16 @@ export default function SupportPage() {
                 />
               </div>
 
-              <Button variant="green" size="lg">
-                <Send size={16} /> Submit Ticket
+              {submitStatus === 'success' && (
+                <div className="p-3 rounded-xl bg-secondary/10 border border-secondary/20 text-secondary text-sm font-medium">
+                  Ticket submitted successfully! We&apos;ll get back to you soon.
+                </div>
+              )}
+              {submitStatus === 'error' && submitError && (
+                <div className="p-3 rounded-xl bg-error/10 border border-error/20 text-error text-sm">{submitError}</div>
+              )}
+              <Button variant="green" size="lg" onClick={handleSubmitTicket} disabled={submitStatus === 'loading' || !subject || !description}>
+                <Send size={16} /> {submitStatus === 'loading' ? 'Submitting...' : 'Submit Ticket'}
               </Button>
             </div>
           </div>

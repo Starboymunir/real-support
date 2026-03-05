@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { driverApi } from '@/lib/services';
+import { useAuth } from '@/lib/auth-context';
 import {
   User,
   Car,
@@ -58,13 +61,39 @@ function FormField({
 }
 
 export default function DriverRegistrationPage() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: 'driver@rscab.co.uk', phone: '', dob: '',
+    firstName: user?.firstName || '', lastName: user?.lastName || '', email: user?.emailAddress || 'driver@rscab.co.uk', phone: user?.phone_number || '', dob: '',
     niNumber: '', taxId: '', address: '', city: '', postcode: '', bio: '', hobby: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSubmitting(true);
+    try {
+      await driverApi.register({
+        nationalInsuranceNumber: formData.niNumber,
+        selfAssessmentTaxId: formData.taxId,
+        dateOfBirth: formData.dob,
+        bio: formData.bio,
+        hobby: formData.hobby,
+      });
+      router.push('/driver/vehicle');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+      // Still allow navigation for demo
+      setTimeout(() => router.push('/driver/vehicle'), 1500);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -153,7 +182,7 @@ export default function DriverRegistrationPage() {
               <p className="text-white/35 mt-2">Tell us about yourself to get started as an RS CAB driver.</p>
             </div>
 
-            <form className="space-y-7">
+            <form onSubmit={handleSubmit} className="space-y-7">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField label="First Name" name="firstName" icon={<User size={18} />} placeholder="Enter your first name" value={formData.firstName} onChange={handleChange} required />
                 <FormField label="Last Name" name="lastName" icon={<User size={18} />} placeholder="Enter your last name" value={formData.lastName} onChange={handleChange} required />
@@ -184,14 +213,19 @@ export default function DriverRegistrationPage() {
 
               <FormField label="Hobby" name="hobby" icon={<Heart size={18} />} placeholder="What do you enjoy doing?" value={formData.hobby} onChange={handleChange} />
 
+              {/* Error Display */}
+              {error && (
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>
+              )}
+
               {/* Buttons */}
               <div className="flex items-center justify-between pt-8 border-t border-white/[0.04]">
                 <Link href="/login" className="px-7 py-3.5 rounded-full border border-white/[0.08] text-white/40 font-medium text-sm hover:border-white/15 hover:text-white/60 transition-all">
                   Cancel
                 </Link>
-                <Link href="/driver/vehicle" className="inline-flex items-center gap-2.5 bg-white text-black font-semibold px-7 py-3.5 rounded-full text-sm hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all">
-                  Next: Vehicle Details <Car size={16} />
-                </Link>
+                <button type="submit" disabled={submitting} className="inline-flex items-center gap-2.5 bg-white text-black font-semibold px-7 py-3.5 rounded-full text-sm hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50">
+                  {submitting ? 'Saving...' : 'Next: Vehicle Details'} <Car size={16} />
+                </button>
               </div>
             </form>
           </div>

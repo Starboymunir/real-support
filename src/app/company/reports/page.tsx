@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
+import { useRequireAuth } from '@/lib/use-require-auth';
 import {
   Download,
   FileText,
@@ -74,10 +75,11 @@ const deptColors: Record<string, string> = {
 };
 
 export default function CompanyReportsPage() {
+  useRequireAuth();
   const [activePeriod, setActivePeriod] = useState('This Month');
 
   return (
-    <DashboardLayout role="company" userName="Acme Corp">
+    <DashboardLayout role="company">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>

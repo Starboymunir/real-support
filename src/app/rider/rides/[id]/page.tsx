@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import {
   ArrowLeft,
   MapPin,
@@ -15,6 +17,9 @@ import {
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { bookingsApi } from '@/lib/services/bookings';
+import type { Booking } from '@/lib/types';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -25,7 +30,7 @@ const fadeUp = {
   }),
 };
 
-const fareBreakdown = [
+const fallbackFareBreakdown = [
   { label: 'Base Fare', value: '£3.50' },
   { label: 'Distance (18.4 mi)', value: '£22.00' },
   { label: 'Time (42 min)', value: '£5.50' },
@@ -34,7 +39,7 @@ const fareBreakdown = [
   { label: 'Driver Tip', value: '£5.50' },
 ];
 
-const timeline = [
+const fallbackTimeline = [
   { label: 'Ride Booked', time: '08:52 AM' },
   { label: 'Driver Assigned', time: '08:55 AM' },
   { label: 'Driver Arrived', time: '09:08 AM' },
@@ -42,9 +47,65 @@ const timeline = [
   { label: 'Dropped Off', time: '09:57 AM' },
 ];
 
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase();
+}
+
 export default function RideDetail() {
+  useRequireAuth();
+  const params = useParams();
+  const rideId = params?.id as string;
+  const [booking, setBooking] = useState<Booking | null>(null);
+  const [fareBreakdown, setFareBreakdown] = useState(fallbackFareBreakdown);
+  const [timeline, setTimeline] = useState(fallbackTimeline);
+
+  const fetchBooking = useCallback(async () => {
+    if (!rideId) return;
+    try {
+      const data = await bookingsApi.getById(rideId);
+      if (data) {
+        setBooking(data);
+        const total = data.finalBill ?? data.totalBill ?? 34.50;
+        const base = Math.round(total * 0.10 * 100) / 100;
+        const distance = Math.round(total * 0.64 * 100) / 100;
+        const timeCharge = Math.round(total * 0.16 * 100) / 100;
+        const discount = data.discountAmount ?? 0;
+        const tip = 0;
+        setFareBreakdown([
+          { label: 'Base Fare', value: `£${base.toFixed(2)}` },
+          { label: 'Distance', value: `£${distance.toFixed(2)}` },
+          { label: 'Time', value: `£${timeCharge.toFixed(2)}` },
+          { label: 'Surge Pricing', value: '£0.00' },
+          ...(discount > 0 ? [{ label: 'Discount', value: `-£${discount.toFixed(2)}`, highlight: true }] : []),
+          ...(tip > 0 ? [{ label: 'Driver Tip', value: `£${tip.toFixed(2)}` }] : []),
+        ]);
+        const tl = [{ label: 'Ride Booked', time: formatTime(data.createdAt) }];
+        if (data.status !== 'ACCEPTED') tl.push({ label: 'Driver Assigned', time: formatTime(data.createdAt) });
+        if (data.status === 'COMPLETED') {
+          tl.push({ label: 'Picked Up', time: formatTime(data.createdAt) });
+          tl.push({ label: 'Dropped Off', time: formatTime(data.updatedAt) });
+        }
+        setTimeline(tl);
+      }
+    } catch { /* keep fallback */ }
+  }, [rideId]);
+
+  useEffect(() => { fetchBooking(); }, [fetchBooking]);
+
+  const pickup = booking?.startFrom?.name || booking?.startFrom?.postCode || '12 Baker Street, London W1U 3BW';
+  const dropoff = booking?.destination?.name || booking?.destination?.postCode || 'Heathrow Airport Terminal 5, TW6 2GA';
+  const statusLabel = booking?.status === 'COMPLETED' ? 'Completed' : booking?.status === 'CANCELLED' ? 'Cancelled' : 'Scheduled';
+  const statusClass = booking?.status === 'COMPLETED' ? 'bg-success/10 text-success' : booking?.status === 'CANCELLED' ? 'bg-error/10 text-error' : 'bg-info/10 text-info';
+  const total = booking?.finalBill ?? booking?.totalBill ?? 34.50;
+  const driverName = booking?.driverName || 'Michael Smith';
+  const driverInitials = driverName.split(' ').map(n => n[0]).join('').toUpperCase();
+  const vehicleName = booking?.packageName || 'Toyota Camry 2024';
+  const plateNumber = booking?.vehicleNumberPlate || 'AB12 CDE';
+  const rideDate = booking ? new Date(booking.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '14 February 2026';
+  const displayId = booking ? booking.id.slice(-6).toUpperCase() : 'RS-1024';
+
   return (
-    <DashboardLayout role="rider" userName="James Rider" pageTitle="Ride Details">
+    <DashboardLayout role="rider" pageTitle="Ride Details">
       <div className="space-y-6">
         {/* ── Back + Header ── */}
         <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
@@ -55,12 +116,12 @@ export default function RideDetail() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h1 className="text-2xl font-bold text-text-primary">
-                Ride <span className="font-mono">RS-1024</span>
+                Ride <span className="font-mono">{displayId}</span>
               </h1>
-              <p className="text-text-muted mt-0.5">14 February 2026</p>
+              <p className="text-text-muted mt-0.5">{rideDate}</p>
             </div>
-            <span className="px-4 py-1.5 rounded-full text-sm font-semibold bg-success/10 text-success self-start">
-              Completed
+            <span className={`px-4 py-1.5 rounded-full text-sm font-semibold ${statusClass} self-start`}>
+              {statusLabel}
             </span>
           </div>
         </motion.div>
@@ -86,7 +147,7 @@ export default function RideDetail() {
                 </div>
                 <div>
                   <p className="text-xs text-text-muted uppercase tracking-wider">Pickup</p>
-                  <p className="text-sm font-semibold text-text-primary mt-0.5">12 Baker Street, London W1U 3BW</p>
+                  <p className="text-sm font-semibold text-text-primary mt-0.5">{pickup}</p>
                 </div>
 
                 <div className="absolute left-0 bottom-0.5 w-5 h-5 rounded-full bg-error/20 flex items-center justify-center">
@@ -94,7 +155,7 @@ export default function RideDetail() {
                 </div>
                 <div>
                   <p className="text-xs text-text-muted uppercase tracking-wider">Drop-off</p>
-                  <p className="text-sm font-semibold text-text-primary mt-0.5">Heathrow Airport Terminal 5, TW6 2GA</p>
+                  <p className="text-sm font-semibold text-text-primary mt-0.5">{dropoff}</p>
                 </div>
               </div>
 
@@ -149,7 +210,7 @@ export default function RideDetail() {
 
               <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
                 <span className="text-base font-semibold text-text-primary">Total</span>
-                <span className="text-xl font-bold gradient-text">£34.50</span>
+                <span className="text-xl font-bold gradient-text">£{total.toFixed(2)}</span>
               </div>
 
               <div className="flex items-center gap-2 mt-4 text-sm text-text-muted">
@@ -173,10 +234,10 @@ export default function RideDetail() {
 
               <div className="flex items-center gap-4 mb-5">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white text-lg font-bold">
-                  MS
+                  {driverInitials}
                 </div>
                 <div>
-                  <p className="font-semibold text-text-primary">Michael Smith</p>
+                  <p className="font-semibold text-text-primary">{driverName}</p>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <div className="flex">
                       {[1, 2, 3, 4, 5].map((s) => (
@@ -199,11 +260,11 @@ export default function RideDetail() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-muted">Vehicle</span>
-                  <span className="font-medium text-text-primary">Toyota Camry 2024</span>
+                  <span className="font-medium text-text-primary">{vehicleName}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-muted">Plate</span>
-                  <span className="font-mono font-semibold text-text-primary">AB12 CDE</span>
+                  <span className="font-mono font-semibold text-text-primary">{plateNumber}</span>
                 </div>
               </div>
             </motion.div>

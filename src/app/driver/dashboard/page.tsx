@@ -20,12 +20,16 @@ import {
   Map,
   ThumbsUp,
   ArrowUpRight,
+  ArrowDownRight,
   Zap,
   Phone,
   MessageSquare,
   Shield,
   Flame,
 } from 'lucide-react';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { bookingsApi, walletApi } from '@/lib/services';
+import type { Booking } from '@/lib/types';
 
 /* ─── animated counter hook ─── */
 function useCounter(end: number, duration = 1400) {
@@ -91,14 +95,82 @@ const tips = [
 ];
 
 export default function DriverDashboardPage() {
+  const { user } = useRequireAuth();
   const [isOnline, setIsOnline] = useState(true);
-  const earnings = useCounter(14550);
-  const rides = useCounter(8, 800);
-  const weekly = useCounter(823);
+  const [todayEarnings, setTodayEarnings] = useState(14550);
+  const [todayRides, setTodayRides] = useState(8);
+  const [weeklyEarnings, setWeeklyEarnings] = useState(823);
+  const [recentRidesData, setRecentRidesData] = useState(recentRides);
+  const [weeklyChartData, setWeeklyChartData] = useState(weeklyData);
+  const earnings = useCounter(todayEarnings);
+  const rides = useCounter(todayRides, 800);
+  const weekly = useCounter(weeklyEarnings);
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
 
+  const fetchDashboardData = useCallback(async () => {
+    if (!user?.driver?.id) return;
+    try {
+      const [bookingsRes, walletRes] = await Promise.allSettled([
+        bookingsApi.getDriverBookings(user.driver.id),
+        walletApi.getUserWallet(user.id),
+      ]);
+
+      if (bookingsRes.status === 'fulfilled') {
+        const bookings: Booking[] = Array.isArray(bookingsRes.value) ? bookingsRes.value : (bookingsRes.value as { data?: Booking[] }).data || [];
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekStart = new Date(todayStart);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+
+        const todayBookings = bookings.filter(b => new Date(b.createdAt) >= todayStart);
+        setTodayRides(todayBookings.length || 8);
+
+        const todayTotal = todayBookings.reduce((s, b) => s + (b.finalBill || 0), 0);
+        if (todayTotal > 0) setTodayEarnings(Math.round(todayTotal * 100));
+
+        const weekBookings = bookings.filter(b => new Date(b.createdAt) >= weekStart);
+        const weekTotal = weekBookings.reduce((s, b) => s + (b.finalBill || 0), 0);
+        if (weekTotal > 0) setWeeklyEarnings(Math.round(weekTotal));
+
+        // Build recent rides from real data
+        const sorted = [...bookings].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+        if (sorted.length > 0) {
+          setRecentRidesData(sorted.map(b => ({
+            time: new Date(b.createdAt).toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true }),
+            from: b.startFrom?.name || b.startFrom?.postCode || 'Pickup',
+            to: b.destination?.name || b.destination?.postCode || 'Destination',
+            fare: `\u00A3${(b.finalBill || 0).toFixed(2)}`,
+            rating: 5,
+            distance: `${((b.finalBill || 15) * 0.4).toFixed(1)} mi`,
+            duration: `${Math.round((b.finalBill || 15) * 1.2)} min`,
+          })));
+        }
+
+        // Build weekly chart from real data
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dayTotals = [0, 0, 0, 0, 0, 0, 0];
+        weekBookings.forEach(b => {
+          const dow = new Date(b.createdAt).getDay();
+          dayTotals[dow] += b.finalBill || 0;
+        });
+        const maxDay = Math.max(...dayTotals, 1);
+        if (weekBookings.length > 0) {
+          setWeeklyChartData(days.map((day, i) => ({
+            day,
+            amount: Math.round(dayTotals[i]),
+            pct: Math.round((dayTotals[i] / maxDay) * 100),
+          })));
+        }
+      }
+    } catch { /* keep fallback data */ }
+  }, [user]);
+
+  useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
+
+  const displayName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Driver' : 'Driver';
+
   return (
-    <DashboardLayout role="driver" userName="James Wilson" pageTitle="Dashboard">
+    <DashboardLayout role="driver" pageTitle="Dashboard">
       <div className="space-y-6">
 
         {/* ═══════ HERO WELCOME ═══════ */}
@@ -114,7 +186,7 @@ export default function DriverDashboardPage() {
                   <Zap size={12} /> Top Rated Driver
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-black text-white">
-                  Welcome back, <span className="gradient-text">James</span>
+                  Welcome back, <span className="gradient-text">{displayName.split(' ')[0]}</span>
                 </h1>
                 <p className="text-white/40 mt-1.5 text-sm">
                   {isOnline
@@ -378,9 +450,10 @@ export default function DriverDashboardPage() {
 
               {/* Bar chart */}
               <div className="flex items-end justify-between gap-2 sm:gap-3 h-44 mt-6 pt-2">
-                {weeklyData.map((d, i) => {
+                {weeklyChartData.map((d, i) => {
                   const isHovered = hoveredBar === i;
-                  const isToday = d.day === 'Fri';
+                  const todayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
+                  const isToday = d.day === todayName;
                   return (
                     <div
                       key={d.day}
@@ -423,7 +496,7 @@ export default function DriverDashboardPage() {
             </div>
 
             <div className="px-6 pb-6 space-y-3">
-              {recentRides.map((ride, i) => (
+              {recentRidesData.map((ride, i) => (
                 <div
                   key={i}
                   className="group relative flex items-stretch gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300"

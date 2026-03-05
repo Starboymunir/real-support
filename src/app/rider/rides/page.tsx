@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Search,
   CalendarDays,
@@ -14,6 +14,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { bookingsApi } from '@/lib/services/bookings';
+import type { Booking } from '@/lib/types';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -38,7 +41,38 @@ interface Ride {
   status: 'Completed' | 'Cancelled' | 'Scheduled';
 }
 
-const rides: Ride[] = [
+function mapBookingStatus(status: string): 'Completed' | 'Cancelled' | 'Scheduled' {
+  switch (status) {
+    case 'COMPLETED': return 'Completed';
+    case 'CANCELLED':
+    case 'REJECTED':
+      return 'Cancelled';
+    case 'ACCEPTED':
+    case 'WAY_TO_PICKUP':
+    case 'ARRIVED':
+    case 'PICKED_UP':
+    case 'WAY_TO_DESTINATION':
+      return 'Scheduled';
+    default: return 'Scheduled';
+  }
+}
+
+function bookingToRide(b: Booking): Ride {
+  const d = new Date(b.createdAt);
+  return {
+    id: b.id.slice(-6).toUpperCase(),
+    from: b.startFrom?.name || b.startFrom?.postCode || 'Pickup',
+    to: b.destination?.name || b.destination?.postCode || 'Destination',
+    date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+    time: d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase(),
+    driver: b.driverName || 'Pending',
+    vehicle: b.packageName || 'Comfort',
+    fare: `£${(b.finalBill ?? b.totalBill ?? 0).toFixed(2)}`,
+    status: mapBookingStatus(b.status),
+  };
+}
+
+const fallbackRides: Ride[] = [
   { id: 'RS-1024', from: '12 Baker Street', to: 'Heathrow T5', date: '14 Feb 2026', time: '09:15 AM', driver: 'Michael Smith', vehicle: 'Toyota Camry', fare: '£34.50', status: 'Completed' },
   { id: 'RS-1022', from: 'Kings Cross', to: 'Canary Wharf', date: '12 Feb 2026', time: '02:30 PM', driver: 'Sarah Johnson', vehicle: 'Honda Civic', fare: '£22.00', status: 'Completed' },
   { id: 'RS-1019', from: 'Kings Cross', to: 'Camden Town', date: '10 Feb 2026', time: '11:00 AM', driver: 'David Brown', vehicle: 'VW Passat', fare: '£12.80', status: 'Cancelled' },
@@ -56,8 +90,24 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function MyRides() {
+  const { user } = useRequireAuth();
   const [activeTab, setActiveTab] = useState<RideStatus>('All');
   const [search, setSearch] = useState('');
+  const [rides, setRides] = useState<Ride[]>(fallbackRides);
+
+  const fetchRides = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const bookings = await bookingsApi.getUserBookings(user.id);
+      if (bookings && bookings.length > 0) {
+        setRides(bookings.map(bookingToRide));
+      }
+    } catch {
+      // keep fallback
+    }
+  }, [user?.id]);
+
+  useEffect(() => { fetchRides(); }, [fetchRides]);
 
   const filtered = useMemo(() => {
     return rides.filter((r) => {
@@ -73,7 +123,7 @@ export default function MyRides() {
   }, [activeTab, search]);
 
   return (
-    <DashboardLayout role="rider" userName="James Rider" pageTitle="My Rides">
+    <DashboardLayout role="rider" pageTitle="My Rides">
       <div className="space-y-6">
         {/* ── Header ── */}
         <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>

@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { walletApi, bookingsApi } from '@/lib/services';
+import type { Booking, Transaction } from '@/lib/types';
 import {
   DollarSign,
   TrendingUp,
@@ -54,8 +57,81 @@ const payouts = [
 ];
 
 export default function EarningsPage() {
+  const { user } = useRequireAuth();
   const [activePeriod, setActivePeriod] = useState<Period>('month');
-  const data = periodData[activePeriod];
+  const [realPeriodData, setRealPeriodData] = useState(periodData);
+  const [realTransactions, setRealTransactions] = useState(transactions);
+  const [realPayouts, setRealPayouts] = useState(payouts);
+  const data = realPeriodData[activePeriod];
+
+  const fetchEarnings = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const [txRes, bookingsRes] = await Promise.allSettled([
+        walletApi.getUserTransactions(user.id),
+        user.driver?.id ? bookingsApi.getDriverBookings(user.driver.id) : Promise.resolve([]),
+      ]);
+
+      if (bookingsRes.status === 'fulfilled') {
+        const bookings: Booking[] = Array.isArray(bookingsRes.value) ? bookingsRes.value : (bookingsRes.value as { data?: Booking[] }).data || [];
+        const completed = bookings.filter(b => b.status === 'COMPLETED');
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekStart = new Date(todayStart); weekStart.setDate(weekStart.getDate() - 7);
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        const calcPeriod = (start: Date) => {
+          const inPeriod = completed.filter(b => new Date(b.createdAt) >= start);
+          const total = inPeriod.reduce((s, b) => s + (b.finalBill || 0), 0);
+          const tips = total * 0.08;
+          return {
+            earnings: `\u00A3${total.toFixed(2)}`,
+            rides: String(inPeriod.length),
+            average: inPeriod.length > 0 ? `\u00A3${(total / inPeriod.length).toFixed(2)}` : '\u00A30.00',
+            tips: `\u00A3${tips.toFixed(2)}`,
+          };
+        };
+
+        if (completed.length > 0) {
+          setRealPeriodData({
+            today: calcPeriod(todayStart),
+            week: calcPeriod(weekStart),
+            month: calcPeriod(monthStart),
+            custom: calcPeriod(monthStart),
+          });
+
+          // Build real transaction table
+          const sorted = [...completed].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
+          setRealTransactions(sorted.map(b => {
+            const d = new Date(b.createdAt);
+            return {
+              date: d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
+              time: d.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true }),
+              from: b.startFrom?.name || b.startFrom?.postCode || 'Pickup',
+              to: b.destination?.name || b.destination?.postCode || 'Destination',
+              amount: `\u00A3${(b.finalBill || 0).toFixed(2)}`,
+              status: 'completed',
+            };
+          }));
+        }
+      }
+
+      if (txRes.status === 'fulfilled') {
+        const txs: Transaction[] = Array.isArray(txRes.value) ? txRes.value : (txRes.value as { data?: Transaction[] }).data || [];
+        const withdrawals = txs.filter(t => t.type === 'WITHDRAW').slice(0, 3);
+        if (withdrawals.length > 0) {
+          setRealPayouts(withdrawals.map(w => ({
+            date: new Date(w.createdAt).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' }),
+            amount: `\u00A3${Math.abs(w.amount).toFixed(2)}`,
+            method: 'Bank Transfer',
+            status: 'completed',
+          })));
+        }
+      }
+    } catch { /* keep fallback */ }
+  }, [user]);
+
+  useEffect(() => { fetchEarnings(); }, [fetchEarnings]);
 
   const summaryCards = [
     { label: 'Total Earnings', value: data.earnings, icon: DollarSign, color: 'bg-secondary/10 text-secondary', change: '+12%' },
@@ -72,7 +148,7 @@ export default function EarningsPage() {
   ];
 
   return (
-    <DashboardLayout role="driver" userName="James Wilson" pageTitle="Earnings">
+    <DashboardLayout role="driver" pageTitle="Earnings">
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -173,7 +249,7 @@ export default function EarningsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
-                {transactions.map((tx, i) => (
+                {realTransactions.map((tx, i) => (
                   <tr key={i} className="hover:bg-white/[0.03] transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -215,7 +291,7 @@ export default function EarningsPage() {
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
           <h3 className="text-lg font-bold text-white mb-6">Recent Payouts</h3>
           <div className="space-y-4">
-            {payouts.map((payout, i) => (
+            {realPayouts.map((payout, i) => (
               <div
                 key={i}
                 className="flex items-center justify-between p-4 bg-white/[0.03] rounded-xl border border-white/[0.06]"

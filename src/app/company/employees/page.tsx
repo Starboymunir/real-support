@@ -4,6 +4,8 @@ import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { companyApi } from '@/lib/services';
 import {
   UserPlus,
   Search,
@@ -91,9 +93,34 @@ function getInitials(first: string, last: string) {
 }
 
 export default function CompanyEmployeesPage() {
+  useRequireAuth();
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
   const [activeDept, setActiveDept] = useState('All');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteFirstName, setInviteFirstName] = useState('');
+  const [inviteLastName, setInviteLastName] = useState('');
+  const [inviting, setInviting] = useState(false);
+  const [inviteError, setInviteError] = useState('');
+  const [inviteSuccess, setInviteSuccess] = useState(false);
+
+  const handleAddEmployee = async () => {
+    if (!inviteEmail) return;
+    setInviting(true);
+    setInviteError('');
+    setInviteSuccess(false);
+    try {
+      await companyApi.inviteDriver(inviteEmail);
+      setInviteSuccess(true);
+      setInviteEmail('');
+      setInviteFirstName('');
+      setInviteLastName('');
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : 'Failed to invite employee');
+    } finally {
+      setInviting(false);
+    }
+  };
 
   const filtered = employeesData.filter((emp) => {
     const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
@@ -105,7 +132,7 @@ export default function CompanyEmployeesPage() {
   });
 
   return (
-    <DashboardLayout role="company" userName="Acme Corp">
+    <DashboardLayout role="company">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
@@ -174,8 +201,10 @@ export default function CompanyEmployeesPage() {
             />
           </div>
           <div className="flex gap-3 mt-6">
-            <Button variant="green">
-              <UserPlus size={16} /> Add Employee
+            {inviteError && <p className="text-red-400 text-sm self-center">{inviteError}</p>}
+            {inviteSuccess && <p className="text-secondary text-sm self-center">Employee invited successfully!</p>}
+            <Button variant="green" onClick={handleAddEmployee} disabled={inviting}>
+              <UserPlus size={16} /> {inviting ? 'Adding...' : 'Add Employee'}
             </Button>
             <Button variant="ghost" onClick={() => setShowForm(false)}>
               Cancel

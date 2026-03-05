@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { bookingsApi, companyApi } from '@/lib/services';
+import type { Booking } from '@/lib/types';
 import {
   CalendarCheck,
   Users,
@@ -89,13 +92,53 @@ const topEmployees = [
 ];
 
 export default function CompanyDashboardPage() {
-  const bookings = useCounter(156);
-  const employees = useCounter(23, 800);
-  const monthSpend = useCounter(4230);
-  const activeRides = useCounter(7, 600);
+  const { user } = useRequireAuth();
+  const [bookingCount, setBookingCount] = useState(156);
+  const [employeeCount, setEmployeeCount] = useState(23);
+  const [monthlySpend, setMonthlySpend] = useState(4230);
+  const [activeRidesCount, setActiveRidesCount] = useState(7);
+  const [recentBookingsData, setRecentBookingsData] = useState(recentBookings);
+  const bookings = useCounter(bookingCount);
+  const employees = useCounter(employeeCount, 800);
+  const monthSpend = useCounter(monthlySpend);
+  const activeRides = useCounter(activeRidesCount, 600);
+  const companyName = user?.firstName || 'Company';
+
+  const fetchCompanyData = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      // Fetch bookings for the user to get company ride activity
+      const res = await bookingsApi.getUserBookings(user.id);
+      const allBookings: Booking[] = Array.isArray(res) ? res : (res as { data?: Booking[] }).data || [];
+      if (allBookings.length > 0) {
+        setBookingCount(allBookings.length);
+        const active = allBookings.filter(b => (['ACCEPTED', 'WAY_TO_PICKUP', 'ARRIVED', 'PICKED_UP', 'WAY_TO_DESTINATION'] as string[]).includes(b.status));
+        setActiveRidesCount(active.length);
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthBookings = allBookings.filter(b => new Date(b.createdAt) >= monthStart);
+        const total = monthBookings.reduce((s, b) => s + (b.finalBill || 0), 0);
+        if (total > 0) setMonthlySpend(Math.round(total));
+
+        const sorted = [...allBookings].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+        setRecentBookingsData(sorted.map(b => {
+          const statusMap: Record<string, string> = { COMPLETED: 'Completed', CANCELLED: 'Cancelled', REJECTED: 'Cancelled', ACCEPTED: 'In Progress', WAY_TO_PICKUP: 'In Progress', ARRIVED: 'In Progress', PICKED_UP: 'In Progress', WAY_TO_DESTINATION: 'In Progress' };
+          return {
+            employee: b.riderName || 'Employee',
+            date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+            route: `${b.startFrom?.name || b.startFrom?.postCode || 'Pickup'} \u2192 ${b.destination?.name || b.destination?.postCode || 'Destination'}`,
+            cost: `\u00A3${(b.finalBill || 0).toFixed(2)}`,
+            status: statusMap[b.status] || 'Scheduled',
+          };
+        }));
+      }
+    } catch { /* keep fallback */ }
+  }, [user]);
+
+  useEffect(() => { fetchCompanyData(); }, [fetchCompanyData]);
 
   return (
-    <DashboardLayout role="company" userName="Acme Corp">
+    <DashboardLayout role="company">
       <div className="space-y-6">
 
         {/* ═══════ HERO WELCOME ═══════ */}
@@ -108,7 +151,7 @@ export default function CompanyDashboardPage() {
               <div>
                 <div className="badge-green mb-3"><Building2 size={12} /> Corporate Account</div>
                 <h2 className="text-2xl sm:text-3xl font-black text-white">
-                  Welcome back, <span className="gradient-text">Acme Corp</span>
+                  Welcome back, <span className="gradient-text">{companyName}</span>
                 </h2>
                 <p className="mt-1.5 text-white/40 text-sm">Here&rsquo;s your corporate ride activity overview.</p>
               </div>
@@ -210,7 +253,7 @@ export default function CompanyDashboardPage() {
               </div>
 
               <div className="px-6 pb-6 space-y-3">
-                {recentBookings.map((b, i) => (
+                {recentBookingsData.map((b, i) => (
                   <div key={i} className="group flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300">
                     {/* Employee */}
                     <div className="flex items-center gap-3 sm:w-40 shrink-0">

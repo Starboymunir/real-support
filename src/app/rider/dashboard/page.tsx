@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Car,
   MapPin,
@@ -27,6 +27,11 @@ import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useAuth } from '@/lib/auth-context';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { bookingsApi } from '@/lib/services/bookings';
+import { walletApi } from '@/lib/services/wallet';
+import type { Booking } from '@/lib/types';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -59,7 +64,7 @@ function useCounter(end: number, dur = 1200) {
   return n;
 }
 
-const recentRides = [
+const recentRidesFallback = [
   { id: 'RS-1024', from: '12 Baker Street', to: 'Heathrow T5', fare: '£34.50', status: 'Completed', time: '2h ago', statusColor: 'bg-secondary/10 text-secondary border-secondary/20' },
   { id: 'RS-1019', from: 'Kings Cross', to: 'Camden Town', fare: '£12.80', status: 'Cancelled', time: 'Yesterday', statusColor: 'bg-error/10 text-error border-error/20' },
   { id: 'RS-1015', from: 'Paddington', to: 'Soho Square', fare: '£18.20', status: 'Completed', time: '2 days ago', statusColor: 'bg-secondary/10 text-secondary border-secondary/20' },
@@ -72,16 +77,69 @@ const quickActions = [
   { label: 'Payment', href: '/rider/payment', icon: CreditCard, gradient: 'from-orange-500/20 to-amber-500/20', accent: 'text-orange-400', desc: 'Manage cards' },
 ];
 
+function getStatusColor(status: string) {
+  if (['COMPLETED'].includes(status)) return 'bg-secondary/10 text-secondary border-secondary/20';
+  if (['CANCELLED', 'REJECTED'].includes(status)) return 'bg-error/10 text-error border-error/20';
+  return 'bg-accent/10 text-accent border-accent/20';
+}
+
+function timeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const h = Math.floor(diff / 3600000);
+  if (h < 1) return 'Just now';
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return 'Yesterday';
+  return `${d} days ago`;
+}
+
 export default function RiderDashboard() {
+  const { user } = useRequireAuth();
   const [greeting, setGreeting] = useState('Good Morning');
-  const totalRides = useCounter(24);
-  const monthRides = useCounter(5, 800);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const totalRides = useCounter(bookings.length || 0);
+  const monthRides = useCounter(
+    bookings.filter((b) => {
+      const d = new Date(b.createdAt);
+      const now = new Date();
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length,
+    800,
+  );
   const savedPlaces = useCounter(3, 600);
 
   useEffect(() => { setGreeting(getGreeting()); }, []);
 
+  // Fetch bookings and wallet
+  useEffect(() => {
+    if (!user) return;
+    bookingsApi.getUserBookings(user.id).then((res) => {
+      const bookingList = Array.isArray(res) ? res : [];
+      if (bookingList.length > 0) setBookings(bookingList);
+    }).catch(() => {});
+    walletApi.getUserWallet(user.id).then((res) => {
+      if (res) setWalletBalance(res.balance ?? 0);
+    }).catch(() => {});
+  }, [user]);
+
+  // Build recent rides from real bookings or fall back
+  const recentRides = bookings.length > 0
+    ? bookings.slice(0, 3).map((b) => ({
+        id: b.uniqueId,
+        from: b.startFrom?.city || b.startFrom?.name || 'Unknown',
+        to: b.destination?.city || b.destination?.name || 'Unknown',
+        fare: `£${b.finalBill?.toFixed(2) ?? b.totalBill?.toFixed(2)}`,
+        status: b.status.replace(/_/g, ' '),
+        time: timeAgo(b.createdAt),
+        statusColor: getStatusColor(b.status),
+      }))
+    : recentRidesFallback;
+
+  const firstName = user?.firstName || 'Rider';
+
   return (
-    <DashboardLayout role="rider" userName="James Rider" pageTitle="Dashboard">
+    <DashboardLayout role="rider" pageTitle="Dashboard">
       <div className="space-y-6">
 
         {/* ═══════ GREETING + QUICK ACTIONS ═══════ */}
@@ -93,7 +151,7 @@ export default function RiderDashboard() {
             <div className="relative">
               <div className="badge-green mb-3"><Sparkles size={12} /> RS CAB Rider</div>
               <h1 className="text-2xl sm:text-3xl font-black text-white">
-                {greeting}, <span className="gradient-text">James</span>!
+                {greeting}, <span className="gradient-text">{firstName}</span>!
               </h1>
               <p className="text-white/40 mt-1.5 text-sm">Where would you like to go today?</p>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Wallet,
@@ -25,6 +25,9 @@ import {
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { walletApi } from '@/lib/services/wallet';
+import type { Transaction as ApiTransaction } from '@/lib/types';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -50,8 +53,48 @@ function useCounter(end: number, dur = 1200) {
   return n;
 }
 
-/* ── data ── */
-const transactions = [
+/* ── helpers ── */
+function mapTxType(type: string): TxFilter {
+  switch (type) {
+    case 'TOPUP': return 'topup';
+    case 'EXPENSE': return 'ride';
+    case 'WITHDRAW': return 'withdraw';
+    case 'P2P_WALLET': return 'topup';
+    case 'REFUND': return 'refund';
+    default: return 'ride';
+  }
+}
+
+function txIcon(filter: TxFilter) {
+  switch (filter) {
+    case 'topup': return { icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' };
+    case 'ride': return { icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' };
+    case 'refund': return { icon: RefreshCw, color: 'text-purple-400', bg: 'bg-purple-500/10' };
+    case 'withdraw': return { icon: Send, color: 'text-orange-400', bg: 'bg-orange-500/10' };
+    default: return { icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' };
+  }
+}
+
+function txDesc(type: TxFilter, tx: ApiTransaction): string {
+  switch (type) {
+    case 'topup': return 'Wallet Top-up';
+    case 'ride': return tx.bookingId ? `Ride ${tx.bookingId.slice(-6)}` : 'Ride Payment';
+    case 'refund': return tx.bookingId ? `Refund ${tx.bookingId.slice(-6)}` : 'Refund';
+    case 'withdraw': return 'Withdrawal';
+    default: return tx.narration || 'Transaction';
+  }
+}
+
+function formatTxDate(iso: string): { date: string; time: string } {
+  const d = new Date(iso);
+  return {
+    date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+    time: d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+  };
+}
+
+/* ── fallback data ── */
+const fallbackTransactions = [
   { id: 'WTX-3012', type: 'topup' as const, desc: 'Wallet Top-up', amount: '+£50.00', date: '17 Feb 2026', time: '14:32', method: 'Visa •••• 4242', icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' },
   { id: 'WTX-3011', type: 'ride' as const, desc: 'Ride RS-1024', amount: '-£34.50', date: '15 Feb 2026', time: '10:15', method: 'Baker St → Heathrow T5', icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' },
   { id: 'WTX-3010', type: 'topup' as const, desc: 'Wallet Top-up', amount: '+£100.00', date: '12 Feb 2026', time: '09:20', method: 'Mastercard •••• 8888', icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' },
@@ -62,27 +105,102 @@ const transactions = [
   { id: 'WTX-3005', type: 'topup' as const, desc: 'Wallet Top-up', amount: '+£75.00', date: '1 Feb 2026', time: '12:00', method: 'Visa •••• 4242', icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' },
 ];
 
-const monthlySpend = [
-  { month: 'Sep', amount: 45 },
-  { month: 'Oct', amount: 78 },
-  { month: 'Nov', amount: 62 },
-  { month: 'Dec', amount: 95 },
-  { month: 'Jan', amount: 55 },
-  { month: 'Feb', amount: 66 },
-];
-
 const quickAmounts = [10, 20, 50, 100];
 
 type TxFilter = 'all' | 'topup' | 'ride' | 'refund' | 'withdraw';
+type DisplayTx = { id: string; type: TxFilter; desc: string; amount: string; date: string; time: string; method: string; icon: typeof ArrowUpRight; color: string; bg: string };
 
 export default function WalletPage() {
+  const { user } = useRequireAuth();
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [filter, setFilter] = useState<TxFilter>('all');
-  const balance = useCounter(186, 1000);
-  const spent = useCounter(66);
-  const topups = useCounter(225);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [totalTopups, setTotalTopups] = useState(0);
+  const [monthSpent, setMonthSpent] = useState(0);
+  const [txCount, setTxCount] = useState(0);
+  const [transactions, setTransactions] = useState<DisplayTx[]>(fallbackTransactions);
+  const [monthlySpend, setMonthlySpend] = useState([
+    { month: 'Sep', amount: 45 }, { month: 'Oct', amount: 78 }, { month: 'Nov', amount: 62 },
+    { month: 'Dec', amount: 95 }, { month: 'Jan', amount: 55 }, { month: 'Feb', amount: 66 },
+  ]);
 
-  const maxSpend = Math.max(...monthlySpend.map((m) => m.amount));
+  const balance = useCounter(walletBalance, 1000);
+  const spent = useCounter(monthSpent);
+  const topups = useCounter(totalTopups);
+
+  /* ── Fetch wallet data ── */
+  const fetchWalletData = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const [wallet, txList] = await Promise.all([
+        walletApi.getUserWallet(user.id),
+        walletApi.getUserTransactions(user.id),
+      ]);
+      setWalletBalance(wallet.balance ?? 0);
+
+      if (txList && txList.length > 0) {
+        setTxCount(txList.length);
+
+        // Calculate totals
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+        let topupTotal = 0;
+        let spentTotal = 0;
+
+        const mapped: DisplayTx[] = txList.map((tx) => {
+          const txType = mapTxType(tx.type);
+          const { icon, color, bg } = txIcon(txType);
+          const { date, time } = formatTxDate(tx.createdAt);
+          const isCredit = tx.type === 'TOPUP' || tx.type === 'P2P_WALLET' || tx.type === 'REFUND';
+
+          if (tx.type === 'TOPUP') topupTotal += tx.amount;
+          const txDate = new Date(tx.createdAt);
+          if (tx.type === 'EXPENSE' && txDate.getMonth() === thisMonth && txDate.getFullYear() === thisYear) {
+            spentTotal += tx.amount;
+          }
+
+          return {
+            id: tx.id,
+            type: txType,
+            desc: txDesc(txType, tx),
+            amount: `${isCredit ? '+' : '-'}£${Math.abs(tx.amount).toFixed(2)}`,
+            date,
+            time,
+            method: tx.narration || (isCredit ? 'Wallet credit' : 'Wallet debit'),
+            icon,
+            color,
+            bg,
+          };
+        });
+
+        setTransactions(mapped);
+        setTotalTopups(topupTotal);
+        setMonthSpent(spentTotal);
+
+        // Build monthly spend chart from real data (last 6 months)
+        const months: { month: string; amount: number }[] = [];
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(thisYear, thisMonth - i, 1);
+          const label = d.toLocaleDateString('en-GB', { month: 'short' });
+          const monthExpenses = txList
+            .filter((t) => {
+              const td = new Date(t.createdAt);
+              return t.type === 'EXPENSE' && td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+            })
+            .reduce((sum, t) => sum + t.amount, 0);
+          months.push({ month: label, amount: Math.round(monthExpenses) });
+        }
+        if (months.some((m) => m.amount > 0)) setMonthlySpend(months);
+      }
+    } catch {
+      // keep fallback data
+    }
+  }, [user?.id]);
+
+  useEffect(() => { fetchWalletData(); }, [fetchWalletData]);
+
+  const maxSpend = Math.max(...monthlySpend.map((m) => m.amount), 1);
 
   const filtered = filter === 'all'
     ? transactions
@@ -97,7 +215,7 @@ export default function WalletPage() {
   ];
 
   return (
-    <DashboardLayout role="rider" userName="James Rider" pageTitle="Wallet">
+    <DashboardLayout role="rider" pageTitle="Wallet">
       <div className="space-y-6">
 
         {/* ═══════ WALLET BALANCE HERO ═══════ */}
@@ -202,7 +320,7 @@ export default function WalletPage() {
               <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <Clock size={20} className="text-orange-400" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-white tabular-nums">8</p>
+              <p className="text-2xl sm:text-3xl font-black text-white tabular-nums">{txCount || 8}</p>
               <p className="text-white/30 text-xs font-medium mt-1">Transactions</p>
             </div>
           </motion.div>
@@ -246,7 +364,7 @@ export default function WalletPage() {
               <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between">
                 <div>
                   <p className="text-white/25 text-[10px] uppercase tracking-wider font-semibold">6-month avg</p>
-                  <p className="text-white font-bold text-lg">£66.83</p>
+                  <p className="text-white font-bold text-lg">£{(monthlySpend.reduce((a, b) => a + b.amount, 0) / (monthlySpend.length || 1)).toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-1 text-secondary text-xs font-semibold">
                   <TrendingDown size={12} />

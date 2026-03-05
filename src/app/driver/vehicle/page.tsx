@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { driverCarsApi } from '@/lib/services';
 import {
   User,
   Car,
@@ -33,6 +36,10 @@ const vehicleTypes = ['Sedan', 'SUV', 'Van', 'Luxury'];
 const years = Array.from({ length: 20 }, (_, i) => 2026 - i);
 
 export default function VehiclePage() {
+  const { user } = useRequireAuth();
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     make: '',
     model: '',
@@ -48,8 +55,31 @@ export default function VehiclePage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSubmitting(true);
+    try {
+      await driverCarsApi.create({
+        make: formData.make,
+        model: formData.model,
+        year: formData.year,
+        color: formData.color,
+        numberPlate: formData.regNumber,
+        engine: formData.vehicleType || 'Petrol',
+        driverId: user?.id || '',
+      });
+      router.push('/driver/documents');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save vehicle details.');
+      setTimeout(() => router.push('/driver/documents'), 1500);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <DashboardLayout role="driver" userName="New Driver" pageTitle="Vehicle Registration">
+    <DashboardLayout role="driver" pageTitle="Vehicle Registration">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
@@ -111,7 +141,7 @@ export default function VehiclePage() {
             </p>
           </div>
 
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Make / Model */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="w-full">
@@ -277,16 +307,21 @@ export default function VehiclePage() {
               </div>
             </div>
 
+            {/* Error Display */}
+            {error && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>
+            )}
+
             {/* Buttons */}
             <div className="flex items-center justify-between pt-6 border-t border-gray-100">
               <Button variant="outline" href="/driver">
                 <ArrowLeft size={18} />
                 Back
               </Button>
-              <Button variant="green" href="/driver/documents">
-                Next: Documents
+              <button type="submit" disabled={submitting} className="inline-flex items-center gap-2 bg-secondary text-dark font-semibold px-6 py-3 rounded-xl text-sm hover:bg-secondary-light transition-all disabled:opacity-50">
+                {submitting ? 'Saving...' : 'Next: Documents'}
                 <FileText size={18} />
-              </Button>
+              </button>
             </div>
           </form>
         </div>

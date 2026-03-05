@@ -1,10 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { notificationsApi } from '@/lib/services';
+import type { Notification as ApiNotification } from '@/lib/types';
 import { Bell, CheckCircle, AlertTriangle, Info, Users, BarChart3, Trash2 } from 'lucide-react';
 
-const notifications = [
+type DisplayNotification = { id: number | string; type: string; icon: React.ElementType; title: string; message: string; time: string; read: boolean };
+
+const fallbackNotifications: DisplayNotification[] = [
   { id: 1, type: 'success', icon: CheckCircle, title: 'Monthly Report Ready', message: 'Your December 2025 transportation report is available for download.', time: '1 hour ago', read: false },
   { id: 2, type: 'info', icon: Users, title: 'New Employee Added', message: 'Sarah Mitchell has been added to your company account and can now book rides.', time: '3 hours ago', read: false },
   { id: 3, type: 'warning', icon: AlertTriangle, title: 'Budget Alert', message: 'Your monthly transportation budget is at 85% utilisation. Consider reviewing spending.', time: '1 day ago', read: false },
@@ -20,13 +25,49 @@ const colorMap = {
 };
 
 export default function CompanyNotificationsPage() {
-  const [items, setItems] = useState(notifications);
+  const { user } = useRequireAuth();
+  const [items, setItems] = useState<DisplayNotification[]>(fallbackNotifications);
 
-  const markAllRead = () => setItems(items.map((n) => ({ ...n, read: true })));
-  const removeNotification = (id: number) => setItems(items.filter((n) => n.id !== id));
+  const mapApiNotification = (n: ApiNotification): DisplayNotification => {
+    const title = n.ROC || 'Notification';
+    const lowerTitle = title.toLowerCase();
+    let type = 'info';
+    let icon: React.ElementType = Info;
+    if (lowerTitle.includes('report') || lowerTitle.includes('invoice') || lowerTitle.includes('paid')) { type = 'success'; icon = CheckCircle; }
+    else if (lowerTitle.includes('budget') || lowerTitle.includes('alert')) { type = 'warning'; icon = AlertTriangle; }
+    else if (lowerTitle.includes('employee') || lowerTitle.includes('added')) { icon = Users; }
+    else if (lowerTitle.includes('saving') || lowerTitle.includes('analytics')) { icon = BarChart3; }
+
+    const diff = Date.now() - new Date(n.createdAt).getTime();
+    const mins = Math.floor(diff / 60000);
+    const time = mins < 60 ? `${mins} min ago` : mins < 1440 ? `${Math.floor(mins / 60)} hours ago` : `${Math.floor(mins / 1440)} days ago`;
+
+    return { id: n.id, type, icon, title, message: n.remarks || '', time, read: n.isRead };
+  };
+
+  const fetchNotifications = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await notificationsApi.getAll({ userId: user.id });
+      const list: ApiNotification[] = Array.isArray(res) ? res : (res as { data?: ApiNotification[] }).data || [];
+      if (list.length > 0) setItems(list.map(mapApiNotification));
+    } catch { /* keep fallback */ }
+  }, [user]);
+
+  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+
+  const markAllRead = async () => {
+    setItems(items.map((n) => ({ ...n, read: true })));
+    const unread = items.filter(n => !n.read);
+    await Promise.allSettled(unread.map(n => notificationsApi.markAsRead(String(n.id))));
+  };
+  const removeNotification = async (id: number | string) => {
+    setItems(items.filter((n) => n.id !== id));
+    try { await notificationsApi.remove(String(id)); } catch { /* ok */ }
+  };
 
   return (
-    <DashboardLayout role="company" userName="Tech Corp" pageTitle="Notifications">
+    <DashboardLayout role="company" pageTitle="Notifications">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   MapPin,
   Plus,
@@ -19,6 +20,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { requestsApi } from '@/lib/services/bookings';
+import { packagesApi } from '@/lib/services/packages';
+import { othersApi } from '@/lib/services/others';
+import type { Package } from '@/lib/types';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -37,18 +43,65 @@ const vehicles = [
 ];
 
 export default function BookRide() {
+  const { user } = useRequireAuth();
+  const router = useRouter();
   const [selectedVehicle, setSelectedVehicle] = useState('comfort');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('card');
   const [stops, setStops] = useState<string[]>([]);
   const [passengers, setPassengers] = useState(1);
+  const [pickup, setPickup] = useState('');
+  const [dropoff, setDropoff] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [note, setNote] = useState('');
+  const [estimatedFare, setEstimatedFare] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const addStop = () => {
     if (stops.length < 2) setStops([...stops, '']);
   };
   const removeStop = (idx: number) => setStops(stops.filter((_, i) => i !== idx));
 
+  const handleConfirmBooking = useCallback(async () => {
+    if (!user) return;
+    if (!pickup || !dropoff) { setError('Please enter pickup and dropoff locations'); return; }
+    setSubmitting(true);
+    setError('');
+    try {
+      const stoppageAddresses = stops.filter(Boolean).map(s => ({
+        name: s, city: '', latitude: '0', longitude: '0',
+      }));
+      const request = await requestsApi.create({
+        startFrom: { name: pickup, city: '', latitude: '0', longitude: '0' },
+        destination: { name: dropoff, city: '', latitude: '0', longitude: '0' },
+        stoppages: stoppageAddresses.length > 0 ? stoppageAddresses : undefined,
+        packageId: selectedVehicle,
+        paymentType: paymentMethod === 'card' ? 'WALLET' : 'CASH',
+        totalDistance: 0,
+        totalDuration: 0,
+        totalPersons: passengers,
+        notes: note || undefined,
+        requestType: 'FIXED',
+        bookingDate: date || new Date().toISOString().split('T')[0],
+        bookingTime: new Date().toTimeString().slice(0, 5),
+        clientName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        clientEmail: user.emailAddress || '',
+        clientPhone: user.phone_number || '',
+        serviceCharge: 0,
+      });
+      if (request?.id) {
+        router.push('/rider/rides');
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create booking');
+    } finally {
+      setSubmitting(false);
+    }
+  }, [user, pickup, dropoff, date, selectedVehicle, paymentMethod, passengers, note, router]);
+
   return (
-    <DashboardLayout role="rider" userName="James Rider" pageTitle="Book a Ride">
+    <DashboardLayout role="rider" pageTitle="Book a Ride">
       <div className="space-y-8">
         {/* ── Header ── */}
         <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
@@ -78,7 +131,7 @@ export default function BookRide() {
                   <div className="w-2.5 h-2.5 rounded-full bg-secondary" />
                 </div>
 
-                <Input icon={MapPin} placeholder="Pickup location" label="Pickup" />
+                <Input icon={MapPin} placeholder="Pickup location" label="Pickup" value={pickup} onChange={(e) => setPickup(e.target.value)} />
 
                 {/* Stops */}
                 <AnimatePresence>
@@ -119,13 +172,13 @@ export default function BookRide() {
                   <div className="w-2.5 h-2.5 rounded-full bg-error" />
                 </div>
 
-                <Input icon={MapPin} placeholder="Drop-off location" label="Drop-off" />
+                <Input icon={MapPin} placeholder="Drop-off location" label="Drop-off" value={dropoff} onChange={(e) => setDropoff(e.target.value)} />
               </div>
 
               {/* Date & Time */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
-                <Input icon={CalendarDays} type="date" label="Date" />
-                <Input icon={Clock} type="time" label="Time" />
+                <Input icon={CalendarDays} type="date" label="Date" value={date} onChange={(e) => setDate(e.target.value)} />
+                <Input icon={Clock} type="time" label="Time" value={time} onChange={(e) => setTime(e.target.value)} />
               </div>
             </motion.div>
 
@@ -303,9 +356,18 @@ export default function BookRide() {
                 </div>
               </div>
 
+              {error && (
+                <div className="p-3 rounded-xl bg-error/10 border border-error/20 text-error text-sm mb-3">{error}</div>
+              )}
               <div className="mt-6">
-                <Button variant="green" className="w-full" size="lg">
-                  Confirm Booking <ChevronRight size={16} />
+                <Button
+                  variant="green"
+                  className="w-full"
+                  size="lg"
+                  onClick={handleConfirmBooking}
+                  disabled={submitting}
+                >
+                  {submitting ? 'Booking...' : 'Confirm Booking'} <ChevronRight size={16} />
                 </Button>
               </div>
             </motion.div>

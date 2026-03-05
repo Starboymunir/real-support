@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -18,7 +18,12 @@ import {
   Save,
   ChevronRight,
   Lock,
+  Loader2,
 } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { authApi } from '@/lib/services/auth';
+import { ApiError } from '@/lib/api';
 
 /* ------------------------------------------------------------------ */
 /*  Toggle Switch                                                      */
@@ -47,17 +52,53 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
 /* ------------------------------------------------------------------ */
 
 export default function RiderProfilePage() {
-  const [firstName, setFirstName] = useState('John');
-  const [lastName, setLastName] = useState('Doe');
-  const [phone, setPhone] = useState('+44 7700 900123');
-  const [address, setAddress] = useState('12 Baker Street, London W1U 3BU');
+  const { user } = useRequireAuth();
+  const { refreshUser } = useAuth();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
   const [preferredVehicle, setPreferredVehicle] = useState('economy');
   const [defaultPayment, setDefaultPayment] = useState('cash');
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState('');
 
   const [notifRideUpdates, setNotifRideUpdates] = useState(true);
   const [notifPromotions, setNotifPromotions] = useState(true);
   const [notifPaymentAlerts, setNotifPaymentAlerts] = useState(true);
   const [notifEmail, setNotifEmail] = useState(false);
+
+  // Populate from user
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setPhone(user.phone_number || '');
+    }
+  }, [user]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveMsg('');
+    try {
+      await authApi.updateCurrentUser({
+        firstName,
+        lastName,
+        phone_number: phone,
+      });
+      await refreshUser();
+      setSaveMsg('Profile updated successfully!');
+    } catch (err) {
+      setSaveMsg(err instanceof ApiError ? err.message : 'Failed to save');
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMsg(''), 3000);
+    }
+  };
+
+  const initials = user ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() : 'RS';
+  const email = user?.emailAddress || '';
+  const memberSince = user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '';
 
   const toggles = [
     {
@@ -87,28 +128,36 @@ export default function RiderProfilePage() {
   ];
 
   return (
-    <DashboardLayout role="rider" userName="John Doe" pageTitle="My Profile">
+    <DashboardLayout role="rider" pageTitle="My Profile">
       {/* ── Profile Header ──────────────────────────────────────── */}
       <div className="bg-white/[0.02] rounded-2xl p-6 sm:p-8 border border-white/[0.06] mb-8 hover:bg-white/[0.04] transition-all">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center text-3xl font-bold text-white shrink-0 ring-4 ring-secondary/20">
-            JD
+            {initials}
           </div>
 
           <div className="text-center sm:text-left flex-1">
-            <h2 className="text-2xl font-bold text-white">John Doe</h2>
-            <p className="text-white/60 mt-0.5">john.doe@email.com</p>
+            <h2 className="text-2xl font-bold text-white">{firstName} {lastName}</h2>
+            <p className="text-white/60 mt-0.5">{email}</p>
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-3 text-sm text-white/40">
+              {memberSince && (
+                <span className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.04] px-3 py-1 rounded-full">
+                  <Calendar size={14} className="text-secondary" /> Member since {memberSince}
+                </span>
+              )}
               <span className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.04] px-3 py-1 rounded-full">
-                <Calendar size={14} className="text-secondary" /> Member since Jan 2025
-              </span>
-              <span className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.04] px-3 py-1 rounded-full">
-                <Car size={14} className="text-secondary" /> 24 rides
+                <Car size={14} className="text-secondary" /> {user?.ratings?.toFixed(1) || '0'} rating
               </span>
             </div>
           </div>
         </div>
       </div>
+
+      {saveMsg && (
+        <div className={`rounded-xl p-4 text-sm mb-6 ${saveMsg.includes('success') ? 'bg-secondary/10 border border-secondary/20 text-secondary' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+          {saveMsg}
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* ════════ Left Column (2/3) ════════════════════════════ */}
@@ -163,8 +212,8 @@ export default function RiderProfilePage() {
               />
 
               <div className="pt-2">
-                <Button variant="green" size="lg">
-                  <Save size={18} /> Save Changes
+                <Button variant="green" size="lg" onClick={handleSave} disabled={saving}>
+                  {saving ? <><Loader2 size={18} className="animate-spin" /> Saving...</> : <><Save size={18} /> Save Changes</>}
                 </Button>
               </div>
             </div>

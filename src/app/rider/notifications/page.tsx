@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { notificationsApi } from '@/lib/services/notifications';
+import type { Notification as ApiNotification } from '@/lib/types';
 import {
   Bell,
   Car,
@@ -131,10 +134,49 @@ const filterTabs: { label: string; value: string }[] = [
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
+function mapApiNotification(n: ApiNotification, idx: number): Notification {
+  let type: NotificationType = 'system';
+  const title = n.ROC || 'Notification';
+  const titleLower = title.toLowerCase();
+  if (titleLower.includes('ride') || titleLower.includes('booking') || titleLower.includes('driver')) type = 'ride';
+  else if (titleLower.includes('payment') || titleLower.includes('refund') || titleLower.includes('wallet')) type = 'payment';
+  else if (titleLower.includes('promo') || titleLower.includes('discount') || titleLower.includes('offer')) type = 'promo';
+
+  const createdAt = new Date(n.createdAt);
+  const diff = Date.now() - createdAt.getTime();
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  const time = days > 0 ? `${days} day${days > 1 ? 's' : ''} ago` : hours > 0 ? `${hours} hour${hours > 1 ? 's' : ''} ago` : 'Just now';
+
+  return {
+    id: idx + 1000,
+    type,
+    title,
+    description: n.remarks || '',
+    detail: n.remarks,
+    time,
+    read: n.isRead ?? true,
+  };
+}
+
 export default function NotificationsPage() {
+  const { user } = useRequireAuth();
   const [notifications, setNotifications] = useState(initialNotifications);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState('all');
+
+  const fetchNotifications = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await notificationsApi.getAll({ userId: user.id });
+      const list: ApiNotification[] = Array.isArray(res) ? res : (res as { data?: ApiNotification[] }).data || [];
+      if (list.length > 0) {
+        setNotifications(list.map(mapApiNotification));
+      }
+    } catch { /* keep fallback */ }
+  }, [user?.id]);
+
+  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -143,8 +185,16 @@ export default function NotificationsPage() {
       ? notifications
       : notifications.filter((n) => n.type === activeFilter);
 
-  const markAllAsRead = () =>
+  const markAllAsRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    // Mark each unread notification as read on the server
+    if (user?.id) {
+      try {
+        const unread = notifications.filter(n => !n.read);
+        await Promise.allSettled(unread.map(n => notificationsApi.markAsRead(String(n.id))));
+      } catch { /* best effort */ }
+    }
+  };
 
   const toggleExpand = (id: number) => {
     setExpanded((prev) => (prev === id ? null : id));
@@ -154,7 +204,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <DashboardLayout role="rider" userName="John Doe" pageTitle="Notifications">
+    <DashboardLayout role="rider" pageTitle="Notifications">
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">

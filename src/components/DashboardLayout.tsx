@@ -3,7 +3,8 @@
 import { type ReactNode, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
 import {
   LayoutDashboard,
   Navigation,
@@ -25,6 +26,7 @@ import {
   Menu,
   X,
   Zap,
+  MessageSquare,
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -42,6 +44,7 @@ const sidebarLinks = {
     { label: 'Profile', href: '/rider/profile', icon: User },
     { label: 'Wallet', href: '/rider/wallet', icon: Wallet },
     { label: 'Payment', href: '/rider/payment', icon: CreditCard },
+    { label: 'Messages', href: '/rider/chat', icon: MessageSquare },
     { label: 'Notifications', href: '/rider/notifications', icon: Bell },
     { label: 'Support', href: '/rider/support', icon: HelpCircle },
   ],
@@ -51,6 +54,7 @@ const sidebarLinks = {
     { label: 'Vehicle', href: '/driver/vehicle', icon: Car },
     { label: 'Documents', href: '/driver/documents', icon: Upload },
     { label: 'Earnings', href: '/driver/earnings', icon: Wallet },
+    { label: 'Messages', href: '/driver/chat', icon: MessageSquare },
     { label: 'Notifications', href: '/driver/notifications', icon: Bell },
   ],
   company: [
@@ -93,14 +97,24 @@ function getInitials(name: string) {
 
 export default function DashboardLayout({
   role,
-  userName = 'John Doe',
+  userName,
   pageTitle = 'Dashboard',
   children,
 }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const links = sidebarLinks[role];
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Use real user name if available
+  const displayName = userName ?? (user ? `${user.firstName} ${user.lastName}` : 'Guest');
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   return (
     <div className="min-h-screen bg-dark">
@@ -173,18 +187,18 @@ export default function DashboardLayout({
         <div className={`border-t border-white/5 p-4 ${collapsed ? 'flex justify-center' : ''}`}>
           {collapsed ? (
             <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold">
-              {getInitials(userName)}
+              {getInitials(displayName)}
             </div>
           ) : (
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold shrink-0">
-                {getInitials(userName)}
+                {getInitials(displayName)}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-white text-sm font-medium truncate">{userName}</p>
+                <p className="text-white text-sm font-medium truncate">{displayName}</p>
                 <p className="text-white/30 text-xs capitalize">{role}</p>
               </div>
-              <button className="p-1.5 rounded-lg text-white/20 hover:text-white/50 hover:bg-white/[0.04] transition-all">
+              <button onClick={handleLogout} className="p-1.5 rounded-lg text-white/20 hover:text-white/50 hover:bg-white/[0.04] transition-all">
                 <LogOut size={16} />
               </button>
             </div>
@@ -271,10 +285,10 @@ export default function DashboardLayout({
             </Link>
             <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-white/[0.08]">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center text-secondary text-xs font-bold">
-                {getInitials(userName)}
+                {getInitials(displayName)}
               </div>
               <div>
-                <p className="text-sm font-semibold text-white">{userName}</p>
+                <p className="text-sm font-semibold text-white">{displayName}</p>
                 <p className="text-xs text-white/40 capitalize">{role}</p>
               </div>
             </div>

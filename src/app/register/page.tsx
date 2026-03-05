@@ -3,17 +3,62 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Mail, Lock, Eye, EyeOff, User, Phone, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [otpStep, setOtpStep] = useState(false);
+  const [otp, setOtp] = useState('');
   const [form, setForm] = useState({
     firstName: '', lastName: '', phone: '', email: '', password: '', confirmPassword: '',
   });
+  const { register, confirmEmail, resendOtp, loading, error, clearError } = useAuth();
+  const router = useRouter();
 
   const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+    if (form.password !== form.confirmPassword) return;
+    if (!agreed) return;
+    try {
+      await register({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        emailAddress: form.email,
+        password: form.password,
+        phone_number: form.phone.startsWith('+44') ? form.phone : `+44${form.phone}`,
+      });
+      setOtpStep(true);
+    } catch {
+      // error set in context
+    }
+  };
+
+  const handleConfirmOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+    try {
+      await confirmEmail({ emailAddress: form.email, otp });
+      router.push('/rider/dashboard');
+    } catch {
+      // error set in context
+    }
+  };
+
+  const handleResendOtp = async () => {
+    clearError();
+    try {
+      await resendOtp(form.email);
+    } catch {
+      // error set in context
+    }
+  };
 
   return (
     <div className="min-h-screen flex" style={{ background: '#060B14' }}>
@@ -31,6 +76,34 @@ export default function RegisterPage() {
               <Image src="/images/brand/logo.png" alt="RS CAB" width={100} height={30} className="object-contain" />
             </div>
 
+            {error && (
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm mb-4">
+                {error}
+              </div>
+            )}
+
+            {otpStep ? (
+              /* ── OTP Verification Step ── */
+              <div>
+                <h2 className="text-3xl font-bold text-white text-center mb-2">Verify Email</h2>
+                <p className="text-white/35 text-center mb-7">Enter the code sent to <span className="text-secondary">{form.email}</span></p>
+                <form onSubmit={handleConfirmOtp} className="space-y-4">
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
+                    <input type="text" placeholder="Enter 6-digit code" value={otp} onChange={(e) => setOtp(e.target.value)} className="input-dark pl-12 text-center text-lg tracking-[0.3em]" maxLength={6} required />
+                  </div>
+                  <button type="submit" disabled={loading} className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Verifying...</> : 'Verify & Sign In'}
+                  </button>
+                  <p className="text-center text-white/35 text-sm mt-2">
+                    Didn&apos;t get the code?{' '}
+                    <button type="button" onClick={handleResendOtp} className="text-secondary font-semibold hover:underline underline-offset-4">Resend</button>
+                  </p>
+                </form>
+              </div>
+            ) : (
+              /* ── Registration Form ── */
+              <div>
             <h2 className="text-3xl font-bold text-white text-center mb-2">Create Account</h2>
             <p className="text-white/35 text-center mb-7">Join the premium ride experience</p>
 
@@ -59,7 +132,7 @@ export default function RegisterPage() {
               <div className="flex-1 h-px bg-white/[0.06]" />
             </div>
 
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+            <form onSubmit={handleRegister} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
@@ -116,8 +189,8 @@ export default function RegisterPage() {
                 </span>
               </label>
 
-              <button type="submit" className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all">
-                Create Account
+              <button type="submit" disabled={loading || !agreed} className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Creating account...</> : 'Create Account'}
               </button>
             </form>
 
@@ -128,8 +201,8 @@ export default function RegisterPage() {
             <p className="text-center text-white/35 mt-6 text-sm">
               Already have an account?{' '}
               <Link href="/login" className="text-secondary font-semibold hover:underline underline-offset-4">Sign In</Link>
-            </p>
-          </div>
+            </p>              </div>
+            )}          </div>
         </div>
       </div>
 

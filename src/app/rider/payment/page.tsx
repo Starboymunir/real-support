@@ -1,9 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { walletApi } from '@/lib/services/wallet';
+import type { Transaction as ApiTransaction } from '@/lib/types';
 import {
   CreditCard,
   Plus,
@@ -46,14 +49,51 @@ const cardGradients: Record<string, string> = {
 /* ------------------------------------------------------------------ */
 
 export default function PaymentPage() {
+  const { user } = useRequireAuth();
   const [showAddForm, setShowAddForm] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [cardName, setCardName] = useState('');
+  const [txList, setTxList] = useState(transactions);
+  const [totalSpent, setTotalSpent] = useState(342.80);
+  const [monthSpent, setMonthSpent] = useState(65.50);
+
+  const fetchTransactions = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const data = await walletApi.getUserTransactions(user.id);
+      if (data && data.length > 0) {
+        const mapped = data
+          .filter(t => t.type === 'EXPENSE')
+          .slice(0, 10)
+          .map((t, idx) => {
+            const d = new Date(t.createdAt);
+            return {
+              id: `TXN-${idx}`,
+              date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+              amount: `£${Math.abs(t.amount).toFixed(2)}`,
+              ride: t.bookingId ? t.bookingId.slice(-6) : 'N/A',
+              status: 'Paid' as const,
+            };
+          });
+        if (mapped.length > 0) setTxList(mapped);
+        const total = data.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
+        setTotalSpent(total);
+        const now = new Date();
+        const monthTotal = data.filter(t => {
+          const td = new Date(t.createdAt);
+          return t.type === 'EXPENSE' && td.getMonth() === now.getMonth() && td.getFullYear() === now.getFullYear();
+        }).reduce((s, t) => s + t.amount, 0);
+        setMonthSpent(monthTotal);
+      }
+    } catch { /* keep fallback */ }
+  }, [user?.id]);
+
+  useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
 
   return (
-    <DashboardLayout role="rider" userName="John Doe" pageTitle="Payment Methods">
+    <DashboardLayout role="rider" pageTitle="Payment Methods">
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="mb-8">
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">
@@ -286,11 +326,11 @@ export default function PaymentPage() {
             <div className="space-y-4">
               <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04]">
                 <p className="text-xs text-white/30 font-medium uppercase tracking-wider">Total Spent</p>
-                <p className="text-2xl font-bold text-white mt-1">£342.80</p>
+                <p className="text-2xl font-bold text-white mt-1">£{totalSpent.toFixed(2)}</p>
               </div>
               <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04]">
                 <p className="text-xs text-white/30 font-medium uppercase tracking-wider">This Month</p>
-                <p className="text-2xl font-bold gradient-text mt-1">£65.50</p>
+                <p className="text-2xl font-bold gradient-text mt-1">£{monthSpent.toFixed(2)}</p>
               </div>
               <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04]">
                 <p className="text-xs text-white/30 font-medium uppercase tracking-wider">Saved Cards</p>

@@ -3,12 +3,27 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, Building2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Mail, Lock, Eye, EyeOff, Building2, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 export default function CompanyLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { companyLogin, loading, error, clearError } = useAuth();
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+    try {
+      await companyLogin({ emailAddress: email, password });
+      router.push('/company/dashboard');
+    } catch {
+      // error set in context
+    }
+  };
 
   return (
     <div className="min-h-screen flex" style={{ background: '#060B14' }}>
@@ -36,7 +51,12 @@ export default function CompanyLoginPage() {
             <h2 className="text-3xl font-bold text-white text-center mb-2">Company Sign In</h2>
             <p className="text-white/35 text-center mb-8">Access your corporate account</p>
 
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
               <div>
                 <label className="block text-white/40 text-sm font-medium mb-2">Company Email</label>
                 <div className="relative">
@@ -60,8 +80,8 @@ export default function CompanyLoginPage() {
                 <Link href="/forget-password" className="text-secondary text-sm font-medium hover:underline underline-offset-4">Forgot password?</Link>
               </div>
 
-              <button type="submit" className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all flex items-center justify-center gap-2">
-                <Building2 className="w-5 h-5" /> Sign In
+              <button type="submit" disabled={loading} className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Signing in...</> : <><Building2 className="w-5 h-5" /> Sign In</>}
               </button>
             </form>
 

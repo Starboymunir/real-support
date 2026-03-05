@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
+import { useRequireAuth } from '@/lib/use-require-auth';
+import { bookingsApi } from '@/lib/services';
+import type { Booking } from '@/lib/types';
 import {
   Plus,
   Calendar,
@@ -29,8 +32,10 @@ function getStatusStyle(status: string) {
   }
 }
 
-/* ───── Dummy bookings ───── */
-const bookings = [
+/* ───── Dummy bookings (fallback) ───── */
+type DisplayBooking = { id: string; employee: string; date: string; pickup: string; dropoff: string; vehicle: string; cost: string; status: string };
+
+const fallbackBookings: DisplayBooking[] = [
   {
     id: 'BK-1041',
     employee: 'Sarah Mitchell',
@@ -114,13 +119,38 @@ const bookings = [
 ];
 
 export default function CompanyBookingsPage() {
+  const { user } = useRequireAuth();
+  const [bookingsList, setBookingsList] = useState<DisplayBooking[]>(fallbackBookings);
   const [statusFilter, setStatusFilter] = useState('All');
   const [employeeFilter, setEmployeeFilter] = useState('All');
 
-  const statuses = ['All', 'Completed', 'In Progress', 'Scheduled', 'Cancelled'];
-  const employees = ['All', ...Array.from(new Set(bookings.map((b) => b.employee)))];
+  const fetchBookings = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await bookingsApi.getUserBookings(user.id);
+      const raw: Booking[] = Array.isArray(res) ? res : (res as { data?: Booking[] }).data || [];
+      if (raw.length > 0) {
+        const statusMap: Record<string, string> = { COMPLETED: 'Completed', CANCELLED: 'Cancelled', REJECTED: 'Cancelled', ACCEPTED: 'In Progress', WAY_TO_PICKUP: 'In Progress', ARRIVED: 'In Progress', PICKED_UP: 'In Progress', WAY_TO_DESTINATION: 'In Progress' };
+        setBookingsList(raw.map((b, i) => ({
+          id: `BK-${1041 - i}`,
+          employee: b.riderName || 'Employee',
+          date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+          pickup: b.startFrom?.name || b.startFrom?.postCode || 'Pickup',
+          dropoff: b.destination?.name || b.destination?.postCode || 'Destination',
+          vehicle: b.packageName || 'Standard',
+          cost: `\u00A3${(b.finalBill || 0).toFixed(2)}`,
+          status: statusMap[b.status] || 'Scheduled',
+        })));
+      }
+    } catch { /* keep fallback */ }
+  }, [user]);
 
-  const filtered = bookings.filter((b) => {
+  useEffect(() => { fetchBookings(); }, [fetchBookings]);
+
+  const statuses = ['All', 'Completed', 'In Progress', 'Scheduled', 'Cancelled'];
+  const employees = ['All', ...Array.from(new Set(bookingsList.map((b) => b.employee)))];
+
+  const filtered = bookingsList.filter((b) => {
     if (statusFilter !== 'All' && b.status !== statusFilter) return false;
     if (employeeFilter !== 'All' && b.employee !== employeeFilter) return false;
     return true;
@@ -132,7 +162,7 @@ export default function CompanyBookingsPage() {
   );
 
   return (
-    <DashboardLayout role="company" userName="Acme Corp">
+    <DashboardLayout role="company">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>

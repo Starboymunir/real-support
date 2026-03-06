@@ -21,6 +21,7 @@ import {
   Route,
   CreditCard,
   ArrowUpRight,
+  CalendarOff,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -31,6 +32,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bookingsApi } from '@/lib/services/bookings';
 import { walletApi } from '@/lib/services/wallet';
+import { userAddressApi } from '@/lib/services/user';
 import type { Booking } from '@/lib/types';
 
 const fadeUp = {
@@ -64,11 +66,8 @@ function useCounter(end: number, dur = 1200) {
   return n;
 }
 
-const recentRidesFallback = [
-  { id: 'RS-1024', from: '12 Baker Street', to: 'Heathrow T5', fare: '£34.50', status: 'Completed', time: '2h ago', statusColor: 'bg-secondary/10 text-secondary border-secondary/20' },
-  { id: 'RS-1019', from: 'Kings Cross', to: 'Camden Town', fare: '£12.80', status: 'Cancelled', time: 'Yesterday', statusColor: 'bg-error/10 text-error border-error/20' },
-  { id: 'RS-1015', from: 'Paddington', to: 'Soho Square', fare: '£18.20', status: 'Completed', time: '2 days ago', statusColor: 'bg-secondary/10 text-secondary border-secondary/20' },
-];
+/* Active booking statuses – ride hasn't ended yet */
+const ACTIVE_STATUSES: string[] = ['ACCEPTED', 'WAY_TO_PICKUP', 'ARRIVED', 'PICKED_UP', 'WAY_TO_DESTINATION'];
 
 const quickActions = [
   { label: 'Book a Ride', href: '/rider/book', icon: Navigation, gradient: 'from-secondary/20 to-emerald-500/20', accent: 'text-secondary', desc: 'Get moving' },
@@ -98,6 +97,8 @@ export default function RiderDashboard() {
   const [greeting, setGreeting] = useState('Good Morning');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [walletBalance, setWalletBalance] = useState(0);
+  const [savedPlacesCount, setSavedPlacesCount] = useState(0);
+
   const totalRides = useCounter(bookings.length || 0);
   const monthRides = useCounter(
     bookings.filter((b) => {
@@ -107,11 +108,15 @@ export default function RiderDashboard() {
     }).length,
     800,
   );
-  const savedPlaces = useCounter(3, 600);
+  const savedPlaces = useCounter(savedPlacesCount, 600);
+
+  /* Derive user rating from their profile (backend field) */
+  const userRating = user?.ratings ?? 0;
+  const filledStars = Math.round(userRating);
 
   useEffect(() => { setGreeting(getGreeting()); }, []);
 
-  // Fetch bookings and wallet
+  // Fetch bookings, wallet, and saved places
   useEffect(() => {
     if (!user) return;
     bookingsApi.getUserBookings(user.id).then((res) => {
@@ -121,20 +126,30 @@ export default function RiderDashboard() {
     walletApi.getUserWallet(user.id).then((res) => {
       if (res) setWalletBalance(res.balance ?? 0);
     }).catch(() => {});
+    userAddressApi.getAll().then((res) => {
+      const list = Array.isArray(res) ? res : [];
+      setSavedPlacesCount(list.length);
+    }).catch(() => {});
   }, [user]);
 
-  // Build recent rides from real bookings or fall back
+  /* ── Upcoming ride: first active (non-completed, non-cancelled) booking ── */
+  const upcomingRide = bookings.find((b) => ACTIVE_STATUSES.includes(b.status)) ?? null;
+
+  /* ── Recent rides: latest 3, sorted newest-first ── */
   const recentRides = bookings.length > 0
-    ? bookings.slice(0, 3).map((b) => ({
-        id: b.uniqueId,
-        from: b.startFrom?.city || b.startFrom?.name || 'Unknown',
-        to: b.destination?.city || b.destination?.name || 'Unknown',
-        fare: `£${b.finalBill?.toFixed(2) ?? b.totalBill?.toFixed(2)}`,
-        status: b.status.replace(/_/g, ' '),
-        time: timeAgo(b.createdAt),
-        statusColor: getStatusColor(b.status),
-      }))
-    : recentRidesFallback;
+    ? [...bookings]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 3)
+        .map((b) => ({
+          id: b.uniqueId,
+          from: b.startFrom?.city || b.startFrom?.name || 'Unknown',
+          to: b.destination?.city || b.destination?.name || 'Unknown',
+          fare: `£${(b.finalBill ?? b.totalBill ?? 0).toFixed(2)}`,
+          status: b.status.replace(/_/g, ' '),
+          time: timeAgo(b.createdAt),
+          statusColor: getStatusColor(b.status),
+        }))
+    : [];
 
   const firstName = user?.firstName || 'Rider';
 
@@ -190,8 +205,15 @@ export default function RiderDashboard() {
                 <p className="text-3xl font-black text-white tabular-nums">{totalRides}</p>
                 <p className="text-white/30 text-xs font-medium mt-1">Total Rides</p>
                 <div className="mt-3 flex items-center gap-1">
-                  <span className="text-secondary text-xs font-semibold flex items-center gap-0.5"><ArrowUpRight size={11} />3</span>
-                  <span className="text-white/20 text-[10px]">this month</span>
+                  {monthRides > 0 && (
+                    <>
+                      <span className="text-secondary text-xs font-semibold flex items-center gap-0.5"><ArrowUpRight size={11} />{monthRides}</span>
+                      <span className="text-white/20 text-[10px]">this month</span>
+                    </>
+                  )}
+                  {monthRides === 0 && (
+                    <span className="text-white/20 text-[10px]">No rides this month</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -225,11 +247,11 @@ export default function RiderDashboard() {
                 </div>
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={9} className={i < 5 ? 'text-yellow-400 fill-yellow-400' : 'text-white/10'} />
+                    <Star key={i} size={9} className={i < filledStars ? 'text-yellow-400 fill-yellow-400' : 'text-white/10'} />
                   ))}
                 </div>
               </div>
-              <p className="text-3xl font-black text-white">4.8</p>
+              <p className="text-3xl font-black text-white">{userRating > 0 ? userRating.toFixed(1) : 'N/A'}</p>
               <p className="text-white/30 text-xs font-medium mt-1">Avg Rating</p>
             </div>
           </motion.div>
@@ -273,47 +295,66 @@ export default function RiderDashboard() {
 
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-lg font-bold text-white">Upcoming Ride</h2>
-                <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-accent/10 text-accent border border-accent/20">Scheduled</span>
+                {upcomingRide && (
+                  <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-accent/10 text-accent border border-accent/20">
+                    {upcomingRide.status.replace(/_/g, ' ')}
+                  </span>
+                )}
               </div>
 
-              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04] mb-5">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-white/25">Booking ID</span>
-                <p className="font-mono font-bold text-white mt-0.5">RS-1030</p>
-              </div>
-
-              {/* Route */}
-              <div className="relative pl-8 space-y-4 mb-5">
-                <div className="absolute left-[9px] top-2 bottom-2 w-[2px] bg-gradient-to-b from-secondary to-accent rounded-full" />
-                <div className="relative">
-                  <div className="absolute -left-[22px] top-0.5 w-5 h-5 rounded-full bg-secondary/20 flex items-center justify-center ring-4 ring-dark/40">
-                    <div className="w-2.5 h-2.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(0,230,118,0.5)]" />
+              {upcomingRide ? (
+                <>
+                  <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04] mb-5">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/25">Booking ID</span>
+                    <p className="font-mono font-bold text-white mt-0.5">{upcomingRide.uniqueId}</p>
                   </div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-secondary/60">Pickup</p>
-                  <p className="font-bold text-white mt-0.5">Baker Street</p>
+
+                  {/* Route */}
+                  <div className="relative pl-8 space-y-4 mb-5">
+                    <div className="absolute left-[9px] top-2 bottom-2 w-[2px] bg-gradient-to-b from-secondary to-accent rounded-full" />
+                    <div className="relative">
+                      <div className="absolute -left-[22px] top-0.5 w-5 h-5 rounded-full bg-secondary/20 flex items-center justify-center ring-4 ring-dark/40">
+                        <div className="w-2.5 h-2.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(0,230,118,0.5)]" />
+                      </div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-secondary/60">Pickup</p>
+                      <p className="font-bold text-white mt-0.5">{upcomingRide.startFrom?.city || upcomingRide.startFrom?.name || 'TBD'}</p>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute -left-[22px] top-0.5 w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center ring-4 ring-dark/40">
+                        <div className="w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_8px_rgba(0,176,255,0.5)]" />
+                      </div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-accent/60">Drop-off</p>
+                      <p className="font-bold text-white mt-0.5">{upcomingRide.destination?.city || upcomingRide.destination?.name || 'TBD'}</p>
+                    </div>
+                  </div>
+
+                  {/* Meta */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { icon: CalendarDays, label: upcomingRide.bookingDate || new Date(upcomingRide.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), color: 'text-secondary' },
+                      { icon: Clock, label: upcomingRide.bookingTime || new Date(upcomingRide.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), color: 'text-accent' },
+                      { icon: Car, label: upcomingRide.packageName || 'Standard', color: 'text-purple-400' },
+                      { icon: CreditCard, label: `£${(upcomingRide.finalBill ?? upcomingRide.totalBill ?? 0).toFixed(2)}`, color: 'text-orange-400' },
+                    ].map((m) => (
+                      <div key={m.label} className="flex items-center gap-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
+                        <m.icon size={14} className={m.color} />
+                        <span className="text-sm text-white/60 font-medium">{m.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-4">
+                    <CalendarOff size={28} className="text-white/20" />
+                  </div>
+                  <p className="text-white/40 text-sm font-medium mb-1">No upcoming rides</p>
+                  <p className="text-white/20 text-xs mb-4">Book your next journey to see it here</p>
+                  <Button variant="green" size="sm" href="/rider/book">
+                    Book a Ride <ArrowRight size={14} />
+                  </Button>
                 </div>
-                <div className="relative">
-                  <div className="absolute -left-[22px] top-0.5 w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center ring-4 ring-dark/40">
-                    <div className="w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_8px_rgba(0,176,255,0.5)]" />
-                  </div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent/60">Drop-off</p>
-                  <p className="font-bold text-white mt-0.5">Gatwick Airport</p>
-                </div>
-              </div>
-
-              {/* Meta */}
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { icon: CalendarDays, label: '25 Feb 2026', color: 'text-secondary' },
-                  { icon: Clock, label: '08:30 AM', color: 'text-accent' },
-                  { icon: Car, label: 'Comfort', color: 'text-purple-400' },
-                  { icon: CreditCard, label: '£45.00', color: 'text-orange-400' },
-                ].map((m) => (
-                  <div key={m.label} className="flex items-center gap-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.04]">
-                    <m.icon size={14} className={m.color} />
-                    <span className="text-sm text-white/60 font-medium">{m.label}</span>
-                  </div>
-                ))}
-              </div>
+              )}
             </div>
           </motion.div>
         </div>
@@ -333,38 +374,46 @@ export default function RiderDashboard() {
               </div>
 
               <div className="space-y-3">
-                {recentRides.map((ride) => (
-                  <Link
-                    key={ride.id}
-                    href="/rider/rides"
-                    className="group flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300"
-                  >
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="flex flex-col items-center gap-0.5 shrink-0">
-                        <div className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_6px_rgba(0,230,118,0.4)]" />
-                        <div className="w-[2px] h-5 bg-gradient-to-b from-secondary to-accent rounded-full" />
-                        <div className="w-2 h-2 rounded-full bg-accent shadow-[0_0_6px_rgba(0,176,255,0.4)]" />
+                {recentRides.length > 0 ? (
+                  recentRides.map((ride) => (
+                    <Link
+                      key={ride.id}
+                      href="/rider/rides"
+                      className="group flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="flex flex-col items-center gap-0.5 shrink-0">
+                          <div className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_6px_rgba(0,230,118,0.4)]" />
+                          <div className="w-[2px] h-5 bg-gradient-to-b from-secondary to-accent rounded-full" />
+                          <div className="w-2 h-2 rounded-full bg-accent shadow-[0_0_6px_rgba(0,176,255,0.4)]" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-white">{ride.id}</p>
+                          <p className="text-xs text-white/30 truncate mt-0.5">{ride.from} → {ride.to}</p>
+                          <p className="text-[10px] text-white/20 mt-0.5">{ride.time}</p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-white">{ride.id}</p>
-                        <p className="text-xs text-white/30 truncate mt-0.5">{ride.from} → {ride.to}</p>
-                        <p className="text-[10px] text-white/20 mt-0.5">{ride.time}</p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-sm font-black text-white tabular-nums">{ride.fare}</span>
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${ride.statusColor}`}>
-                        {ride.status}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-sm font-black text-white tabular-nums">{ride.fare}</span>
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${ride.statusColor}`}>
+                          {ride.status}
+                        </span>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <History size={28} className="text-white/15 mb-3" />
+                    <p className="text-white/30 text-sm font-medium">No rides yet</p>
+                    <p className="text-white/15 text-xs mt-1">Your ride history will appear here</p>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
 
-          {/* Promo Card */}
+          {/* Wallet Card */}
           <motion.div initial="hidden" animate="visible" custom={8} variants={fadeUp}>
             <div className="relative h-full overflow-hidden rounded-2xl border border-secondary/20 bg-gradient-to-br from-secondary/[0.08] via-dark-surface to-accent/[0.04] p-6 flex flex-col justify-between">
               <div className="absolute -top-16 -right-16 w-40 h-40 bg-secondary/[0.1] rounded-full blur-[60px] pointer-events-none" />
@@ -372,15 +421,21 @@ export default function RiderDashboard() {
 
               <div className="relative">
                 <div className="w-14 h-14 rounded-2xl bg-secondary/10 border border-secondary/20 flex items-center justify-center mb-5">
-                  <Gift size={26} className="text-secondary" />
+                  <CreditCard size={26} className="text-secondary" />
                 </div>
-                <h3 className="text-xl font-black text-white mb-2">20% Off Your Next Ride!</h3>
-                <p className="text-white/40 text-sm leading-relaxed">Enjoy a special discount on your next booking with RS CAB.</p>
+                <h3 className="text-xl font-black text-white mb-2">Wallet Balance</h3>
+                <p className="text-white/40 text-sm leading-relaxed">Your current RS CAB wallet balance.</p>
               </div>
 
               <div className="relative mt-6 bg-white/[0.04] border border-white/[0.06] rounded-xl px-5 py-4 text-center">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-1">Promo Code</p>
-                <p className="text-xl font-black tracking-[0.15em] gradient-text">RSCAB20</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 mb-1">Available</p>
+                <p className="text-xl font-black tracking-[0.05em] gradient-text">£{walletBalance.toFixed(2)}</p>
+              </div>
+
+              <div className="relative mt-4">
+                <Button variant="green" className="w-full" href="/rider/payment" size="sm">
+                  Top Up Wallet <ArrowRight size={14} />
+                </Button>
               </div>
             </div>
           </motion.div>

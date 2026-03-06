@@ -13,7 +13,7 @@ import {
   type ReactNode,
 } from 'react';
 import { setToken, getToken } from './api';
-import { authApi, type AuthResponse } from './services/auth';
+import { authApi, type LoginResponse } from './services/auth';
 import type {
   User,
   RegisterDto,
@@ -35,6 +35,7 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   login: (dto: LoginDto) => Promise<void>;
   companyLogin: (dto: LoginDto) => Promise<void>;
+  adminLogin: (dto: LoginDto) => Promise<void>;
   register: (dto: RegisterDto) => Promise<void>;
   confirmEmail: (dto: ConfirmOtpDto) => Promise<void>;
   resendOtp: (email: string) => Promise<void>;
@@ -79,13 +80,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
   }, []);
 
-  const handleAuth = useCallback(async (promise: Promise<AuthResponse>) => {
+  const handleAuth = useCallback(async (promise: Promise<LoginResponse>) => {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const res = await promise;
-      const { user, token } = res;
-      setToken(token);
-      setState({ user, loading: false, error: null });
+      // Backend returns { idToken, accessToken, cognitoId, userData }
+      setToken(res.idToken);
+      setState({ user: res.userData, loading: false, error: null });
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Something went wrong';
@@ -121,14 +122,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const adminLogin = useCallback(
+    async (dto: LoginDto) => handleAuth(authApi.adminLogin(dto)),
+    [handleAuth],
+  );
+
   const confirmEmail = useCallback(
     async (dto: ConfirmOtpDto) => {
       setState((s) => ({ ...s, loading: true, error: null }));
       try {
-        const res = await authApi.confirmEmail(dto);
-        const { user, token } = res;
-        setToken(token);
-        setState({ user, loading: false, error: null });
+        // Backend only confirms the OTP — returns null, no token/user
+        await authApi.confirmEmail(dto);
+        setState((s) => ({ ...s, loading: false }));
+        // Caller should auto-login after this succeeds
       } catch (err) {
         const message =
           err instanceof ApiError ? err.message : 'Verification failed';
@@ -196,6 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...state,
         login,
         companyLogin,
+        adminLogin,
         register,
         confirmEmail,
         resendOtp,

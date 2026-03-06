@@ -508,6 +508,7 @@ export interface RegisterDto {
   emailAddress: string;
   password: string;
   phone_number: string;
+  mode?: UserMode;
 }
 
 export interface LoginDto {

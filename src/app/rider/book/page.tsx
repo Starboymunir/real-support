@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   MapPin,
@@ -15,16 +15,19 @@ import {
   Users,
   StickyNote,
   ChevronRight,
+  Route,
+  Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { requestsApi } from '@/lib/services/bookings';
 import { packagesApi } from '@/lib/services/packages';
-import { othersApi } from '@/lib/services/others';
 import type { Package } from '@/lib/types';
+import AddressAutocomplete, { type PlaceResult } from '@/components/maps/AddressAutocomplete';
+import MapView from '@/components/maps/MapView';
+import { getRoute, formatDistance, formatDuration, type RouteInfo } from '@/lib/mapbox';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -35,60 +38,208 @@ const fadeUp = {
   }),
 };
 
-const vehicles = [
-  { id: 'economy', name: 'Economy', emoji: '🚗', from: '£8', eta: '3 min', desc: 'Affordable everyday rides' },
-  { id: 'comfort', name: 'Comfort', emoji: '🚙', from: '£12', eta: '5 min', desc: 'Extra legroom & comfort' },
-  { id: 'premium', name: 'Premium', emoji: '✨', from: '£20', eta: '7 min', desc: 'Luxury vehicles & top drivers' },
-  { id: 'xl', name: 'XL / Van', emoji: '🚐', from: '£15', eta: '8 min', desc: 'Groups & extra luggage' },
-];
+const packageEmoji: Record<string, string> = {
+  economy: '🚗',
+  comfort: '🚙',
+  premium: '✨',
+  xl: '🚐',
+  van: '🚐',
+};
+
+function getEmoji(name: string): string {
+  const lower = name.toLowerCase();
+  for (const [key, emoji] of Object.entries(packageEmoji)) {
+    if (lower.includes(key)) return emoji;
+  }
+  return '🚗';
+}
+
+/** Estimate fare using the backend Package pricing fields */
+function estimateFareFromPackage(
+  pkg: Package,
+  distanceMeters: number,
+  durationSeconds: number
+): { min: number; max: number } {
+  const miles = distanceMeters / 1609.34;
+  const mins = durationSeconds / 60;
+  const baseFare = pkg.pricePerMilage * miles + pkg.drivingProMin * mins;
+  const withService = baseFare + pkg.serviceFee;
+  const fare = Math.max(pkg.minBill, withService);
+  return {
+    min: Math.round(fare * 0.95 * 100) / 100,
+    max: Math.round(fare * 1.15 * 100) / 100,
+  };
+}
 
 export default function BookRide() {
   const { user } = useRequireAuth();
   const router = useRouter();
-  const [selectedVehicle, setSelectedVehicle] = useState('comfort');
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [selectedPackageId, setSelectedPackageId] = useState('');
+  const [loadingPackages, setLoadingPackages] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('card');
-  const [stops, setStops] = useState<string[]>([]);
+  const [stops, setStops] = useState<{ text: string; place?: PlaceResult }[]>([]);
   const [passengers, setPassengers] = useState(1);
-  const [pickup, setPickup] = useState('');
-  const [dropoff, setDropoff] = useState('');
+  const [pickupPlace, setPickupPlace] = useState<PlaceResult | null>(null);
+  const [dropoffPlace, setDropoffPlace] = useState<PlaceResult | null>(null);
+  const [pickupText, setPickupText] = useState('');
+  const [dropoffText, setDropoffText] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [note, setNote] = useState('');
-  const [estimatedFare, setEstimatedFare] = useState<string | null>(null);
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
+  const [fareEstimate, setFareEstimate] = useState<{ min: number; max: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingRoute, setLoadingRoute] = useState(false);
   const [error, setError] = useState('');
 
+  const selectedPackage = packages.find((p) => p.id === selectedPackageId);
+
+  // Fetch packages once user is authenticated
+  useEffect(() => {
+    if (!user) return;
+    const fetchPackages = async () => {
+      setLoadingPackages(true);
+      try {
+        const raw = await packagesApi.getAll();
+        // Handle various response shapes
+        const list: Package[] = Array.isArray(raw)
+          ? raw
+          : raw && typeof raw === 'object' && 'data' in (raw as Record<string, unknown>)
+            ? (raw as unknown as { data: Package[] }).data
+            : [];
+        setPackages(list);
+        if (list.length > 0 && !selectedPackageId) {
+          setSelectedPackageId(list[0].id);
+        }
+      } catch (err) {
+        console.error('[BookRide] Failed to fetch packages:', err);
+      } finally {
+        setLoadingPackages(false);
+      }
+    };
+    fetchPackages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const addStop = () => {
-    if (stops.length < 2) setStops([...stops, '']);
+    if (stops.length < 2) setStops([...stops, { text: '' }]);
   };
   const removeStop = (idx: number) => setStops(stops.filter((_, i) => i !== idx));
 
+  // Fetch route when pickup and dropoff are set
+  useEffect(() => {
+    if (!pickupPlace || !dropoffPlace) {
+      setRouteInfo(null);
+      setFareEstimate(null);
+      return;
+    }
+
+    const fetchRoute = async () => {
+      setLoadingRoute(true);
+      const waypoints = stops
+        .filter((s) => s.place)
+        .map((s) => ({ lng: s.place!.lng, lat: s.place!.lat }));
+
+      const route = await getRoute(
+        { lng: pickupPlace.lng, lat: pickupPlace.lat },
+        { lng: dropoffPlace.lng, lat: dropoffPlace.lat },
+        waypoints.length > 0 ? waypoints : undefined
+      );
+
+      if (route) {
+        setRouteInfo(route);
+        if (selectedPackage) {
+          setFareEstimate(estimateFareFromPackage(selectedPackage, route.distance, route.duration));
+        }
+      }
+      setLoadingRoute(false);
+    };
+
+    fetchRoute();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickupPlace, dropoffPlace, stops]);
+
+  // Recalculate fare when vehicle changes
+  useEffect(() => {
+    if (routeInfo && selectedPackage) {
+      setFareEstimate(estimateFareFromPackage(selectedPackage, routeInfo.distance, routeInfo.duration));
+    }
+  }, [selectedPackageId, selectedPackage, routeInfo]);
+
+  // Build map markers
+  const markers = [];
+  if (pickupPlace) {
+    markers.push({ lng: pickupPlace.lng, lat: pickupPlace.lat, color: '#00E676', label: 'Pickup' });
+  }
+  if (dropoffPlace) {
+    markers.push({ lng: dropoffPlace.lng, lat: dropoffPlace.lat, color: '#FF5252', label: 'Drop-off' });
+  }
+  stops.forEach((s, i) => {
+    if (s.place) {
+      markers.push({ lng: s.place.lng, lat: s.place.lat, color: '#00B0FF', label: `Stop ${i + 1}` });
+    }
+  });
+
+  const mapCenter: [number, number] = pickupPlace
+    ? [pickupPlace.lng, pickupPlace.lat]
+    : dropoffPlace
+    ? [dropoffPlace.lng, dropoffPlace.lat]
+    : [-0.1276, 51.5074];
+
   const handleConfirmBooking = useCallback(async () => {
     if (!user) return;
-    if (!pickup || !dropoff) { setError('Please enter pickup and dropoff locations'); return; }
+    if (!pickupPlace || !dropoffPlace) {
+      setError('Please select pickup and drop-off locations');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
-      const stoppageAddresses = stops.filter(Boolean).map(s => ({
-        name: s, city: '', latitude: '0', longitude: '0',
-      }));
+      const stoppageAddresses = stops
+        .filter((s) => s.place)
+        .map((s) => ({
+          name: s.place!.fullAddress,
+          city: s.place!.city,
+          latitude: String(s.place!.lat),
+          longitude: String(s.place!.lng),
+        }));
+
+      const bookingDateStr = date || new Date().toISOString().split('T')[0];
+      const bookingTimeStr = time || new Date().toTimeString().slice(0, 5);
+
       const request = await requestsApi.create({
-        startFrom: { name: pickup, city: '', latitude: '0', longitude: '0' },
-        destination: { name: dropoff, city: '', latitude: '0', longitude: '0' },
+        startFrom: {
+          name: pickupPlace.fullAddress,
+          city: pickupPlace.city,
+          latitude: String(pickupPlace.lat),
+          longitude: String(pickupPlace.lng),
+        },
+        destination: {
+          name: dropoffPlace.fullAddress,
+          city: dropoffPlace.city,
+          latitude: String(dropoffPlace.lat),
+          longitude: String(dropoffPlace.lng),
+        },
         stoppages: stoppageAddresses.length > 0 ? stoppageAddresses : undefined,
-        packageId: selectedVehicle,
+        packageId: selectedPackageId,
         paymentType: paymentMethod === 'card' ? 'WALLET' : 'CASH',
-        totalDistance: 0,
-        totalDuration: 0,
+        totalDistance: routeInfo ? Math.round(routeInfo.distance) : 0,
+        totalDuration: routeInfo ? Math.round(routeInfo.duration) : 0,
+        totalBill: fareEstimate ? Math.round(fareEstimate.max) : 0,
         totalPersons: passengers,
+        totalLuggage: 0,
         notes: note || undefined,
         requestType: 'FIXED',
-        bookingDate: date || new Date().toISOString().split('T')[0],
-        bookingTime: new Date().toTimeString().slice(0, 5),
+        bookingDate: new Date(`${bookingDateStr}T${bookingTimeStr}:00`).toISOString(),
+        bookingTime: bookingTimeStr,
         clientName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         clientEmail: user.emailAddress || '',
         clientPhone: user.phone_number || '',
-        serviceCharge: 0,
+        serviceCharge: selectedPackage ? selectedPackage.serviceFee : 0,
+        discountAmount: 0,
+        cashCollected: 0,
+        walletCollected: 0,
       });
       if (request?.id) {
         router.push('/rider/rides');
@@ -98,7 +249,7 @@ export default function BookRide() {
     } finally {
       setSubmitting(false);
     }
-  }, [user, pickup, dropoff, date, selectedVehicle, paymentMethod, passengers, note, router]);
+  }, [user, pickupPlace, dropoffPlace, date, time, selectedPackageId, selectedPackage, fareEstimate, paymentMethod, passengers, note, stops, routeInfo, router]);
 
   return (
     <DashboardLayout role="rider" pageTitle="Book a Ride">
@@ -112,11 +263,22 @@ export default function BookRide() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* ═══ Left Column ═══ */}
           <div className="lg:col-span-2 space-y-6">
+            {/* ── Map ── */}
+            <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp}>
+              <MapView
+                center={mapCenter}
+                zoom={pickupPlace || dropoffPlace ? 13 : 11}
+                markers={markers}
+                route={routeInfo?.geometry}
+                className="w-full h-[350px]"
+              />
+            </motion.div>
+
             {/* ── Route Inputs ── */}
             <motion.div
               initial="hidden"
               animate="visible"
-              custom={1}
+              custom={2}
               variants={fadeUp}
               className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6 card-premium transition-all duration-200"
             >
@@ -131,11 +293,21 @@ export default function BookRide() {
                   <div className="w-2.5 h-2.5 rounded-full bg-secondary" />
                 </div>
 
-                <Input icon={MapPin} placeholder="Pickup location" label="Pickup" value={pickup} onChange={(e) => setPickup(e.target.value)} />
+                <AddressAutocomplete
+                  label="Pickup"
+                  placeholder="Where should we pick you up?"
+                  value={pickupText}
+                  onChange={setPickupText}
+                  onSelect={(place) => {
+                    setPickupPlace(place);
+                    setPickupText(place.fullAddress);
+                  }}
+                  iconColor="text-secondary"
+                />
 
                 {/* Stops */}
                 <AnimatePresence>
-                  {stops.map((_, idx) => (
+                  {stops.map((stop, idx) => (
                     <motion.div
                       key={idx}
                       initial={{ opacity: 0, height: 0 }}
@@ -145,7 +317,22 @@ export default function BookRide() {
                     >
                       <div className="flex items-end gap-2">
                         <div className="flex-1">
-                          <Input icon={MapPin} placeholder={`Stop ${idx + 1}`} label={`Stop ${idx + 1}`} />
+                          <AddressAutocomplete
+                            label={`Stop ${idx + 1}`}
+                            placeholder={`Stop ${idx + 1}`}
+                            value={stop.text}
+                            onChange={(text) => {
+                              const newStops = [...stops];
+                              newStops[idx] = { ...newStops[idx], text };
+                              setStops(newStops);
+                            }}
+                            onSelect={(place) => {
+                              const newStops = [...stops];
+                              newStops[idx] = { text: place.fullAddress, place };
+                              setStops(newStops);
+                            }}
+                            iconColor="text-accent"
+                          />
                         </div>
                         <button
                           onClick={() => removeStop(idx)}
@@ -172,13 +359,48 @@ export default function BookRide() {
                   <div className="w-2.5 h-2.5 rounded-full bg-error" />
                 </div>
 
-                <Input icon={MapPin} placeholder="Drop-off location" label="Drop-off" value={dropoff} onChange={(e) => setDropoff(e.target.value)} />
+                <AddressAutocomplete
+                  label="Drop-off"
+                  placeholder="Where are you going?"
+                  value={dropoffText}
+                  onChange={setDropoffText}
+                  onSelect={(place) => {
+                    setDropoffPlace(place);
+                    setDropoffText(place.fullAddress);
+                  }}
+                  iconColor="text-error"
+                />
               </div>
+
+              {/* Route info bar */}
+              {routeInfo && (
+                <div className="mt-4 p-3 rounded-xl bg-secondary/[0.06] border border-secondary/20 flex items-center gap-4">
+                  <Route size={18} className="text-secondary shrink-0" />
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="text-white font-semibold">{formatDistance(routeInfo.distance)}</span>
+                    <span className="text-white/30">•</span>
+                    <span className="text-white/60">{formatDuration(routeInfo.duration)}</span>
+                  </div>
+                  {loadingRoute && <Loader2 size={14} className="text-secondary animate-spin ml-auto" />}
+                </div>
+              )}
 
               {/* Date & Time */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
-                <Input icon={CalendarDays} type="date" label="Date" value={date} onChange={(e) => setDate(e.target.value)} />
-                <Input icon={Clock} type="time" label="Time" value={time} onChange={(e) => setTime(e.target.value)} />
+                <div>
+                  <label className="block text-white/50 text-sm font-medium mb-2">Date</label>
+                  <div className="relative">
+                    <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25 pointer-events-none" />
+                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input-dark w-full pl-12" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-white/50 text-sm font-medium mb-2">Time</label>
+                  <div className="relative">
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25 pointer-events-none" />
+                    <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="input-dark w-full pl-12" />
+                  </div>
+                </div>
               </div>
             </motion.div>
 
@@ -186,52 +408,63 @@ export default function BookRide() {
             <motion.div
               initial="hidden"
               animate="visible"
-              custom={2}
+              custom={3}
               variants={fadeUp}
               className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6"
             >
               <h2 className="text-lg font-semibold text-white mb-5">Choose Your Vehicle</h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {vehicles.map((v) => {
-                  const active = selectedVehicle === v.id;
-                  return (
-                    <button
-                      key={v.id}
-                      onClick={() => setSelectedVehicle(v.id)}
-                      className={`relative text-left rounded-2xl border-2 p-5 transition-all duration-200 cursor-pointer ${
-                        active
-                          ? 'border-secondary bg-secondary/[0.06]'
-                          : 'border-white/[0.06] hover:border-white/[0.1]'
-                      }`}
-                    >
-                      {active && (
-                        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-secondary flex items-center justify-center">
-                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
+              {loadingPackages ? (
+                <div className="flex items-center gap-3 text-white/30 text-sm">
+                  <Loader2 size={16} className="animate-spin" /> Loading vehicle types...
+                </div>
+              ) : packages.length === 0 ? (
+                <p className="text-white/40 text-sm">No vehicle types available. Please try again later.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {packages.map((pkg) => {
+                    const active = selectedPackageId === pkg.id;
+                    const fare = routeInfo ? estimateFareFromPackage(pkg, routeInfo.distance, routeInfo.duration) : null;
+                    return (
+                      <button
+                        key={pkg.id}
+                        onClick={() => setSelectedPackageId(pkg.id)}
+                        className={`relative text-left rounded-2xl border-2 p-5 transition-all duration-200 cursor-pointer ${
+                          active
+                            ? 'border-secondary bg-secondary/[0.06]'
+                            : 'border-white/[0.06] hover:border-white/[0.1]'
+                        }`}
+                      >
+                        {active && (
+                          <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-secondary flex items-center justify-center">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                              <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                        )}
+                        <span className="text-2xl">{getEmoji(pkg.name)}</span>
+                        <h3 className="text-base font-semibold text-white mt-2">{pkg.name}</h3>
+                        <p className="text-xs text-white/40 mt-0.5">{pkg.summary}</p>
+                        <div className="flex items-center justify-between mt-3">
+                          <span className="text-sm font-bold text-white">
+                            {fare ? `£${fare.min.toFixed(0)} – £${fare.max.toFixed(0)}` : `from £${pkg.minBill.toFixed(0)}`}
+                          </span>
+                          <span className="text-xs text-white/40 flex items-center gap-1">
+                            <Clock size={12} /> {routeInfo ? formatDuration(routeInfo.duration) : '—'}
+                          </span>
                         </div>
-                      )}
-                      <span className="text-2xl">{v.emoji}</span>
-                      <h3 className="text-base font-semibold text-white mt-2">{v.name}</h3>
-                      <p className="text-xs text-white/40 mt-0.5">{v.desc}</p>
-                      <div className="flex items-center justify-between mt-3">
-                        <span className="text-sm font-bold text-white">from {v.from}</span>
-                        <span className="text-xs text-white/40 flex items-center gap-1">
-                          <Clock size={12} /> {v.eta}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </motion.div>
 
             {/* ── Payment Method ── */}
             <motion.div
               initial="hidden"
               animate="visible"
-              custom={3}
+              custom={4}
               variants={fadeUp}
               className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6"
             >
@@ -252,8 +485,8 @@ export default function BookRide() {
                     <CreditCard size={20} />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-semibold text-white">Card</p>
-                    <p className="text-xs text-white/40">Visa ending 4242</p>
+                    <p className="text-sm font-semibold text-white">Card / Wallet</p>
+                    <p className="text-xs text-white/40">Pay via wallet balance</p>
                   </div>
                   <div className="ml-auto">
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
@@ -291,6 +524,27 @@ export default function BookRide() {
                 </button>
               </div>
             </motion.div>
+
+            {/* ── Notes ── */}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              custom={5}
+              variants={fadeUp}
+              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6"
+            >
+              <h2 className="text-lg font-semibold text-white mb-4">Notes for Driver</h2>
+              <div className="relative">
+                <StickyNote className="absolute left-4 top-3.5 w-5 h-5 text-white/25 pointer-events-none" />
+                <textarea
+                  placeholder="Any special instructions? (e.g. meet at door, wheelchair, luggage)"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  className="input-dark w-full pl-12 min-h-[80px] resize-none"
+                  rows={3}
+                />
+              </div>
+            </motion.div>
           </div>
 
           {/* ═══ Right Sidebar ═══ */}
@@ -299,34 +553,56 @@ export default function BookRide() {
             <motion.div
               initial="hidden"
               animate="visible"
-              custom={4}
+              custom={6}
               variants={fadeUp}
-              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6 card-premium transition-all duration-200 sticky top-6"
+              className="bg-[#0B1120] rounded-2xl border border-white/[0.06] p-6 card-premium transition-all duration-200 sticky top-6"
             >
               <h2 className="text-lg font-semibold text-white mb-5">Ride Summary</h2>
 
               {/* Route */}
               <div className="relative pl-7 space-y-3 mb-5">
-                <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-gradient-to-b from-secondary to-accent rounded-full" />
+                <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-gradient-to-b from-secondary to-error rounded-full" />
                 <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-secondary/20 flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-secondary" />
                 </div>
-                <p className="text-sm text-white/40">Pickup location</p>
+                <p className="text-sm text-white/60 truncate">{pickupPlace?.fullAddress || 'Select pickup location'}</p>
 
-                <div className="absolute left-0 bottom-1 w-4 h-4 rounded-full bg-accent/20 flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-accent" />
+                {stops.filter(s => s.place).map((s, i) => (
+                  <p key={i} className="text-sm text-accent/60 truncate">↳ {s.place!.fullAddress}</p>
+                ))}
+
+                <div className="absolute left-0 bottom-1 w-4 h-4 rounded-full bg-error/20 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-error" />
                 </div>
-                <p className="text-sm text-white/40">Drop-off location</p>
+                <p className="text-sm text-white/60 truncate">{dropoffPlace?.fullAddress || 'Select drop-off location'}</p>
               </div>
 
               <div className="space-y-3 border-t border-white/[0.06] pt-4">
+                {routeInfo && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/40 flex items-center gap-2"><Route size={15} /> Distance</span>
+                      <span className="font-medium text-white">{formatDistance(routeInfo.distance)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-white/40 flex items-center gap-2"><Clock size={15} /> Duration</span>
+                      <span className="font-medium text-white">{formatDuration(routeInfo.duration)}</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-white/40 flex items-center gap-2"><Car size={15} /> Vehicle</span>
-                  <span className="font-medium text-white capitalize">{selectedVehicle}</span>
+                  <span className="font-medium text-white capitalize">{selectedPackage?.name || '—'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/40">Est. Fare</span>
-                  <span className="font-bold text-white">£12 – £16</span>
+                  {loadingRoute ? (
+                    <Loader2 size={14} className="text-secondary animate-spin" />
+                  ) : fareEstimate ? (
+                    <span className="font-bold text-white">£{fareEstimate.min.toFixed(0)} – £{fareEstimate.max.toFixed(0)}</span>
+                  ) : (
+                    <span className="text-white/30">—</span>
+                  )}
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-white/40 flex items-center gap-2"><Users size={15} /> Passengers</span>
@@ -350,14 +626,10 @@ export default function BookRide() {
                   <span className="text-white/40 flex items-center gap-2"><CreditCard size={15} /> Payment</span>
                   <span className="font-medium text-white capitalize">{paymentMethod}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/40 flex items-center gap-2"><StickyNote size={15} /> Notes</span>
-                  <span className="text-white/40 italic">None</span>
-                </div>
               </div>
 
               {error && (
-                <div className="p-3 rounded-xl bg-error/10 border border-error/20 text-error text-sm mb-3">{error}</div>
+                <div className="mt-4 p-3 rounded-xl bg-error/10 border border-error/20 text-error text-sm">{error}</div>
               )}
               <div className="mt-6">
                 <Button
@@ -365,9 +637,13 @@ export default function BookRide() {
                   className="w-full"
                   size="lg"
                   onClick={handleConfirmBooking}
-                  disabled={submitting}
+                  disabled={submitting || !pickupPlace || !dropoffPlace || !selectedPackageId}
                 >
-                  {submitting ? 'Booking...' : 'Confirm Booking'} <ChevronRight size={16} />
+                  {submitting ? (
+                    <><Loader2 size={16} className="animate-spin" /> Booking...</>
+                  ) : (
+                    <>Confirm Booking <ChevronRight size={16} /></>
+                  )}
                 </Button>
               </div>
             </motion.div>
@@ -376,7 +652,7 @@ export default function BookRide() {
             <motion.div
               initial="hidden"
               animate="visible"
-              custom={5}
+              custom={7}
               variants={fadeUp}
               className="bg-gradient-to-br from-primary to-primary-light rounded-2xl p-5 text-white border border-white/[0.08]"
             >

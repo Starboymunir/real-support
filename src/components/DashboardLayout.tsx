@@ -1,10 +1,13 @@
 'use client';
 
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { useSocket } from '@/lib/socket-context';
+import { notificationsApi } from '@/lib/services/notifications';
+import { chatApi } from '@/lib/services/chat';
 import {
   LayoutDashboard,
   Navigation,
@@ -27,10 +30,13 @@ import {
   X,
   Zap,
   MessageSquare,
+  Shield,
+  Package,
+  Settings,
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
-  role: 'rider' | 'driver' | 'company';
+  role: 'rider' | 'driver' | 'company' | 'admin';
   userName?: string;
   pageTitle?: string;
   children: ReactNode;
@@ -50,6 +56,8 @@ const sidebarLinks = {
   ],
   driver: [
     { label: 'Dashboard', href: '/driver/dashboard', icon: LayoutDashboard },
+    { label: 'Ride Requests', href: '/driver/requests', icon: Navigation },
+    { label: 'My Rides', href: '/driver/rides', icon: History },
     { label: 'Registration', href: '/driver', icon: FileText },
     { label: 'Vehicle', href: '/driver/vehicle', icon: Car },
     { label: 'Documents', href: '/driver/documents', icon: Upload },
@@ -64,6 +72,15 @@ const sidebarLinks = {
     { label: 'Reports', href: '/company/reports', icon: BarChart3 },
     { label: 'Notifications', href: '/company/notifications', icon: Bell },
   ],
+  admin: [
+    { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { label: 'Bookings', href: '/admin/bookings', icon: Briefcase },
+    { label: 'Drivers', href: '/admin/drivers', icon: Car },
+    { label: 'Riders', href: '/admin/riders', icon: Users },
+    { label: 'Packages', href: '/admin/packages', icon: Package },
+    { label: 'Admins', href: '/admin/admins', icon: Shield },
+    { label: 'Settings', href: '/admin/settings', icon: Settings },
+  ],
 };
 
 /* Bottom tabs — the 5 most-used links per role */
@@ -77,8 +94,8 @@ const bottomTabs: Record<string, { label: string; href: string; icon: typeof Lay
   ],
   driver: [
     { label: 'Home', href: '/driver/dashboard', icon: LayoutDashboard },
-    { label: 'Vehicle', href: '/driver/vehicle', icon: Car },
-    { label: 'Docs', href: '/driver/documents', icon: Upload },
+    { label: 'Requests', href: '/driver/requests', icon: Navigation },
+    { label: 'Rides', href: '/driver/rides', icon: History },
     { label: 'Earnings', href: '/driver/earnings', icon: Wallet },
     { label: 'Alerts', href: '/driver/notifications', icon: Bell },
   ],
@@ -88,6 +105,13 @@ const bottomTabs: Record<string, { label: string; href: string; icon: typeof Lay
     { label: 'Team', href: '/company/employees', icon: Users },
     { label: 'Reports', href: '/company/reports', icon: BarChart3 },
     { label: 'Alerts', href: '/company/notifications', icon: Bell },
+  ],
+  admin: [
+    { label: 'Home', href: '/admin/dashboard', icon: LayoutDashboard },
+    { label: 'Bookings', href: '/admin/bookings', icon: Briefcase },
+    { label: 'Drivers', href: '/admin/drivers', icon: Car },
+    { label: 'Riders', href: '/admin/riders', icon: Users },
+    { label: 'More', href: '/admin/packages', icon: Package },
   ],
 };
 
@@ -107,9 +131,29 @@ export default function DashboardLayout({
   const links = sidebarLinks[role];
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { unreadNotifications, unreadChats, setUnreadNotifications, setUnreadChats } = useSocket();
 
   // Use real user name if available
   const displayName = userName ?? (user ? `${user.firstName} ${user.lastName}` : 'Guest');
+
+  // Fetch initial unread counts
+  useEffect(() => {
+    if (!user?.id) return;
+    // Notification count
+    notificationsApi.getAll({ userId: user.id, isRead: false })
+      .then((res) => {
+        const list = Array.isArray(res) ? res : (res as { data?: unknown[] }).data || [];
+        setUnreadNotifications(list.length);
+      })
+      .catch(() => {});
+    // Chat unread count
+    chatApi.getUnreadCount()
+      .then((res) => {
+        const count = typeof res === 'number' ? res : (res as { count?: number }).count || 0;
+        setUnreadChats(count);
+      })
+      .catch(() => {});
+  }, [user?.id, setUnreadNotifications, setUnreadChats]);
 
   const handleLogout = () => {
     logout();
@@ -165,7 +209,17 @@ export default function DashboardLayout({
                 {!collapsed && (
                   <span className="text-sm font-medium">{link.label}</span>
                 )}
-                {active && !collapsed && (
+                {!collapsed && link.label === 'Messages' && unreadChats > 0 && (
+                  <span className="ml-auto min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-secondary text-dark text-[10px] font-bold">
+                    {unreadChats > 99 ? '99+' : unreadChats}
+                  </span>
+                )}
+                {!collapsed && link.label === 'Notifications' && unreadNotifications > 0 && (
+                  <span className="ml-auto min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-secondary text-dark text-[10px] font-bold">
+                    {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                  </span>
+                )}
+                {active && !collapsed && link.label !== 'Messages' && link.label !== 'Notifications' && (
                   <div className="ml-auto w-1.5 h-1.5 rounded-full bg-secondary" />
                 )}
               </Link>
@@ -281,7 +335,11 @@ export default function DashboardLayout({
               className="relative p-2.5 rounded-xl text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-colors"
             >
               <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-secondary ring-2 ring-dark-surface" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-secondary text-dark text-[10px] font-bold ring-2 ring-dark-surface">
+                  {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                </span>
+              )}
             </Link>
             <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-white/[0.08]">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center text-secondary text-xs font-bold">
@@ -323,7 +381,14 @@ export default function DashboardLayout({
                 {active && (
                   <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-[3px] rounded-full bg-secondary" />
                 )}
-                <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+                <span className="relative">
+                  <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
+                  {tab.label === 'Alerts' && unreadNotifications > 0 && (
+                    <span className="absolute -top-1 -right-1.5 min-w-[14px] h-[14px] px-0.5 flex items-center justify-center rounded-full bg-secondary text-dark text-[8px] font-bold">
+                      {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                    </span>
+                  )}
+                </span>
                 <span className={`text-[10px] font-semibold leading-none ${
                   active ? 'text-secondary' : ''
                 }`}>

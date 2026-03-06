@@ -93,18 +93,6 @@ function formatTxDate(iso: string): { date: string; time: string } {
   };
 }
 
-/* ── fallback data ── */
-const fallbackTransactions = [
-  { id: 'WTX-3012', type: 'topup' as const, desc: 'Wallet Top-up', amount: '+£50.00', date: '17 Feb 2026', time: '14:32', method: 'Visa •••• 4242', icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' },
-  { id: 'WTX-3011', type: 'ride' as const, desc: 'Ride RS-1024', amount: '-£34.50', date: '15 Feb 2026', time: '10:15', method: 'Baker St → Heathrow T5', icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' },
-  { id: 'WTX-3010', type: 'topup' as const, desc: 'Wallet Top-up', amount: '+£100.00', date: '12 Feb 2026', time: '09:20', method: 'Mastercard •••• 8888', icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' },
-  { id: 'WTX-3009', type: 'ride' as const, desc: 'Ride RS-1019', amount: '-£12.80', date: '11 Feb 2026', time: '18:45', method: 'Kings Cross → Camden', icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' },
-  { id: 'WTX-3008', type: 'refund' as const, desc: 'Refund RS-1015', amount: '+£18.20', date: '10 Feb 2026', time: '11:00', method: 'Cancelled ride refund', icon: RefreshCw, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-  { id: 'WTX-3007', type: 'ride' as const, desc: 'Ride RS-1010', amount: '-£9.50', date: '8 Feb 2026', time: '07:30', method: 'Paddington → Soho', icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' },
-  { id: 'WTX-3006', type: 'withdraw' as const, desc: 'Withdrawal', amount: '-£25.00', date: '5 Feb 2026', time: '16:10', method: 'To bank account', icon: Send, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-  { id: 'WTX-3005', type: 'topup' as const, desc: 'Wallet Top-up', amount: '+£75.00', date: '1 Feb 2026', time: '12:00', method: 'Visa •••• 4242', icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' },
-];
-
 const quickAmounts = [10, 20, 50, 100];
 
 type TxFilter = 'all' | 'topup' | 'ride' | 'refund' | 'withdraw';
@@ -118,11 +106,10 @@ export default function WalletPage() {
   const [totalTopups, setTotalTopups] = useState(0);
   const [monthSpent, setMonthSpent] = useState(0);
   const [txCount, setTxCount] = useState(0);
-  const [transactions, setTransactions] = useState<DisplayTx[]>(fallbackTransactions);
-  const [monthlySpend, setMonthlySpend] = useState([
-    { month: 'Sep', amount: 45 }, { month: 'Oct', amount: 78 }, { month: 'Nov', amount: 62 },
-    { month: 'Dec', amount: 95 }, { month: 'Jan', amount: 55 }, { month: 'Feb', amount: 66 },
-  ]);
+  const [transactions, setTransactions] = useState<DisplayTx[]>([]);
+  const [lastTopup, setLastTopup] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [monthlySpend, setMonthlySpend] = useState<{ month: string; amount: number }[]>([]);
 
   const balance = useCounter(walletBalance, 1000);
   const spent = useCounter(monthSpent);
@@ -131,6 +118,7 @@ export default function WalletPage() {
   /* ── Fetch wallet data ── */
   const fetchWalletData = useCallback(async () => {
     if (!user?.id) return;
+    setLoading(true);
     try {
       const [wallet, txList] = await Promise.all([
         walletApi.getUserWallet(user.id),
@@ -141,12 +129,12 @@ export default function WalletPage() {
       if (txList && txList.length > 0) {
         setTxCount(txList.length);
 
-        // Calculate totals
         const now = new Date();
         const thisMonth = now.getMonth();
         const thisYear = now.getFullYear();
         let topupTotal = 0;
         let spentTotal = 0;
+        let latestTopup: number | null = null;
 
         const mapped: DisplayTx[] = txList.map((tx) => {
           const txType = mapTxType(tx.type);
@@ -154,7 +142,10 @@ export default function WalletPage() {
           const { date, time } = formatTxDate(tx.createdAt);
           const isCredit = tx.type === 'TOPUP' || tx.type === 'P2P_WALLET' || tx.type === 'REFUND';
 
-          if (tx.type === 'TOPUP') topupTotal += tx.amount;
+          if (tx.type === 'TOPUP') {
+            topupTotal += tx.amount;
+            if (latestTopup === null) latestTopup = tx.amount;
+          }
           const txDate = new Date(tx.createdAt);
           if (tx.type === 'EXPENSE' && txDate.getMonth() === thisMonth && txDate.getFullYear() === thisYear) {
             spentTotal += tx.amount;
@@ -177,8 +168,9 @@ export default function WalletPage() {
         setTransactions(mapped);
         setTotalTopups(topupTotal);
         setMonthSpent(spentTotal);
+        setLastTopup(latestTopup);
 
-        // Build monthly spend chart from real data (last 6 months)
+        // Build monthly spend chart (last 6 months)
         const months: { month: string; amount: number }[] = [];
         for (let i = 5; i >= 0; i--) {
           const d = new Date(thisYear, thisMonth - i, 1);
@@ -191,10 +183,12 @@ export default function WalletPage() {
             .reduce((sum, t) => sum + t.amount, 0);
           months.push({ month: label, amount: Math.round(monthExpenses) });
         }
-        if (months.some((m) => m.amount > 0)) setMonthlySpend(months);
+        setMonthlySpend(months);
       }
     } catch {
-      // keep fallback data
+      // No fallback — show empty state
+    } finally {
+      setLoading(false);
     }
   }, [user?.id]);
 
@@ -221,14 +215,12 @@ export default function WalletPage() {
         {/* ═══════ WALLET BALANCE HERO ═══════ */}
         <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
           <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-secondary/[0.10] via-white/[0.02] to-accent/[0.06]">
-            {/* Decorative */}
             <div className="absolute -top-24 -right-24 w-72 h-72 bg-secondary/[0.06] rounded-full blur-[100px] pointer-events-none" />
             <div className="absolute -bottom-16 left-1/3 w-56 h-56 bg-accent/[0.04] rounded-full blur-[80px] pointer-events-none" />
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-secondary via-accent to-secondary" />
 
             <div className="relative p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-                {/* Left — Balance */}
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <div className="badge-green"><Wallet size={12} /> RS CAB Wallet</div>
@@ -246,14 +238,15 @@ export default function WalletPage() {
                       {balanceVisible ? <Eye size={18} /> : <EyeOff size={18} />}
                     </button>
                   </div>
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <TrendingUp size={14} className="text-secondary" />
-                    <span className="text-secondary text-sm font-semibold">+£50.00</span>
-                    <span className="text-white/25 text-xs">last top-up</span>
-                  </div>
+                  {lastTopup !== null && (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <TrendingUp size={14} className="text-secondary" />
+                      <span className="text-secondary text-sm font-semibold">+£{lastTopup.toFixed(2)}</span>
+                      <span className="text-white/25 text-xs">last top-up</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Right — Quick Actions */}
                 <div className="flex flex-wrap gap-3">
                   <Button href="/rider/wallet/topup" variant="green" size="md">
                     <Plus size={16} /> Top Up
@@ -264,7 +257,6 @@ export default function WalletPage() {
                 </div>
               </div>
 
-              {/* Quick top-up amounts */}
               <div className="mt-6 pt-6 border-t border-white/[0.06]">
                 <p className="text-white/30 text-xs font-semibold uppercase tracking-wider mb-3">Quick Top-up</p>
                 <div className="flex flex-wrap gap-2">
@@ -306,13 +298,13 @@ export default function WalletPage() {
           </motion.div>
 
           <motion.div initial="hidden" animate="visible" custom={3} variants={fadeUp}>
-            <div className="h-full rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 hover:bg-white/[0.04] transition-all group">
+            <Link href="/rider/payment" className="block h-full rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 hover:bg-white/[0.04] transition-all group">
               <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <CreditCard size={20} className="text-purple-400" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-white tabular-nums">2</p>
-              <p className="text-white/30 text-xs font-medium mt-1">Linked Cards</p>
-            </div>
+              <p className="text-sm font-bold text-white">Payment</p>
+              <p className="text-white/30 text-xs font-medium mt-1">Manage Methods</p>
+            </Link>
           </motion.div>
 
           <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
@@ -320,7 +312,7 @@ export default function WalletPage() {
               <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <Clock size={20} className="text-orange-400" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-white tabular-nums">{txCount || 8}</p>
+              <p className="text-2xl sm:text-3xl font-black text-white tabular-nums">{txCount}</p>
               <p className="text-white/30 text-xs font-medium mt-1">Transactions</p>
             </div>
           </motion.div>
@@ -337,39 +329,60 @@ export default function WalletPage() {
               </h2>
 
               <div className="flex items-end justify-between gap-2 h-40">
-                {monthlySpend.map((m) => {
-                  const h = (m.amount / maxSpend) * 100;
-                  const isLast = m.month === 'Feb';
-                  return (
-                    <div key={m.month} className="flex-1 flex flex-col items-center gap-2">
-                      <span className={`text-[10px] font-bold tabular-nums ${isLast ? 'text-secondary' : 'text-white/30'}`}>
-                        £{m.amount}
-                      </span>
-                      <div
-                        className={`w-full rounded-lg transition-all duration-700 ${
-                          isLast
-                            ? 'bg-gradient-to-t from-secondary/60 to-secondary'
-                            : 'bg-white/[0.06] hover:bg-white/[0.10]'
-                        }`}
-                        style={{ height: `${h}%` }}
-                      />
-                      <span className={`text-[10px] font-medium ${isLast ? 'text-secondary' : 'text-white/25'}`}>
-                        {m.month}
-                      </span>
-                    </div>
-                  );
-                })}
+                {monthlySpend.length === 0 ? (
+                  <div className="flex-1 flex items-center justify-center text-white/20 text-sm">
+                    No spending data yet
+                  </div>
+                ) : (
+                  monthlySpend.map((m, idx) => {
+                    const h = maxSpend > 0 ? (m.amount / maxSpend) * 100 : 0;
+                    const isLast = idx === monthlySpend.length - 1;
+                    return (
+                      <div key={m.month} className="flex-1 flex flex-col items-center gap-2">
+                        <span className={`text-[10px] font-bold tabular-nums ${isLast ? 'text-secondary' : 'text-white/30'}`}>
+                          £{m.amount}
+                        </span>
+                        <div
+                          className={`w-full rounded-lg transition-all duration-700 ${
+                            isLast
+                              ? 'bg-gradient-to-t from-secondary/60 to-secondary'
+                              : 'bg-white/[0.06] hover:bg-white/[0.10]'
+                          }`}
+                          style={{ height: `${Math.max(h, 2)}%` }}
+                        />
+                        <span className={`text-[10px] font-medium ${isLast ? 'text-secondary' : 'text-white/25'}`}>
+                          {m.month}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
               </div>
 
-              <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between">
-                <div>
+              {/* Chart summary */}
+              <div className="mt-6 pt-4 border-t border-white/[0.06]">
+                <div className="mb-2">
                   <p className="text-white/25 text-[10px] uppercase tracking-wider font-semibold">6-month avg</p>
-                  <p className="text-white font-bold text-lg">£{(monthlySpend.reduce((a, b) => a + b.amount, 0) / (monthlySpend.length || 1)).toFixed(2)}</p>
+                  <p className="text-white font-bold text-lg">
+                    £{monthlySpend.length > 0 ? (monthlySpend.reduce((a, b) => a + b.amount, 0) / monthlySpend.length).toFixed(2) : '0.00'}
+                  </p>
                 </div>
-                <div className="flex items-center gap-1 text-secondary text-xs font-semibold">
-                  <TrendingDown size={12} />
-                  <span>-5% vs last month</span>
-                </div>
+                {monthlySpend.length >= 2 && monthlySpend[monthlySpend.length - 2].amount > 0 && (
+                  <div className="flex items-center gap-1 text-xs font-semibold">
+                    {(() => {
+                      const prev = monthlySpend[monthlySpend.length - 2].amount;
+                      const curr = monthlySpend[monthlySpend.length - 1].amount;
+                      const pct = prev > 0 ? Math.round(((curr - prev) / prev) * 100) : 0;
+                      const isDown = pct <= 0;
+                      return (
+                        <span className={isDown ? 'text-secondary flex items-center gap-1' : 'text-accent flex items-center gap-1'}>
+                          {isDown ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
+                          {pct > 0 ? '+' : ''}{pct}% vs last month
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -448,12 +461,10 @@ export default function WalletPage() {
 
         {/* ═══════ BOTTOM ROW: PROMO + SECURITY ═══════ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Cashback / Promo */}
           <motion.div initial="hidden" animate="visible" custom={7} variants={fadeUp}>
             <div className="relative h-full overflow-hidden rounded-2xl border border-secondary/20 bg-gradient-to-br from-secondary/[0.08] via-dark-surface to-accent/[0.04] p-6 flex flex-col justify-between">
               <div className="absolute -top-16 -right-16 w-40 h-40 bg-secondary/[0.1] rounded-full blur-[60px] pointer-events-none" />
               <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-accent/[0.06] rounded-full blur-[40px] pointer-events-none" />
-
               <div className="relative">
                 <div className="w-14 h-14 rounded-2xl bg-secondary/10 border border-secondary/20 flex items-center justify-center mb-5">
                   <Gift size={26} className="text-secondary" />
@@ -463,7 +474,6 @@ export default function WalletPage() {
                   Top up £50 or more and receive 5% bonus credit automatically added to your wallet.
                 </p>
               </div>
-
               <div className="relative mt-6">
                 <Button href="/rider/wallet/topup?amount=50" variant="green" size="md" className="w-full">
                   <Zap size={16} /> Claim Cashback <ArrowRight size={14} />
@@ -472,14 +482,12 @@ export default function WalletPage() {
             </div>
           </motion.div>
 
-          {/* Wallet Security */}
           <motion.div initial="hidden" animate="visible" custom={8} variants={fadeUp}>
             <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 h-full">
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-secondary/30 to-transparent" />
               <h2 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
                 <Shield size={18} className="text-secondary" /> Wallet Security
               </h2>
-
               <div className="space-y-4">
                 {[
                   { label: 'Two-Factor Authentication', desc: 'Extra layer of protection on withdrawals', status: 'Enabled', statusColor: 'text-secondary bg-secondary/10' },

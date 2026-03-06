@@ -4,8 +4,10 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Eye, EyeOff, User, Phone, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Phone, Loader2, Car } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+
+type FormRole = 'rider' | 'driver';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,10 +15,11 @@ export default function RegisterPage() {
   const [agreed, setAgreed] = useState(false);
   const [otpStep, setOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
+  const [role, setRole] = useState<FormRole>('rider');
   const [form, setForm] = useState({
     firstName: '', lastName: '', phone: '', email: '', password: '', confirmPassword: '',
   });
-  const { register, confirmEmail, resendOtp, loading, error, clearError } = useAuth();
+  const { register, confirmEmail, resendOtp, login, loading, error, clearError } = useAuth();
   const router = useRouter();
 
   const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
@@ -32,7 +35,8 @@ export default function RegisterPage() {
         lastName: form.lastName,
         emailAddress: form.email,
         password: form.password,
-        phone_number: form.phone.startsWith('+44') ? form.phone : `+44${form.phone}`,
+        phone_number: form.phone.startsWith('+44') ? form.phone : `+44${form.phone.replace(/^0/, '')}`,
+        mode: role === 'driver' ? 'DRIVER' : 'PASSENGER',
       });
       setOtpStep(true);
     } catch {
@@ -45,7 +49,9 @@ export default function RegisterPage() {
     clearError();
     try {
       await confirmEmail({ emailAddress: form.email, otp });
-      router.push('/rider/dashboard');
+      // Auto-login after verification
+      await login({ emailAddress: form.email, password: form.password });
+      router.push(role === 'driver' ? '/driver' : '/rider/dashboard');
     } catch {
       // error set in context
     }
@@ -105,7 +111,17 @@ export default function RegisterPage() {
               /* ── Registration Form ── */
               <div>
             <h2 className="text-3xl font-bold text-white text-center mb-2">Create Account</h2>
-            <p className="text-white/35 text-center mb-7">Join the premium ride experience</p>
+            <p className="text-white/35 text-center mb-5">Join the premium ride experience</p>
+
+            {/* Role toggle */}
+            <div className="flex gap-2 mb-5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <button type="button" onClick={() => setRole('rider')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${role === 'rider' ? 'bg-white text-black' : 'text-white/40 hover:text-white/60'}`}>
+                <User className="w-4 h-4" /> Rider
+              </button>
+              <button type="button" onClick={() => setRole('driver')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${role === 'driver' ? 'bg-white text-black' : 'text-white/40 hover:text-white/60'}`}>
+                <Car className="w-4 h-4" /> Driver
+              </button>
+            </div>
 
             {/* Social signup */}
             <div className="flex gap-3 mb-5">

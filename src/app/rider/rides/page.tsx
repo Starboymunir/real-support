@@ -15,8 +15,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import { useRequireAuth } from '@/lib/use-require-auth';
-import { bookingsApi } from '@/lib/services/bookings';
-import type { Booking } from '@/lib/types';
+import { bookingsApi, requestsApi } from '@/lib/services/bookings';
+import type { Booking, RideRequest } from '@/lib/types';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -27,10 +27,12 @@ const fadeUp = {
   }),
 };
 
-type RideStatus = 'All' | 'Completed' | 'Cancelled' | 'Scheduled';
+type RideStatus = 'All' | 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending';
 
 interface Ride {
   id: string;
+  realId: string;
+  type: 'booking' | 'request';
   from: string;
   to: string;
   date: string;
@@ -38,10 +40,10 @@ interface Ride {
   driver: string;
   vehicle: string;
   fare: string;
-  status: 'Completed' | 'Cancelled' | 'Scheduled';
+  status: 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending';
 }
 
-function mapBookingStatus(status: string): 'Completed' | 'Cancelled' | 'Scheduled' {
+function mapBookingStatus(status: string): 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending' {
   switch (status) {
     case 'COMPLETED': return 'Completed';
     case 'CANCELLED':
@@ -57,10 +59,26 @@ function mapBookingStatus(status: string): 'Completed' | 'Cancelled' | 'Schedule
   }
 }
 
+function mapRequestStatus(status: string): 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending' {
+  switch (status) {
+    case 'CANCELLED':
+    case 'REJECTED':
+      return 'Cancelled';
+    case 'ACCEPTED':
+      return 'Scheduled';
+    case 'PENDING':
+    case 'BIDDING':
+    default:
+      return 'Pending';
+  }
+}
+
 function bookingToRide(b: Booking): Ride {
   const d = new Date(b.createdAt);
   return {
     id: b.id.slice(-6).toUpperCase(),
+    realId: b.id,
+    type: 'booking',
     from: b.startFrom?.name || b.startFrom?.postCode || 'Pickup',
     to: b.destination?.name || b.destination?.postCode || 'Destination',
     date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -72,38 +90,59 @@ function bookingToRide(b: Booking): Ride {
   };
 }
 
-const fallbackRides: Ride[] = [
-  { id: 'RS-1024', from: '12 Baker Street', to: 'Heathrow T5', date: '14 Feb 2026', time: '09:15 AM', driver: 'Michael Smith', vehicle: 'Toyota Camry', fare: '£34.50', status: 'Completed' },
-  { id: 'RS-1022', from: 'Kings Cross', to: 'Canary Wharf', date: '12 Feb 2026', time: '02:30 PM', driver: 'Sarah Johnson', vehicle: 'Honda Civic', fare: '£22.00', status: 'Completed' },
-  { id: 'RS-1019', from: 'Kings Cross', to: 'Camden Town', date: '10 Feb 2026', time: '11:00 AM', driver: 'David Brown', vehicle: 'VW Passat', fare: '£12.80', status: 'Cancelled' },
-  { id: 'RS-1015', from: 'Paddington', to: 'Soho Square', date: '8 Feb 2026', time: '06:45 PM', driver: 'Emma Wilson', vehicle: 'Mercedes E-Class', fare: '£18.20', status: 'Completed' },
-  { id: 'RS-1030', from: 'Baker Street', to: 'Gatwick Airport', date: '25 Feb 2026', time: '08:30 AM', driver: 'Pending', vehicle: 'Comfort', fare: '£45.00', status: 'Scheduled' },
-  { id: 'RS-1012', from: 'Liverpool Street', to: 'Greenwich', date: '5 Feb 2026', time: '04:00 PM', driver: 'James Taylor', vehicle: 'Skoda Octavia', fare: '£16.50', status: 'Completed' },
-];
+function requestToRide(r: RideRequest): Ride {
+  const d = r.bookingDate ? new Date(r.bookingDate) : new Date(r.createdAt);
+  return {
+    id: r.id.slice(-6).toUpperCase(),
+    realId: r.id,
+    type: 'request',
+    from: r.startFrom?.name || r.startFrom?.city || r.startFrom?.postCode || 'Pickup',
+    to: r.destination?.name || r.destination?.city || r.destination?.postCode || 'Destination',
+    date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+    time: r.bookingTime || d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase(),
+    driver: 'Awaiting driver',
+    vehicle: r.packageInfo?.name || 'Vehicle',
+    fare: `£${(r.totalBill ?? 0).toFixed(2)}`,
+    status: mapRequestStatus(r.status),
+  };
+}
 
-const tabs: RideStatus[] = ['All', 'Completed', 'Cancelled', 'Scheduled'];
+const tabs: RideStatus[] = ['All', 'Pending', 'Scheduled', 'Completed', 'Cancelled'];
 
 const statusStyles: Record<string, string> = {
   Completed: 'bg-success/10 text-success',
   Cancelled: 'bg-error/10 text-error',
   Scheduled: 'bg-info/10 text-info',
+  Pending: 'bg-warning/10 text-warning',
 };
 
 export default function MyRides() {
   const { user } = useRequireAuth();
   const [activeTab, setActiveTab] = useState<RideStatus>('All');
   const [search, setSearch] = useState('');
-  const [rides, setRides] = useState<Ride[]>(fallbackRides);
+  const [rides, setRides] = useState<Ride[]>([]);
+  const [loadingRides, setLoadingRides] = useState(true);
 
   const fetchRides = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const bookings = await bookingsApi.getUserBookings(user.id);
-      if (bookings && bookings.length > 0) {
-        setRides(bookings.map(bookingToRide));
-      }
+      // Fetch both bookings and requests in parallel
+      const [bookings, requests] = await Promise.all([
+        bookingsApi.getUserBookings(user.id).catch(() => []),
+        requestsApi.getUserRequests(user.id).catch(() => []),
+      ]);
+      const bookingRides = (Array.isArray(bookings) ? bookings : []).map(bookingToRide);
+      const requestRides = (Array.isArray(requests) ? requests : [])
+        .filter((r) => !r.booking) // exclude requests that already became bookings
+        .map(requestToRide);
+      const allRides = [...requestRides, ...bookingRides].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      setRides(allRides);
     } catch {
-      // keep fallback
+      // keep empty
+    } finally {
+      setLoadingRides(false);
     }
   }, [user?.id]);
 
@@ -120,7 +159,7 @@ export default function MyRides() {
         r.driver.toLowerCase().includes(search.toLowerCase());
       return matchTab && matchSearch;
     });
-  }, [activeTab, search]);
+  }, [activeTab, search, rides]);
 
   return (
     <DashboardLayout role="rider" pageTitle="My Rides">
@@ -227,7 +266,7 @@ export default function MyRides() {
                     {/* Price + Action */}
                     <div className="flex items-center gap-4 lg:ml-4">
                       <span className="text-lg font-bold text-white">{ride.fare}</span>
-                      <Button href={`/rider/rides/${ride.id}`} variant="outline" size="sm">
+                      <Button href={`/rider/rides/${ride.realId}`} variant="outline" size="sm">
                         View <ChevronRight size={14} />
                       </Button>
                     </div>

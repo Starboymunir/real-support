@@ -6,7 +6,6 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   CreditCard,
-  Plus,
   Wallet,
   Sparkles,
   Shield,
@@ -29,11 +28,6 @@ const fadeUp = {
   }),
 };
 
-const savedCards = [
-  { id: 1, type: 'visa', last4: '4242', expiry: '08/27', label: 'Visa' },
-  { id: 2, type: 'mastercard', last4: '8888', expiry: '12/26', label: 'Mastercard' },
-];
-
 const presetAmounts = [10, 20, 30, 50, 75, 100];
 
 function TopUpContent() {
@@ -43,22 +37,20 @@ function TopUpContent() {
 
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState(preselectedAmount || '');
-  const [selectedCard, setSelectedCard] = useState(savedCards[0].id);
   const [customAmount, setCustomAmount] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [currentBalance, setCurrentBalance] = useState(186);
+  const [currentBalance, setCurrentBalance] = useState(0);
 
   const numAmount = parseFloat(amount) || 0;
   const cashback = numAmount >= 50 ? (numAmount * 0.05).toFixed(2) : null;
   const total = numAmount;
 
-  // Fetch current balance
   useEffect(() => {
     if (!user?.id) return;
     walletApi.getUserWallet(user.id)
-      .then(w => setCurrentBalance(w.balance ?? 186))
+      .then(w => setCurrentBalance(w.balance ?? 0))
       .catch(() => {});
   }, [user?.id]);
 
@@ -67,14 +59,12 @@ function TopUpContent() {
     setProcessing(true);
     setError('');
     try {
-      // Create payment intent first
       const intent = await walletApi.createPaymentIntent({
         amount: numAmount,
         userId: user.id,
         email: user.emailAddress || '',
         cognitoId: user.cognitoId || '',
       });
-      // Then create the top-up transaction
       await walletApi.createTopUp({
         userId: user.id,
         amount: numAmount,
@@ -84,13 +74,10 @@ function TopUpContent() {
       setSuccess(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Top-up failed. Please try again.');
-      // Fallback: show success after timeout for demo
-      setTimeout(() => { setProcessing(false); setSuccess(true); }, 2000);
-      return;
     } finally {
       setProcessing(false);
     }
-  }, [user?.id, numAmount]);
+  }, [user?.id, numAmount, user?.emailAddress, user?.cognitoId]);
 
   return (
     <DashboardLayout role="rider" pageTitle="Top Up Wallet">
@@ -151,7 +138,6 @@ function TopUpContent() {
                 <h2 className="text-xl font-bold text-white mb-1">Choose top-up amount</h2>
                 <p className="text-white/30 text-sm mb-6">Select a preset amount or enter a custom value</p>
 
-                {/* Preset Grid */}
                 <div className="grid grid-cols-3 gap-3 mb-6">
                   {presetAmounts.map((a) => (
                     <button
@@ -173,7 +159,6 @@ function TopUpContent() {
                   ))}
                 </div>
 
-                {/* Custom amount */}
                 <div
                   className={`rounded-xl border p-4 transition-all cursor-pointer ${
                     customAmount
@@ -198,7 +183,6 @@ function TopUpContent() {
                   </div>
                 </div>
 
-                {/* Cashback Banner */}
                 {cashback && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
@@ -242,49 +226,34 @@ function TopUpContent() {
               <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8">
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-secondary via-accent to-secondary" />
 
-                <h2 className="text-xl font-bold text-white mb-1">Select payment method</h2>
-                <p className="text-white/30 text-sm mb-6">Choose a saved card or add a new one</p>
+                <h2 className="text-xl font-bold text-white mb-1">Payment method</h2>
+                <p className="text-white/30 text-sm mb-6">Your payment will be processed securely via Stripe</p>
 
                 <div className="space-y-3">
-                  {savedCards.map((card) => (
-                    <button
-                      key={card.id}
-                      onClick={() => setSelectedCard(card.id)}
-                      className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 text-left ${
-                        selectedCard === card.id
-                          ? 'border-secondary/40 bg-secondary/[0.06]'
-                          : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]'
-                      }`}
-                    >
-                      <div className={`w-12 h-8 rounded-lg flex items-center justify-center ${
-                        selectedCard === card.id ? 'bg-secondary/15' : 'bg-white/[0.06]'
-                      }`}>
-                        <CreditCard size={20} className={selectedCard === card.id ? 'text-secondary' : 'text-white/40'} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white">{card.label} •••• {card.last4}</p>
-                        <p className="text-xs text-white/30">Expires {card.expiry}</p>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedCard === card.id
-                          ? 'border-secondary bg-secondary'
-                          : 'border-white/20'
-                      }`}>
-                        {selectedCard === card.id && <Check size={12} className="text-dark" />}
-                      </div>
-                    </button>
-                  ))}
-
-                  {/* Add new card */}
-                  <Link
-                    href="/rider/payment"
-                    className="w-full flex items-center gap-4 p-4 rounded-xl border border-dashed border-white/[0.10] bg-white/[0.01] hover:border-white/[0.20] hover:bg-white/[0.03] transition-all"
-                  >
-                    <div className="w-12 h-8 rounded-lg bg-white/[0.04] flex items-center justify-center">
-                      <Plus size={18} className="text-white/30" />
+                  {/* Stripe payment */}
+                  <div className="w-full flex items-center gap-4 p-4 rounded-xl border border-secondary/40 bg-secondary/[0.06] text-left">
+                    <div className="w-12 h-8 rounded-lg flex items-center justify-center bg-secondary/15">
+                      <CreditCard size={20} className="text-secondary" />
                     </div>
-                    <p className="text-sm font-semibold text-white/40">Add new payment method</p>
-                  </Link>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-white">Pay with Card</p>
+                      <p className="text-xs text-white/30">Secure payment via Stripe</p>
+                    </div>
+                    <div className="w-5 h-5 rounded-full border-2 border-secondary bg-secondary flex items-center justify-center">
+                      <Check size={12} className="text-dark" />
+                    </div>
+                  </div>
+
+                  {/* Wallet balance info */}
+                  <div className="flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+                    <div className="w-12 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center">
+                      <Wallet size={18} className="text-white/40" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-white/60">Current Balance</p>
+                      <p className="text-xs text-white/30">£{currentBalance.toFixed(2)}</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
@@ -329,9 +298,7 @@ function TopUpContent() {
                   )}
                   <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
                     <span className="text-white/50 text-sm">Payment Method</span>
-                    <span className="text-white font-semibold text-sm">
-                      {savedCards.find((c) => c.id === selectedCard)?.label} •••• {savedCards.find((c) => c.id === selectedCard)?.last4}
-                    </span>
+                    <span className="text-white font-semibold text-sm">Card via Stripe</span>
                   </div>
                   <div className="flex justify-between items-center py-3">
                     <span className="text-white/50 text-sm">Total Charge</span>
@@ -346,6 +313,12 @@ function TopUpContent() {
                     </div>
                   )}
                 </div>
+
+                {error && (
+                  <div className="mt-4 p-4 rounded-xl bg-red-500/[0.08] border border-red-500/20 text-red-400 text-sm">
+                    {error}
+                  </div>
+                )}
 
                 <div className="flex gap-3 mt-8">
                   <Button variant="outline" size="md" onClick={() => setStep(2)}>
@@ -401,9 +374,7 @@ function TopUpContent() {
                 <h2 className="text-2xl font-black text-white mb-2">Top-up Successful!</h2>
                 <p className="text-white/40 text-sm mb-6 max-w-sm mx-auto">
                   £{total.toFixed(2)} has been added to your wallet.
-                  {cashback && (
-                    <> Plus £{cashback} cashback bonus!</>
-                  )}
+                  {cashback && <> Plus £{cashback} cashback bonus!</>}
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/[0.04] border border-white/[0.08] mb-8">

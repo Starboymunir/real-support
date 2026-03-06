@@ -35,92 +35,9 @@ function getStatusStyle(status: string) {
 /* ───── Dummy bookings (fallback) ───── */
 type DisplayBooking = { id: string; employee: string; date: string; pickup: string; dropoff: string; vehicle: string; cost: string; status: string };
 
-const fallbackBookings: DisplayBooking[] = [
-  {
-    id: 'BK-1041',
-    employee: 'Sarah Mitchell',
-    date: '18 Feb 2026',
-    pickup: 'Kings Cross',
-    dropoff: 'Canary Wharf',
-    vehicle: 'Executive',
-    cost: '£22.00',
-    status: 'Completed',
-  },
-  {
-    id: 'BK-1040',
-    employee: 'James Harlow',
-    date: '17 Feb 2026',
-    pickup: 'Heathrow T5',
-    dropoff: 'Paddington',
-    vehicle: 'Premium',
-    cost: '£38.50',
-    status: 'In Progress',
-  },
-  {
-    id: 'BK-1039',
-    employee: 'Priya Sharma',
-    date: '17 Feb 2026',
-    pickup: 'Liverpool St',
-    dropoff: 'Shoreditch',
-    vehicle: 'Standard',
-    cost: '£12.00',
-    status: 'Completed',
-  },
-  {
-    id: 'BK-1038',
-    employee: 'Tom Walker',
-    date: '16 Feb 2026',
-    pickup: 'Waterloo',
-    dropoff: 'Westminster',
-    vehicle: 'Standard',
-    cost: '£9.50',
-    status: 'Cancelled',
-  },
-  {
-    id: 'BK-1037',
-    employee: 'Emma Collins',
-    date: '16 Feb 2026',
-    pickup: 'Bank',
-    dropoff: 'London Bridge',
-    vehicle: 'Standard',
-    cost: '£8.00',
-    status: 'Completed',
-  },
-  {
-    id: 'BK-1036',
-    employee: 'David Chen',
-    date: '15 Feb 2026',
-    pickup: 'Euston',
-    dropoff: 'Camden',
-    vehicle: 'Executive',
-    cost: '£15.00',
-    status: 'Completed',
-  },
-  {
-    id: 'BK-1035',
-    employee: 'Olivia Brown',
-    date: '15 Feb 2026',
-    pickup: 'Victoria',
-    dropoff: 'Chelsea',
-    vehicle: 'Premium',
-    cost: '£19.00',
-    status: 'Scheduled',
-  },
-  {
-    id: 'BK-1034',
-    employee: 'Liam Patel',
-    date: '14 Feb 2026',
-    pickup: 'Stratford',
-    dropoff: 'Canary Wharf',
-    vehicle: 'Standard',
-    cost: '£11.50',
-    status: 'Completed',
-  },
-];
-
 export default function CompanyBookingsPage() {
   const { user } = useRequireAuth();
-  const [bookingsList, setBookingsList] = useState<DisplayBooking[]>(fallbackBookings);
+  const [bookingsList, setBookingsList] = useState<DisplayBooking[]>([]);
   const [statusFilter, setStatusFilter] = useState('All');
   const [employeeFilter, setEmployeeFilter] = useState('All');
 
@@ -132,7 +49,7 @@ export default function CompanyBookingsPage() {
       if (raw.length > 0) {
         const statusMap: Record<string, string> = { COMPLETED: 'Completed', CANCELLED: 'Cancelled', REJECTED: 'Cancelled', ACCEPTED: 'In Progress', WAY_TO_PICKUP: 'In Progress', ARRIVED: 'In Progress', PICKED_UP: 'In Progress', WAY_TO_DESTINATION: 'In Progress' };
         setBookingsList(raw.map((b, i) => ({
-          id: `BK-${1041 - i}`,
+          id: b.id || `BK-${1041 - i}`,
           employee: b.riderName || 'Employee',
           date: new Date(b.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
           pickup: b.startFrom?.name || b.startFrom?.postCode || 'Pickup',

@@ -6,6 +6,7 @@ import { api } from '../api';
 import type { Driver } from '../types';
 
 export interface CreateDriverDto {
+  userId: string;
   driverRecognitionNumber?: string;
   nationalInsuranceNumber?: string;
   selfAssessmentTaxId?: string;

@@ -9,15 +9,6 @@ import { Bell, CheckCircle, AlertTriangle, Info, Users, BarChart3, Trash2 } from
 
 type DisplayNotification = { id: number | string; type: string; icon: React.ElementType; title: string; message: string; time: string; read: boolean };
 
-const fallbackNotifications: DisplayNotification[] = [
-  { id: 1, type: 'success', icon: CheckCircle, title: 'Monthly Report Ready', message: 'Your December 2025 transportation report is available for download.', time: '1 hour ago', read: false },
-  { id: 2, type: 'info', icon: Users, title: 'New Employee Added', message: 'Sarah Mitchell has been added to your company account and can now book rides.', time: '3 hours ago', read: false },
-  { id: 3, type: 'warning', icon: AlertTriangle, title: 'Budget Alert', message: 'Your monthly transportation budget is at 85% utilisation. Consider reviewing spending.', time: '1 day ago', read: false },
-  { id: 4, type: 'info', icon: BarChart3, title: 'Cost Savings Report', message: 'Last month your company saved £2,340 compared to traditional taxi services.', time: '2 days ago', read: true },
-  { id: 5, type: 'success', icon: CheckCircle, title: 'Invoice Paid', message: 'Invoice #INV-2025-0847 for £4,215.00 has been processed successfully.', time: '3 days ago', read: true },
-  { id: 6, type: 'info', icon: Info, title: 'Platform Update', message: 'New company analytics dashboard is now available with improved cost tracking.', time: '5 days ago', read: true },
-];
-
 const colorMap = {
   success: 'bg-secondary/10 text-secondary',
   warning: 'bg-amber-500/10 text-amber-400',
@@ -26,7 +17,7 @@ const colorMap = {
 
 export default function CompanyNotificationsPage() {
   const { user } = useRequireAuth();
-  const [items, setItems] = useState<DisplayNotification[]>(fallbackNotifications);
+  const [items, setItems] = useState<DisplayNotification[]>([]);
 
   const mapApiNotification = (n: ApiNotification): DisplayNotification => {
     const title = n.ROC || 'Notification';

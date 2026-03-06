@@ -12,7 +12,6 @@ import {
   CalendarCheck,
   Users,
   PoundSterling,
-  TrendingUp,
   Plus,
   UserPlus,
   BarChart3,
@@ -20,7 +19,6 @@ import {
   Clock,
   MapPin,
   Building2,
-  Zap,
   Trophy,
   Activity,
 } from 'lucide-react';
@@ -75,29 +73,18 @@ function getInitials(name: string) {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase();
 }
 
-const recentBookings = [
-  { employee: 'Sarah Mitchell', date: '18 Feb 2026', route: 'Kings Cross → Canary Wharf', cost: '£22.00', status: 'Completed' },
-  { employee: 'James Harlow', date: '17 Feb 2026', route: 'Heathrow T5 → Paddington', cost: '£38.50', status: 'In Progress' },
-  { employee: 'Priya Sharma', date: '17 Feb 2026', route: 'Liverpool St → Shoreditch', cost: '£12.00', status: 'Completed' },
-  { employee: 'Tom Walker', date: '16 Feb 2026', route: 'Waterloo → Westminster', cost: '£9.50', status: 'Cancelled' },
-  { employee: 'Emma Collins', date: '16 Feb 2026', route: 'Bank → London Bridge', cost: '£8.00', status: 'Completed' },
-];
+const recentBookings: { employee: string; date: string; route: string; cost: string; status: string }[] = [];
 
-const topEmployees = [
-  { name: 'Sarah Mitchell', rides: 28, spent: '£620', pct: 95 },
-  { name: 'James Harlow', rides: 22, spent: '£510', pct: 78 },
-  { name: 'Priya Sharma', rides: 19, spent: '£380', pct: 58 },
-  { name: 'Tom Walker', rides: 15, spent: '£305', pct: 47 },
-  { name: 'Emma Collins', rides: 12, spent: '£240', pct: 37 },
-];
+const topEmployees: { name: string; rides: number; spent: string; pct: number }[] = [];
 
 export default function CompanyDashboardPage() {
   const { user } = useRequireAuth();
-  const [bookingCount, setBookingCount] = useState(156);
-  const [employeeCount, setEmployeeCount] = useState(23);
-  const [monthlySpend, setMonthlySpend] = useState(4230);
-  const [activeRidesCount, setActiveRidesCount] = useState(7);
+  const [bookingCount, setBookingCount] = useState(0);
+  const [employeeCount, setEmployeeCount] = useState(0);
+  const [monthlySpend, setMonthlySpend] = useState(0);
+  const [activeRidesCount, setActiveRidesCount] = useState(0);
   const [recentBookingsData, setRecentBookingsData] = useState(recentBookings);
+  const [topEmployeesData, setTopEmployeesData] = useState(topEmployees);
   const bookings = useCounter(bookingCount);
   const employees = useCounter(employeeCount, 800);
   const monthSpend = useCounter(monthlySpend);
@@ -131,6 +118,24 @@ export default function CompanyDashboardPage() {
             status: statusMap[b.status] || 'Scheduled',
           };
         }));
+
+        // Derive top employees from completed bookings
+        const completed = allBookings.filter(b => b.status === 'COMPLETED');
+        const empMap = new Map<string, { rides: number; spent: number }>();
+        completed.forEach(b => {
+          const name = b.riderName || 'Unknown';
+          const existing = empMap.get(name) || { rides: 0, spent: 0 };
+          empMap.set(name, { rides: existing.rides + 1, spent: existing.spent + (b.finalBill || 0) });
+        });
+        const empList = [...empMap.entries()].sort((a, b) => b[1].rides - a[1].rides).slice(0, 5);
+        const maxRides = empList.length > 0 ? empList[0][1].rides : 1;
+        setTopEmployeesData(empList.map(([name, data]) => ({
+          name,
+          rides: data.rides,
+          spent: `\u00A3${data.spent.toFixed(0)}`,
+          pct: Math.round((data.rides / maxRides) * 100),
+        })));
+        setEmployeeCount(empMap.size);
       }
     } catch { /* keep fallback */ }
   }, [user]);
@@ -186,12 +191,6 @@ export default function CompanyDashboardPage() {
                     <span className="text-white/40 text-sm font-medium">Total Bookings</span>
                   </div>
                   <p className="text-4xl font-black text-white tabular-nums">{bookings}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-bold">
-                      <ArrowUpRight size={12} /> 12%
-                    </span>
-                    <span className="text-white/25 text-xs">vs last month</span>
-                  </div>
                 </div>
                 {/* Mini sparkline */}
                 <svg width="120" height="50" className="hidden sm:block" viewBox="0 0 120 50">
@@ -216,10 +215,6 @@ export default function CompanyDashboardPage() {
               </div>
               <p className="text-3xl font-black text-white tabular-nums">{employees}</p>
               <p className="text-white/30 text-xs font-medium mt-1">Active Employees</p>
-              <div className="mt-2 flex items-center gap-1">
-                <span className="text-secondary text-xs font-semibold flex items-center gap-0.5"><ArrowUpRight size={11} />3</span>
-                <span className="text-white/20 text-[10px]">new</span>
-              </div>
             </div>
           </motion.div>
 
@@ -253,7 +248,11 @@ export default function CompanyDashboardPage() {
               </div>
 
               <div className="px-6 pb-6 space-y-3">
-                {recentBookingsData.map((b, i) => (
+                {recentBookingsData.length === 0 ? (
+                  <div className="text-center py-6">
+                    <p className="text-white/30 text-sm">No bookings yet</p>
+                  </div>
+                ) : recentBookingsData.map((b, i) => (
                   <div key={i} className="group flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300">
                     {/* Employee */}
                     <div className="flex items-center gap-3 sm:w-40 shrink-0">
@@ -295,8 +294,13 @@ export default function CompanyDashboardPage() {
                   <h3 className="text-lg font-bold text-white">Top Employees</h3>
                 </div>
 
+                {topEmployeesData.length === 0 ? (
+                  <div className="text-center py-6">
+                    <p className="text-white/30 text-sm">No ride data yet</p>
+                  </div>
+                ) : (
                 <div className="space-y-3">
-                  {topEmployees.map((emp, i) => (
+                  {topEmployeesData.map((emp, i) => (
                     <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.03] hover:bg-white/[0.04] transition-all">
                       {/* Rank */}
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black ${
@@ -317,6 +321,7 @@ export default function CompanyDashboardPage() {
                     </div>
                   ))}
                 </div>
+                )}
               </div>
             </motion.div>
 

@@ -16,7 +16,11 @@ export default function LoginPage() {
 
   // If already logged in, redirect
   if (user) {
-    const dest = user.driver ? '/driver/dashboard' : '/rider/dashboard';
+    const dest = user.Admin
+      ? '/admin/dashboard'
+      : user.driver
+        ? '/driver/dashboard'
+        : '/rider/dashboard';
     router.replace(dest);
     return null;
   }
@@ -26,7 +30,7 @@ export default function LoginPage() {
     clearError();
     try {
       await login({ emailAddress: email, password });
-      router.push('/rider/dashboard');
+      // Redirect is handled by the user check above on re-render
     } catch {
       // error is set in context
     }
@@ -163,9 +167,12 @@ export default function LoginPage() {
               <Link href="/register" className="text-secondary font-semibold hover:underline underline-offset-4">Create account</Link>
             </p>
 
-            <div className="mt-6 pt-6 border-t border-white/[0.04] text-center">
+            <div className="mt-6 pt-6 border-t border-white/[0.04] flex justify-center gap-6">
               <Link href="/company/company-login" className="text-white/25 text-sm hover:text-white/50 transition-colors">
-                Company Login <span className="text-secondary">â†’</span>
+                Company Login <span className="text-secondary">→</span>
+              </Link>
+              <Link href="/admin/login" className="text-white/25 text-sm hover:text-white/50 transition-colors">
+                Admin Login <span className="text-secondary">→</span>
               </Link>
             </div>
           </div>

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X, ArrowRight, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -18,9 +19,24 @@ const portalLinks = [
   { label: 'Company Portal', href: '/company/company-login' },
 ];
 
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export default function Navbar() {
+  const { user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const displayName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '';
+  const userRole = user?.mode?.toLowerCase() || 'passenger';
+  const dashboardHref = userRole === 'driver' ? '/driver/dashboard' : '/rider/dashboard';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -32,6 +48,23 @@ export default function Navbar() {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-profile-menu]')) setProfileOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [profileOpen]);
+
+  const handleLogout = () => {
+    logout();
+    setProfileOpen(false);
+    setMobileOpen(false);
+  };
 
   return (
     <>
@@ -55,7 +88,7 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Center nav â€” desktop */}
+          {/* Center nav — desktop */}
           <div className="hidden lg:flex items-center gap-1 bg-white/[0.06] backdrop-blur-md rounded-full px-2 py-1.5 border border-white/[0.08]">
             {navLinks.map((link) => (
               <Link
@@ -68,25 +101,91 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right actions â€” desktop */}
+          {/* Right actions — desktop */}
           <div className="hidden lg:flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-white/70 hover:text-white px-5 py-2.5 transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/rider/book"
-              className="group relative inline-flex items-center gap-2 bg-secondary text-dark font-bold text-sm px-6 py-2.5 rounded-full overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,230,118,0.4)] hover:scale-105"
-            >
-              <span className="relative z-10">Book a Ride</span>
-              <ArrowRight size={16} className="relative z-10 transition-transform group-hover:translate-x-1" />
-              <div className="absolute inset-0 bg-gradient-to-r from-secondary via-secondary-light to-secondary bg-[length:200%_100%] animate-gradient opacity-0 group-hover:opacity-100 transition-opacity" />
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href="/rider/book"
+                  className="group relative inline-flex items-center gap-2 bg-secondary text-dark font-bold text-sm px-6 py-2.5 rounded-full overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,230,118,0.4)] hover:scale-105"
+                >
+                  <span className="relative z-10">Book a Ride</span>
+                  <ArrowRight size={16} className="relative z-10 transition-transform group-hover:translate-x-1" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-secondary via-secondary-light to-secondary bg-[length:200%_100%] animate-gradient opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+
+                {/* Profile dropdown */}
+                <div className="relative" data-profile-menu>
+                  <button
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] transition-all duration-200 cursor-pointer"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-secondary/15 flex items-center justify-center text-secondary text-xs font-bold">
+                      {getInitials(displayName || 'U')}
+                    </div>
+                    <span className="text-sm font-medium text-white/80 max-w-[120px] truncate">
+                      {displayName || 'Account'}
+                    </span>
+                  </button>
+
+                  {profileOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-white/[0.08] bg-[#0D1420] shadow-2xl overflow-hidden">
+                      <div className="px-4 py-3 border-b border-white/[0.06]">
+                        <p className="text-sm font-semibold text-white truncate">{displayName}</p>
+                        <p className="text-xs text-white/40 truncate">{user.emailAddress}</p>
+                      </div>
+                      <div className="py-1">
+                        <Link
+                          href={dashboardHref}
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.04] transition-colors"
+                        >
+                          <LayoutDashboard size={16} />
+                          Dashboard
+                        </Link>
+                        <Link
+                          href="/rider/profile"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.04] transition-colors"
+                        >
+                          <User size={16} />
+                          Profile
+                        </Link>
+                      </div>
+                      <div className="border-t border-white/[0.06] py-1">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-error/80 hover:text-error hover:bg-error/[0.04] transition-colors cursor-pointer"
+                        >
+                          <LogOut size={16} />
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm font-medium text-white/70 hover:text-white px-5 py-2.5 transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/rider/book"
+                  className="group relative inline-flex items-center gap-2 bg-secondary text-dark font-bold text-sm px-6 py-2.5 rounded-full overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,230,118,0.4)] hover:scale-105"
+                >
+                  <span className="relative z-10">Book a Ride</span>
+                  <ArrowRight size={16} className="relative z-10 transition-transform group-hover:translate-x-1" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-secondary via-secondary-light to-secondary bg-[length:200%_100%] animate-gradient opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              </>
+            )}
           </div>
 
-          {/* Hamburger â€” mobile */}
+          {/* Hamburger — mobile */}
           <button
             onClick={() => setMobileOpen(true)}
             className="lg:hidden p-2 text-white/80 hover:text-white transition-colors"
@@ -138,34 +237,75 @@ export default function Navbar() {
 
           <div className="my-5 h-px bg-white/5" />
 
-          <Link
-            href="/login"
-            onClick={() => setMobileOpen(false)}
-            className="py-3.5 px-4 rounded-xl text-center font-semibold text-white/70 border border-white/10 hover:bg-white/5 hover:text-white transition-all"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/rider/book"
-            onClick={() => setMobileOpen(false)}
-            className="mt-2 py-3.5 px-4 rounded-xl text-center font-bold bg-secondary text-dark flex items-center justify-center gap-2 hover:shadow-[0_0_30px_rgba(0,230,118,0.3)] transition-all"
-          >
-            Book a Ride
-            <ArrowRight size={18} />
-          </Link>
+          {user ? (
+            <>
+              {/* Logged-in user info */}
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-3">
+                <div className="w-10 h-10 rounded-full bg-secondary/15 flex items-center justify-center text-secondary text-xs font-bold shrink-0">
+                  {getInitials(displayName || 'U')}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{displayName}</p>
+                  <p className="text-xs text-white/40 truncate">{user.emailAddress}</p>
+                </div>
+              </div>
 
-          <div className="my-5 h-px bg-white/5" />
-          <p className="px-4 text-xs text-white/30 uppercase tracking-wider font-semibold mb-2">Portals</p>
-          {portalLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className="py-3 px-4 rounded-xl text-white/50 hover:text-white hover:bg-white/5 text-sm transition-all"
-            >
-              {link.label}
-            </Link>
-          ))}
+              <Link
+                href={dashboardHref}
+                onClick={() => setMobileOpen(false)}
+                className="py-3.5 px-4 rounded-xl text-white/70 hover:text-white hover:bg-white/5 font-medium transition-all flex items-center gap-3"
+              >
+                <LayoutDashboard size={18} />
+                Dashboard
+              </Link>
+              <Link
+                href="/rider/book"
+                onClick={() => setMobileOpen(false)}
+                className="mt-2 py-3.5 px-4 rounded-xl text-center font-bold bg-secondary text-dark flex items-center justify-center gap-2 hover:shadow-[0_0_30px_rgba(0,230,118,0.3)] transition-all"
+              >
+                Book a Ride
+                <ArrowRight size={18} />
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="mt-2 py-3.5 px-4 rounded-xl text-center font-semibold text-error/70 border border-error/20 hover:bg-error/5 hover:text-error transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <LogOut size={18} />
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="py-3.5 px-4 rounded-xl text-center font-semibold text-white/70 border border-white/10 hover:bg-white/5 hover:text-white transition-all"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/rider/book"
+                onClick={() => setMobileOpen(false)}
+                className="mt-2 py-3.5 px-4 rounded-xl text-center font-bold bg-secondary text-dark flex items-center justify-center gap-2 hover:shadow-[0_0_30px_rgba(0,230,118,0.3)] transition-all"
+              >
+                Book a Ride
+                <ArrowRight size={18} />
+              </Link>
+
+              <div className="my-5 h-px bg-white/5" />
+              <p className="px-4 text-xs text-white/30 uppercase tracking-wider font-semibold mb-2">Portals</p>
+              {portalLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="py-3 px-4 rounded-xl text-white/50 hover:text-white hover:bg-white/5 text-sm transition-all"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </>
+          )}
         </nav>
 
         {/* Drawer footer */}

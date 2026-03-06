@@ -191,7 +191,7 @@ export default function RiderProfilePage() {
                 label="Email"
                 type="email"
                 icon={Mail}
-                value="john.doe@email.com"
+                value={user?.emailAddress || ''}
                 disabled
                 className="bg-white/[0.02] cursor-not-allowed opacity-50"
               />

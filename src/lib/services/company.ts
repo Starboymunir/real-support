@@ -15,6 +15,6 @@ export const companyApi = {
   update: (id: string, data: Partial<Company>) =>
     api.patch<Company>(`/company/updateById/${id}`, data),
 
-  inviteDriver: (driverId: string) =>
-    api.post(`/company/inviteDriverToJoin/${driverId}`),
+  inviteDriver: (driverIdOrEmail: string) =>
+    api.post(`/company/inviteDriverToJoin/${encodeURIComponent(driverIdOrEmail)}`),
 };

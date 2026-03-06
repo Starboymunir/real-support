@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════ */
 
 export { authApi } from './auth';
-export type { AuthResponse } from './auth';
+export type { LoginResponse } from './auth';
 export { requestsApi, bookingsApi } from './bookings';
 export { walletApi } from './wallet';
 export { driverApi } from './driver';
@@ -26,3 +26,12 @@ export { companyApi } from './company';
 export { othersApi } from './others';
 export type { PriceResult, UpdateLocationDto } from './others';
 export { userInfoApi, userAddressApi } from './user';
+export {
+  adminAuthApi,
+  adminBookingsApi,
+  adminDriversApi,
+  adminPassengersApi,
+  adminPackagesApi,
+  adminStatsApi,
+} from './admin';
+export type { AdminRegisterDto, DashboardStats } from './admin';

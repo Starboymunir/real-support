@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useRequireAuth } from '@/lib/use-require-auth';
-import { companyApi } from '@/lib/services';
+import { companyApi, bookingsApi } from '@/lib/services';
+import type { Booking } from '@/lib/types';
 import {
   UserPlus,
   Search,
@@ -16,75 +17,18 @@ import {
   X,
 } from 'lucide-react';
 
-/* ───── Dummy employees ───── */
-const employeesData = [
-  {
-    id: 1,
-    firstName: 'Sarah',
-    lastName: 'Mitchell',
-    email: 'sarah.m@acmecorp.com',
-    department: 'Sales',
-    rides: 28,
-    totalSpend: '£620',
-    limit: 800,
-    status: 'Active',
-  },
-  {
-    id: 2,
-    firstName: 'James',
-    lastName: 'Harlow',
-    email: 'james.h@acmecorp.com',
-    department: 'Management',
-    rides: 22,
-    totalSpend: '£510',
-    limit: 1000,
-    status: 'Active',
-  },
-  {
-    id: 3,
-    firstName: 'Priya',
-    lastName: 'Sharma',
-    email: 'priya.s@acmecorp.com',
-    department: 'Engineering',
-    rides: 19,
-    totalSpend: '£380',
-    limit: 600,
-    status: 'Active',
-  },
-  {
-    id: 4,
-    firstName: 'Tom',
-    lastName: 'Walker',
-    email: 'tom.w@acmecorp.com',
-    department: 'Marketing',
-    rides: 15,
-    totalSpend: '£305',
-    limit: 500,
-    status: 'Active',
-  },
-  {
-    id: 5,
-    firstName: 'Emma',
-    lastName: 'Collins',
-    email: 'emma.c@acmecorp.com',
-    department: 'Sales',
-    rides: 12,
-    totalSpend: '£240',
-    limit: 600,
-    status: 'Inactive',
-  },
-  {
-    id: 6,
-    firstName: 'David',
-    lastName: 'Chen',
-    email: 'david.c@acmecorp.com',
-    department: 'Engineering',
-    rides: 9,
-    totalSpend: '£185',
-    limit: 600,
-    status: 'Active',
-  },
-];
+/* ───── Employee type ───── */
+type Employee = {
+  id: number | string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  department: string;
+  rides: number;
+  totalSpend: string;
+  limit: number;
+  status: string;
+};
 
 const departments = ['All', 'Sales', 'Marketing', 'Engineering', 'Management'];
 
@@ -93,7 +37,8 @@ function getInitials(first: string, last: string) {
 }
 
 export default function CompanyEmployeesPage() {
-  useRequireAuth();
+  const { user } = useRequireAuth();
+  const [employeesData, setEmployeesData] = useState<Employee[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
   const [activeDept, setActiveDept] = useState('All');
@@ -103,6 +48,38 @@ export default function CompanyEmployeesPage() {
   const [inviting, setInviting] = useState(false);
   const [inviteError, setInviteError] = useState('');
   const [inviteSuccess, setInviteSuccess] = useState(false);
+
+  // Derive employees from booking data
+  const fetchEmployees = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await bookingsApi.getUserBookings(user.id);
+      const bookings: Booking[] = Array.isArray(res) ? res : (res as { data?: Booking[] }).data || [];
+      const empMap = new Map<string, { rides: number; spent: number }>();
+      bookings.filter(b => b.status === 'COMPLETED').forEach(b => {
+        const name = b.riderName || 'Unknown';
+        const existing = empMap.get(name) || { rides: 0, spent: 0 };
+        empMap.set(name, { rides: existing.rides + 1, spent: existing.spent + (b.finalBill || 0) });
+      });
+      const empList: Employee[] = [...empMap.entries()].map(([name, data], i) => {
+        const parts = name.split(' ');
+        return {
+          id: i + 1,
+          firstName: parts[0] || name,
+          lastName: parts.slice(1).join(' ') || '',
+          email: '',
+          department: 'General',
+          rides: data.rides,
+          totalSpend: `\u00A3${data.spent.toFixed(0)}`,
+          limit: 1000,
+          status: 'Active',
+        };
+      });
+      setEmployeesData(empList);
+    } catch { /* keep empty */ }
+  }, [user]);
+
+  useEffect(() => { fetchEmployees(); }, [fetchEmployees]);
 
   const handleAddEmployee = async () => {
     if (!inviteEmail) return;

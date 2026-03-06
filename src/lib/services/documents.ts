@@ -13,7 +13,7 @@ export const documentsApi = {
     if (metadata) {
       Object.entries(metadata).forEach(([k, v]) => fd.append(k, v));
     }
-    return api.upload<{ url: string }>('/documents/upload_file', fd);
+    return api.upload<{ fileUrl: string }>('/documents/upload_file', fd);
   },
 
   // ── Driver document uploads ──

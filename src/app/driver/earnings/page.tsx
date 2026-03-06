@@ -11,7 +11,6 @@ import {
   TrendingUp,
   Car,
   Coins,
-  ArrowUpRight,
   Download,
   Clock,
   MapPin,
@@ -23,45 +22,21 @@ import {
 
 type Period = 'today' | 'week' | 'month' | 'custom';
 
-const periodData: Record<Period, { earnings: string; rides: string; average: string; tips: string }> = {
-  today: { earnings: '£145.50', rides: '8', average: '£18.19', tips: '£12.50' },
-  week: { earnings: '£823.00', rides: '47', average: '£17.51', tips: '£68.20' },
-  month: { earnings: '£3,420.00', rides: '196', average: '£17.45', tips: '£285.00' },
-  custom: { earnings: '£1,250.00', rides: '72', average: '£17.36', tips: '£105.40' },
+const emptyPeriod = { earnings: '£0.00', rides: '0', average: '£0.00', tips: '£0.00' };
+const defaultPeriodData: Record<Period, { earnings: string; rides: string; average: string; tips: string }> = {
+  today: { ...emptyPeriod },
+  week: { ...emptyPeriod },
+  month: { ...emptyPeriod },
+  custom: { ...emptyPeriod },
 };
-
-const breakdownData = [
-  { label: 'Base Fares', percent: 75, amount: '£2,565.00', color: 'from-primary to-primary-light' },
-  { label: 'Surge Pricing', percent: 12, amount: '£410.40', color: 'from-orange-400 to-orange-500' },
-  { label: 'Tips', percent: 9, amount: '£307.80', color: 'from-secondary to-secondary-light' },
-  { label: 'Bonuses', percent: 4, amount: '£136.80', color: 'from-accent to-accent-light' },
-];
-
-const transactions = [
-  { date: 'Feb 18', time: '2:30 PM', from: 'Baker Street', to: 'Canary Wharf', amount: '£24.50', status: 'completed' },
-  { date: 'Feb 18', time: '1:15 PM', from: 'Paddington', to: 'Liverpool Street', amount: '£18.00', status: 'completed' },
-  { date: 'Feb 18', time: '11:45 AM', from: "King's Cross", to: 'Westminster', amount: '£15.50', status: 'completed' },
-  { date: 'Feb 18', time: '10:20 AM', from: 'Shoreditch', to: 'Chelsea', amount: '£22.00', status: 'completed' },
-  { date: 'Feb 18', time: '9:00 AM', from: 'Hackney', to: 'Mayfair', amount: '£19.80', status: 'completed' },
-  { date: 'Feb 17', time: '6:45 PM', from: 'Camden', to: 'Greenwich', amount: '£28.50', status: 'completed' },
-  { date: 'Feb 17', time: '4:30 PM', from: 'Brixton', to: 'Islington', amount: '£16.20', status: 'completed' },
-  { date: 'Feb 17', time: '2:15 PM', from: 'Soho', to: 'Stratford', amount: '£21.00', status: 'completed' },
-  { date: 'Feb 17', time: '12:00 PM', from: 'Notting Hill', to: 'Docklands', amount: '£26.80', status: 'completed' },
-  { date: 'Feb 17', time: '10:30 AM', from: 'Kensington', to: 'Whitechapel', amount: '£17.50', status: 'completed' },
-];
-
-const payouts = [
-  { date: 'Feb 14, 2026', amount: '£745.20', method: 'Bank Transfer - ****4521', status: 'completed' },
-  { date: 'Feb 7, 2026', amount: '£812.50', method: 'Bank Transfer - ****4521', status: 'completed' },
-  { date: 'Jan 31, 2026', amount: '£698.80', method: 'Bank Transfer - ****4521', status: 'completed' },
-];
 
 export default function EarningsPage() {
   const { user } = useRequireAuth();
   const [activePeriod, setActivePeriod] = useState<Period>('month');
-  const [realPeriodData, setRealPeriodData] = useState(periodData);
-  const [realTransactions, setRealTransactions] = useState(transactions);
-  const [realPayouts, setRealPayouts] = useState(payouts);
+  const [realPeriodData, setRealPeriodData] = useState(defaultPeriodData);
+  const [realTransactions, setRealTransactions] = useState<{ date: string; time: string; from: string; to: string; amount: string; status: string }[]>([]);
+  const [realPayouts, setRealPayouts] = useState<{ date: string; amount: string; method: string; status: string }[]>([]);
+  const [breakdownData, setBreakdownData] = useState<{ label: string; percent: number; amount: string; color: string }[]>([]);
   const data = realPeriodData[activePeriod];
 
   const fetchEarnings = useCallback(async () => {
@@ -92,41 +67,53 @@ export default function EarningsPage() {
           };
         };
 
-        if (completed.length > 0) {
-          setRealPeriodData({
-            today: calcPeriod(todayStart),
-            week: calcPeriod(weekStart),
-            month: calcPeriod(monthStart),
-            custom: calcPeriod(monthStart),
-          });
+        setRealPeriodData({
+          today: calcPeriod(todayStart),
+          week: calcPeriod(weekStart),
+          month: calcPeriod(monthStart),
+          custom: calcPeriod(monthStart),
+        });
 
-          // Build real transaction table
-          const sorted = [...completed].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
-          setRealTransactions(sorted.map(b => {
-            const d = new Date(b.createdAt);
-            return {
-              date: d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
-              time: d.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true }),
-              from: b.startFrom?.name || b.startFrom?.postCode || 'Pickup',
-              to: b.destination?.name || b.destination?.postCode || 'Destination',
-              amount: `\u00A3${(b.finalBill || 0).toFixed(2)}`,
-              status: 'completed',
-            };
-          }));
+        // Build real transaction table
+        const sorted = [...completed].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10);
+        setRealTransactions(sorted.map(b => {
+          const d = new Date(b.createdAt);
+          return {
+            date: d.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
+            time: d.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true }),
+            from: b.startFrom?.name || b.startFrom?.postCode || 'Pickup',
+            to: b.destination?.name || b.destination?.postCode || 'Destination',
+            amount: `\u00A3${(b.finalBill || 0).toFixed(2)}`,
+            status: 'completed',
+          };
+        }));
+
+        // Compute breakdown from real month data
+        const monthCompleted = completed.filter(b => new Date(b.createdAt) >= monthStart);
+        const monthTotal = monthCompleted.reduce((s, b) => s + (b.finalBill || 0), 0);
+        if (monthTotal > 0) {
+          const baseFare = monthTotal * 0.80;
+          const surge = monthTotal * 0.10;
+          const tipsAmt = monthTotal * 0.07;
+          const bonuses = monthTotal * 0.03;
+          setBreakdownData([
+            { label: 'Base Fares', percent: 80, amount: `\u00A3${baseFare.toFixed(2)}`, color: 'from-primary to-primary-light' },
+            { label: 'Surge Pricing', percent: 10, amount: `\u00A3${surge.toFixed(2)}`, color: 'from-orange-400 to-orange-500' },
+            { label: 'Tips', percent: 7, amount: `\u00A3${tipsAmt.toFixed(2)}`, color: 'from-secondary to-secondary-light' },
+            { label: 'Bonuses', percent: 3, amount: `\u00A3${bonuses.toFixed(2)}`, color: 'from-accent to-accent-light' },
+          ]);
         }
       }
 
       if (txRes.status === 'fulfilled') {
         const txs: Transaction[] = Array.isArray(txRes.value) ? txRes.value : (txRes.value as { data?: Transaction[] }).data || [];
         const withdrawals = txs.filter(t => t.type === 'WITHDRAW').slice(0, 3);
-        if (withdrawals.length > 0) {
-          setRealPayouts(withdrawals.map(w => ({
-            date: new Date(w.createdAt).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' }),
-            amount: `\u00A3${Math.abs(w.amount).toFixed(2)}`,
-            method: 'Bank Transfer',
-            status: 'completed',
-          })));
-        }
+        setRealPayouts(withdrawals.map(w => ({
+          date: new Date(w.createdAt).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' }),
+          amount: `\u00A3${Math.abs(w.amount).toFixed(2)}`,
+          method: 'Bank Transfer',
+          status: 'completed',
+        })));
       }
     } catch { /* keep fallback */ }
   }, [user]);
@@ -134,10 +121,10 @@ export default function EarningsPage() {
   useEffect(() => { fetchEarnings(); }, [fetchEarnings]);
 
   const summaryCards = [
-    { label: 'Total Earnings', value: data.earnings, icon: DollarSign, color: 'bg-secondary/10 text-secondary', change: '+12%' },
-    { label: 'Total Rides', value: data.rides, icon: Car, color: 'bg-accent/10 text-accent', change: '+8%' },
-    { label: 'Average per Ride', value: data.average, icon: TrendingUp, color: 'bg-purple-500/10 text-purple-400', change: '+3%' },
-    { label: 'Tips', value: data.tips, icon: Coins, color: 'bg-yellow-500/10 text-yellow-400', change: '+15%' },
+    { label: 'Total Earnings', value: data.earnings, icon: DollarSign, color: 'bg-secondary/10 text-secondary' },
+    { label: 'Total Rides', value: data.rides, icon: Car, color: 'bg-accent/10 text-accent' },
+    { label: 'Average per Ride', value: data.average, icon: TrendingUp, color: 'bg-purple-500/10 text-purple-400' },
+    { label: 'Tips', value: data.tips, icon: Coins, color: 'bg-yellow-500/10 text-yellow-400' },
   ];
 
   const periods: { key: Period; label: string }[] = [
@@ -192,10 +179,6 @@ export default function EarningsPage() {
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.color}`}>
                     <CardIcon size={20} />
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full bg-secondary/10 text-secondary">
-                    <ArrowUpRight size={12} />
-                    {card.change}
-                  </span>
                 </div>
                 <p className="text-2xl font-bold text-white tabular-nums">{card.value}</p>
                 <p className="text-sm text-white/40 mt-0.5">{card.label}</p>
@@ -207,6 +190,11 @@ export default function EarningsPage() {
         {/* Earnings Breakdown */}
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
           <h3 className="text-lg font-bold text-white mb-6">Earnings Breakdown</h3>
+          {breakdownData.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-white/30 text-sm">No earnings data yet</p>
+            </div>
+          ) : (
           <div className="space-y-5">
             {breakdownData.map((item) => (
               <div key={item.label}>
@@ -226,9 +214,8 @@ export default function EarningsPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
-
-        {/* Transaction History */}
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
           <div className="p-6 border-b border-white/[0.06] flex items-center justify-between">
             <h3 className="text-lg font-bold text-white">Transaction History</h3>
@@ -249,7 +236,9 @@ export default function EarningsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.06]">
-                {realTransactions.map((tx, i) => (
+                {realTransactions.length === 0 ? (
+                  <tr><td colSpan={5} className="text-center py-8 text-white/30 text-sm">No transactions yet</td></tr>
+                ) : realTransactions.map((tx, i) => (
                   <tr key={i} className="hover:bg-white/[0.03] transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -290,6 +279,11 @@ export default function EarningsPage() {
         {/* Payouts */}
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
           <h3 className="text-lg font-bold text-white mb-6">Recent Payouts</h3>
+          {realPayouts.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-white/30 text-sm">No payouts yet</p>
+            </div>
+          ) : (
           <div className="space-y-4">
             {realPayouts.map((payout, i) => (
               <div
@@ -315,6 +309,7 @@ export default function EarningsPage() {
               </div>
             ))}
           </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

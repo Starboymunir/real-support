@@ -15,26 +15,32 @@ export const requestsApi = {
   create: (dto: CreateRequestDto) =>
     api.post<RideRequest>('/requests', dto),
 
-  getAll: (page = 1, limit = 20) =>
-    api.get<RideRequest[]>(`/requests?page=${page}&limit=${limit}`),
+  getAll: (page = 1, count = 20) =>
+    api.get<RideRequest[]>(`/requests?page=${page}&count=${count}`),
 
   getById: (id: string) =>
     api.get<RideRequest>(`/requests/${id}`),
 
-  getUserRequests: (userId: string, page = 1, limit = 20) =>
-    api.get<RideRequest[]>(`/requests/users/${userId}?page=${page}&limit=${limit}`),
+  getUserRequests: (userId: string, page = 1, count = 20) =>
+    api.get<RideRequest[]>(`/requests/users/${userId}?page=${page}&count=${count}`),
 
-  getAdjustable: (page = 1, limit = 20) =>
-    api.get<RideRequest[]>(`/requests/adjustable?page=${page}&limit=${limit}`),
+  getDriverRequests: (driverId: string, page = 1, count = 20) =>
+    api.get<RideRequest[]>(`/requests/driver/${driverId}?page=${page}&count=${count}`),
 
-  getFixed: (page = 1, limit = 20) =>
-    api.get<RideRequest[]>(`/requests/fixed?page=${page}&limit=${limit}`),
+  getAdjustable: (page = 1, count = 20) =>
+    api.get<RideRequest[]>(`/requests/adjustable?page=${page}&count=${count}`),
+
+  getFixed: (page = 1, count = 20) =>
+    api.get<RideRequest[]>(`/requests/fixed?page=${page}&count=${count}`),
 
   update: (id: string, data: Partial<RideRequest>) =>
     api.patch<RideRequest>(`/requests/${id}`, data),
 
   cancel: (id: string) =>
     api.patch<RideRequest>(`/requests/${id}`, { status: 'CANCELLED' }),
+
+  decline: (id: string) =>
+    api.patch<RideRequest>(`/requests/${id}/declined`, {}),
 
   remove: (id: string) =>
     api.del(`/requests/${id}`),

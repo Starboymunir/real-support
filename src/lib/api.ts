@@ -105,6 +105,11 @@ export const api = {
       headers,
       body: formData,
     }).then(async (res) => {
+      const contentType = res.headers.get('content-type');
+      if (!contentType?.includes('application/json')) {
+        if (!res.ok) throw new ApiError(res.status, res.statusText);
+        return null as T;
+      }
       const json = await res.json();
       if (!res.ok) throw new ApiError(res.status, json.message || res.statusText, json);
       if (json.success !== undefined && json.data !== undefined) return json.data as T;

@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
-  Landmark,
   Wallet,
   Shield,
   Check,
@@ -27,29 +26,26 @@ const fadeUp = {
   }),
 };
 
-const linkedBanks = [
-  { id: 1, name: 'Barclays Current Account', last4: '7291', sort: '20-45-XX' },
-  { id: 2, name: 'Monzo Personal', last4: '3450', sort: '04-00-XX' },
-];
-
 export default function WithdrawPage() {
   const { user } = useRequireAuth();
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState('');
-  const [selectedBank, setSelectedBank] = useState(linkedBanks[0].id);
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [sortCode, setSortCode] = useState('');
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [walletBalance, setWalletBalance] = useState(186.0);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   const numAmount = parseFloat(amount) || 0;
   const isValid = numAmount >= 5 && numAmount <= walletBalance;
+  const bankValid = bankName.trim().length > 0 && accountNumber.trim().length >= 4;
 
-  // Fetch real wallet balance
   useEffect(() => {
     if (!user?.id) return;
     walletApi.getUserWallet(user.id)
-      .then(w => setWalletBalance(w.balance ?? 186))
+      .then(w => setWalletBalance(w.balance ?? 0))
       .catch(() => {});
   }, [user?.id]);
 
@@ -61,18 +57,15 @@ export default function WithdrawPage() {
       await walletApi.createWithdrawRequest({
         userId: user.id,
         amount: numAmount,
-        notes: `Withdrawal to ${linkedBanks.find(b => b.id === selectedBank)?.name || 'bank account'}`,
+        notes: `Withdrawal to ${bankName || 'bank account'}`,
       });
       setSuccess(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Withdrawal failed');
-      // Fallback demo
-      setTimeout(() => { setProcessing(false); setSuccess(true); }, 2000);
-      return;
     } finally {
       setProcessing(false);
     }
-  }, [user?.id, numAmount, isValid, selectedBank]);
+  }, [user?.id, numAmount, isValid, bankName]);
 
   return (
     <DashboardLayout role="rider" pageTitle="Withdraw Funds">
@@ -152,7 +145,6 @@ export default function WithdrawPage() {
                 <h2 className="text-xl font-bold text-white mb-1">How much would you like to withdraw?</h2>
                 <p className="text-white/30 text-sm mb-6">Funds will be transferred to your linked bank account</p>
 
-                {/* Amount Input */}
                 <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-6">
                   <div className="flex items-center gap-2 justify-center">
                     <span className="text-4xl font-black text-white/30">£</span>
@@ -179,7 +171,6 @@ export default function WithdrawPage() {
                   )}
                 </div>
 
-                {/* Quick amounts */}
                 <div className="flex flex-wrap gap-2 mt-4 justify-center">
                   {[25, 50, 100].map((a) => (
                     <button
@@ -209,7 +200,6 @@ export default function WithdrawPage() {
                   </button>
                 </div>
 
-                {/* Notice */}
                 <div className="mt-6 p-3 rounded-xl bg-accent/[0.06] border border-accent/20 flex items-start gap-3">
                   <Info size={16} className="text-accent shrink-0 mt-0.5" />
                   <p className="text-xs text-white/40 leading-relaxed">
@@ -245,45 +235,47 @@ export default function WithdrawPage() {
               <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8">
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-secondary via-accent to-secondary" />
 
-                <h2 className="text-xl font-bold text-white mb-1">Select bank account</h2>
-                <p className="text-white/30 text-sm mb-6">Choose where to receive your funds</p>
+                <h2 className="text-xl font-bold text-white mb-1">Bank account details</h2>
+                <p className="text-white/30 text-sm mb-6">Enter the bank account to receive your funds</p>
 
-                <div className="space-y-3">
-                  {linkedBanks.map((bank) => (
-                    <button
-                      key={bank.id}
-                      onClick={() => setSelectedBank(bank.id)}
-                      className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 text-left ${
-                        selectedBank === bank.id
-                          ? 'border-secondary/40 bg-secondary/[0.06]'
-                          : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]'
-                      }`}
-                    >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        selectedBank === bank.id ? 'bg-secondary/15' : 'bg-white/[0.06]'
-                      }`}>
-                        <Landmark size={22} className={selectedBank === bank.id ? 'text-secondary' : 'text-white/40'} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white">{bank.name}</p>
-                        <p className="text-xs text-white/30 mt-0.5">Sort: {bank.sort} · Acc: ••••{bank.last4}</p>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedBank === bank.id
-                          ? 'border-secondary bg-secondary'
-                          : 'border-white/20'
-                      }`}>
-                        {selectedBank === bank.id && <Check size={12} className="text-dark" />}
-                      </div>
-                    </button>
-                  ))}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-white/60 mb-2">Bank Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Barclays, Monzo, HSBC"
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 outline-none focus:border-secondary/40 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-white/60 mb-2">Account Number</label>
+                    <input
+                      type="text"
+                      placeholder="12345678"
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 outline-none focus:border-secondary/40 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-white/60 mb-2">Sort Code (optional)</label>
+                    <input
+                      type="text"
+                      placeholder="XX-XX-XX"
+                      value={sortCode}
+                      onChange={(e) => setSortCode(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 outline-none focus:border-secondary/40 transition-colors"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-6">
                   <Button variant="outline" size="md" onClick={() => setStep(1)}>
                     Back
                   </Button>
-                  <Button variant="green" size="lg" className="flex-1" onClick={() => setStep(3)}>
+                  <Button variant="green" size="lg" className="flex-1" onClick={() => bankValid && setStep(3)} disabled={!bankValid}>
                     Review Withdrawal <ChevronRight size={16} />
                   </Button>
                 </div>
@@ -317,15 +309,11 @@ export default function WithdrawPage() {
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
                     <span className="text-white/50 text-sm">Bank Account</span>
-                    <span className="text-white font-semibold text-sm">
-                      {linkedBanks.find((b) => b.id === selectedBank)?.name}
-                    </span>
+                    <span className="text-white font-semibold text-sm">{bankName}</span>
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
                     <span className="text-white/50 text-sm">Account Number</span>
-                    <span className="text-white/60 text-sm font-medium">
-                      ••••{linkedBanks.find((b) => b.id === selectedBank)?.last4}
-                    </span>
+                    <span className="text-white/60 text-sm font-medium">••••{accountNumber.slice(-4)}</span>
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
                     <span className="text-white/50 text-sm">Estimated Arrival</span>
@@ -336,6 +324,12 @@ export default function WithdrawPage() {
                     <span className="text-white font-black text-xl">£{(walletBalance - numAmount).toFixed(2)}</span>
                   </div>
                 </div>
+
+                {error && (
+                  <div className="mt-4 p-4 rounded-xl bg-red-500/[0.08] border border-red-500/20 text-red-400 text-sm">
+                    {error}
+                  </div>
+                )}
 
                 <div className="flex gap-3 mt-8">
                   <Button variant="outline" size="md" onClick={() => setStep(2)}>
@@ -390,8 +384,7 @@ export default function WithdrawPage() {
 
                 <h2 className="text-2xl font-black text-white mb-2">Withdrawal Initiated!</h2>
                 <p className="text-white/40 text-sm mb-6 max-w-sm mx-auto">
-                  £{numAmount.toFixed(2)} will be transferred to your{' '}
-                  {linkedBanks.find((b) => b.id === selectedBank)?.name} within 1-2 business days.
+                  £{numAmount.toFixed(2)} will be transferred to your {bankName || 'bank account'} within 1-2 business days.
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/[0.04] border border-white/[0.08] mb-8">

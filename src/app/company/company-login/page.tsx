@@ -86,9 +86,7 @@ export default function CompanyLoginPage() {
             </form>
 
             <div className="mt-6 pt-6 border-t border-white/[0.04]">
-              <Link href="/company/dashboard" className="block w-full text-center py-2.5 rounded-lg bg-white/[0.03] text-white/40 text-xs font-medium hover:bg-white/[0.06] hover:text-white/60 transition-all border border-white/[0.04] mb-4">
-                Skip to Company Dashboard â†’
-              </Link>
+
               <p className="text-white/25 text-sm mb-2 text-center">Not a company account?</p>
               <div className="text-center">
                 <Link href="/login" className="text-secondary text-sm font-semibold hover:underline underline-offset-4">â† Back to Rider Login</Link>

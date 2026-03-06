@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useRequireAuth } from '@/lib/use-require-auth';
-import { driverCarsApi } from '@/lib/services';
+import { useAuth } from '@/lib/auth-context';
+import { driverCarsApi, documentsApi } from '@/lib/services';
 import {
   User,
   Car,
@@ -37,9 +38,13 @@ const years = Array.from({ length: 20 }, (_, i) => 2026 - i);
 
 export default function VehiclePage() {
   const { user } = useRequireAuth();
+  const { refreshUser } = useAuth();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [vehiclePhoto, setVehiclePhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     make: '',
     model: '',
@@ -55,24 +60,65 @@ export default function VehiclePage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Photo must be under 5MB');
+      return;
+    }
+    setVehiclePhoto(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  // Get driverId: prefer user.driver.id from auth context, fall back to localStorage
+  const getDriverId = (): string => {
+    if (user?.driver?.id) return user.driver.id;
+    return localStorage.getItem('rs_driver_id') || '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const driverId = getDriverId();
+    if (!driverId) {
+      setError('Driver profile not found. Please complete Step 1 first.');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await driverCarsApi.create({
+      // Upload vehicle photo if selected
+      let carImageUrl: string | undefined;
+      if (vehiclePhoto) {
+        const uploaded = await documentsApi.uploadFile(vehiclePhoto);
+        // Backend returns { fileUrl: "..." } after envelope unwrap
+        carImageUrl = (uploaded as { fileUrl?: string; url?: string })?.fileUrl
+          || (uploaded as { url?: string })?.url;
+      }
+
+      const createData = {
         make: formData.make,
         model: formData.model,
         year: formData.year,
         color: formData.color,
         numberPlate: formData.regNumber,
         engine: formData.vehicleType || 'Petrol',
-        driverId: user?.id || '',
-      });
+        driverId,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result: any = await driverCarsApi.create(carImageUrl ? { ...createData, carImage: carImageUrl } as any : createData);
+
+      // Store car ID for document uploads
+      if (result?.id) {
+        localStorage.setItem('rs_car_id', result.id);
+      }
+      // Refresh user context so user.driver.car is populated
+      await refreshUser();
       router.push('/driver/documents');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save vehicle details.');
-      setTimeout(() => router.push('/driver/documents'), 1500);
     } finally {
       setSubmitting(false);
     }
@@ -82,7 +128,7 @@ export default function VehiclePage() {
     <DashboardLayout role="driver" pageTitle="Vehicle Registration">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Progress Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-white/[0.06] rounded-full h-2 overflow-hidden">
           <div
             className="h-full rounded-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
             style={{ width: '66%' }}
@@ -102,17 +148,17 @@ export default function VehiclePage() {
                   <div
                     className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
                       isDone
-                        ? 'bg-secondary text-white shadow-lg shadow-secondary/30'
+                        ? 'bg-secondary/[0.15] border-2 border-secondary text-secondary'
                         : isActive
-                        ? 'bg-gradient-to-br from-primary to-primary-light text-white shadow-lg shadow-primary/30'
-                        : 'bg-gray-100 text-text-muted border-2 border-gray-200'
+                        ? 'bg-secondary/[0.15] border-2 border-secondary text-secondary'
+                        : 'bg-white/[0.03] text-white/25 border border-white/[0.06]'
                     }`}
                   >
                     {isDone ? <Check size={20} /> : <StepIcon size={20} />}
                   </div>
                   <span
                     className={`text-xs font-semibold whitespace-nowrap ${
-                      isActive ? 'text-primary' : isDone ? 'text-secondary' : 'text-text-muted'
+                      isActive ? 'text-secondary' : isDone ? 'text-secondary' : 'text-white/25'
                     }`}
                   >
                     {step.label}
@@ -121,8 +167,8 @@ export default function VehiclePage() {
                 {i < steps.length - 1 && (
                   <div className="flex-1 mx-4">
                     <div
-                      className={`h-0.5 rounded-full ${
-                        i < 1 ? 'bg-secondary' : 'bg-gray-200'
+                      className={`h-px rounded-full ${
+                        i < 1 ? 'bg-secondary/50' : 'bg-white/[0.06]'
                       }`}
                     />
                   </div>
@@ -133,10 +179,10 @@ export default function VehiclePage() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-text-primary">Vehicle Information</h2>
-            <p className="text-text-secondary mt-1">
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
+          <div className="mb-10">
+            <h2 className="text-3xl font-bold text-white tracking-[-0.01em]">Vehicle Information</h2>
+            <p className="text-white/35 mt-2">
               Provide details about the vehicle you&apos;ll be driving
             </p>
           </div>
@@ -145,25 +191,25 @@ export default function VehiclePage() {
             {/* Make / Model */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="w-full">
-                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                <label className="block text-sm font-medium text-white/40 mb-1.5">
                   Make
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
                     <Car size={18} />
                   </span>
                   <select
                     name="make"
                     value={formData.make}
                     onChange={handleChange}
-                    className="input-field appearance-none cursor-pointer pl-10 pr-10"
+                    className="input-field appearance-none cursor-pointer pl-10 pr-10 [&>option]:bg-[#0d1526] [&>option]:text-white"
                   >
                     <option value="">Select make</option>
                     {carMakes.map((m) => (
                       <option key={m} value={m}>{m}</option>
                     ))}
                   </select>
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
                     <ChevronDown size={18} />
                   </span>
                 </div>
@@ -182,7 +228,7 @@ export default function VehiclePage() {
             {/* Year / Color */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="w-full">
-                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                <label className="block text-sm font-medium text-white/40 mb-1.5">
                   Year
                 </label>
                 <div className="relative">
@@ -190,14 +236,14 @@ export default function VehiclePage() {
                     name="year"
                     value={formData.year}
                     onChange={handleChange}
-                    className="input-field appearance-none cursor-pointer pr-10"
+                    className="input-field appearance-none cursor-pointer pr-10 [&>option]:bg-[#0d1526] [&>option]:text-white"
                   >
                     <option value="">Select year</option>
                     {years.map((y) => (
                       <option key={y} value={y}>{y}</option>
                     ))}
                   </select>
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
                     <ChevronDown size={18} />
                   </span>
                 </div>
@@ -225,25 +271,25 @@ export default function VehiclePage() {
                 required
               />
               <div className="w-full">
-                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                <label className="block text-sm font-medium text-white/40 mb-1.5">
                   Vehicle Type
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
                     <Car size={18} />
                   </span>
                   <select
                     name="vehicleType"
                     value={formData.vehicleType}
                     onChange={handleChange}
-                    className="input-field appearance-none cursor-pointer pl-10 pr-10"
+                    className="input-field appearance-none cursor-pointer pl-10 pr-10 [&>option]:bg-[#0d1526] [&>option]:text-white"
                   >
                     <option value="">Select type</option>
                     {vehicleTypes.map((t) => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
                     <ChevronDown size={18} />
                   </span>
                 </div>
@@ -263,7 +309,7 @@ export default function VehiclePage() {
                 required
               />
               <div className="w-full">
-                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                <label className="block text-sm font-medium text-white/40 mb-1.5">
                   Wheelchair Accessible
                 </label>
                 <button
@@ -271,8 +317,8 @@ export default function VehiclePage() {
                   onClick={() => setWheelchairAccessible(!wheelchairAccessible)}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl border-[1.5px] transition-all duration-200 cursor-pointer ${
                     wheelchairAccessible
-                      ? 'border-secondary bg-secondary/5 text-secondary'
-                      : 'border-gray-200 bg-white text-text-secondary hover:border-gray-300'
+                      ? 'border-secondary bg-secondary/[0.08] text-secondary'
+                      : 'border-white/10 bg-white/[0.04] text-white/60 hover:border-white/20'
                   }`}
                 >
                   <span className="font-medium">
@@ -280,7 +326,7 @@ export default function VehiclePage() {
                   </span>
                   <div
                     className={`w-12 h-6 rounded-full flex items-center transition-all duration-200 ${
-                      wheelchairAccessible ? 'bg-secondary justify-end' : 'bg-gray-300 justify-start'
+                      wheelchairAccessible ? 'bg-secondary justify-end' : 'bg-white/10 justify-start'
                     }`}
                   >
                     <div className="w-5 h-5 bg-white rounded-full shadow mx-0.5" />
@@ -291,19 +337,39 @@ export default function VehiclePage() {
 
             {/* Vehicle Photo Upload */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-text-primary mb-1.5">
+              <label className="block text-sm font-medium text-white/40 mb-1.5">
                 Vehicle Photo
               </label>
-              <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-secondary/50 hover:bg-secondary/5 transition-all duration-300 cursor-pointer group">
-                <div className="w-14 h-14 rounded-full bg-gray-100 group-hover:bg-secondary/10 flex items-center justify-center mx-auto mb-4 transition-colors">
-                  <Upload size={24} className="text-text-muted group-hover:text-secondary transition-colors" />
-                </div>
-                <p className="text-text-primary font-semibold mb-1">
-                  Click to upload or drag and drop
-                </p>
-                <p className="text-text-muted text-sm">
-                  PNG, JPG or WEBP (max. 5MB)
-                </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handlePhotoSelect}
+              />
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-white/10 rounded-xl p-8 text-center hover:border-secondary/50 hover:bg-secondary/[0.04] transition-all duration-300 cursor-pointer group"
+              >
+                {photoPreview ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <img src={photoPreview} alt="Vehicle preview" className="w-32 h-24 object-cover rounded-lg" />
+                    <p className="text-sm text-secondary font-medium">{vehiclePhoto?.name}</p>
+                    <p className="text-xs text-white/35">Click to change photo</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-14 h-14 rounded-full bg-white/[0.04] group-hover:bg-secondary/10 flex items-center justify-center mx-auto mb-4 transition-colors">
+                      <Upload size={24} className="text-white/40 group-hover:text-secondary transition-colors" />
+                    </div>
+                    <p className="text-white font-semibold mb-1">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-white/35 text-sm">
+                      PNG, JPG or WEBP (max. 5MB)
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -313,7 +379,7 @@ export default function VehiclePage() {
             )}
 
             {/* Buttons */}
-            <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+            <div className="flex items-center justify-between pt-6 border-t border-white/[0.06]">
               <Button variant="outline" href="/driver">
                 <ArrowLeft size={18} />
                 Back

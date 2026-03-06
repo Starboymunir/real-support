@@ -34,7 +34,8 @@ const colorMap = {
 
 export default function DriverNotificationsPage() {
   const { user } = useRequireAuth();
-  const [items, setItems] = useState<DisplayNotification[]>(fallbackNotifications);
+  const [items, setItems] = useState<DisplayNotification[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
 
   const mapApiNotification = (n: ApiNotification): DisplayNotification => {
     const title = n.ROC || 'Notification';
@@ -59,7 +60,8 @@ export default function DriverNotificationsPage() {
       const res = await notificationsApi.getAll({ userId: user.id });
       const list: ApiNotification[] = Array.isArray(res) ? res : (res as { data?: ApiNotification[] }).data || [];
       if (list.length > 0) setItems(list.map(mapApiNotification));
-    } catch { /* keep fallback */ }
+    } catch { /* keep empty */ }
+    finally { setLoadingNotifications(false); }
   }, [user]);
 
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);

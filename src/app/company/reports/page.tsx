@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import { useRequireAuth } from '@/lib/use-require-auth';
+import { bookingsApi } from '@/lib/services';
+import type { Booking } from '@/lib/types';
 import {
   Download,
   FileText,
@@ -13,57 +15,7 @@ import {
   Building2,
 } from 'lucide-react';
 
-/* ───── Dummy data ───── */
-const overviewCards = [
-  { label: 'Total Trips', value: '156', icon: MapPin, color: 'bg-primary/10 text-primary' },
-  {
-    label: 'Total Spend',
-    value: '£4,230',
-    icon: PoundSterling,
-    color: 'bg-secondary/10 text-secondary',
-  },
-  {
-    label: 'Avg per Trip',
-    value: '£18.50',
-    icon: TrendingUp,
-    color: 'bg-info/10 text-info',
-  },
-  {
-    label: 'Most Active Dept',
-    value: 'Sales',
-    icon: Building2,
-    color: 'bg-warning/10 text-warning',
-  },
-];
-
-const departmentBreakdown = [
-  { department: 'Sales', trips: 52, totalCost: '£1,340', avgCost: '£25.77' },
-  { department: 'Engineering', trips: 38, totalCost: '£890', avgCost: '£23.42' },
-  { department: 'Marketing', trips: 31, totalCost: '£720', avgCost: '£23.23' },
-  { department: 'Management', trips: 22, totalCost: '£810', avgCost: '£36.82' },
-  { department: 'HR', trips: 13, totalCost: '£470', avgCost: '£36.15' },
-];
-
-const spendingTrend = [
-  { month: 'Sep', amount: 3200 },
-  { month: 'Oct', amount: 3800 },
-  { month: 'Nov', amount: 4100 },
-  { month: 'Dec', amount: 3500 },
-  { month: 'Jan', amount: 4600 },
-  { month: 'Feb', amount: 4230 },
-];
-
-const topRoutes = [
-  { route: 'Kings Cross → Canary Wharf', count: 34, avgCost: '£22.00' },
-  { route: 'Heathrow T5 → Paddington', count: 21, avgCost: '£38.50' },
-  { route: 'Liverpool St → Shoreditch', count: 18, avgCost: '£12.00' },
-  { route: 'Victoria → Chelsea', count: 14, avgCost: '£15.50' },
-  { route: 'Euston → Camden', count: 11, avgCost: '£10.00' },
-];
-
 const periods = ['This Week', 'This Month', 'This Quarter', 'This Year'];
-
-const maxSpend = Math.max(...spendingTrend.map((s) => s.amount));
 
 /* ───── Dept dot colors ───── */
 const deptColors: Record<string, string> = {
@@ -72,11 +24,106 @@ const deptColors: Record<string, string> = {
   Marketing: 'bg-info',
   Management: 'bg-warning',
   HR: 'bg-error',
+  General: 'bg-accent',
 };
 
 export default function CompanyReportsPage() {
-  useRequireAuth();
+  const { user } = useRequireAuth();
   const [activePeriod, setActivePeriod] = useState('This Month');
+  const [overviewCards, setOverviewCards] = useState([
+    { label: 'Total Trips', value: '0', icon: MapPin, color: 'bg-primary/10 text-primary' },
+    { label: 'Total Spend', value: '\u00a30', icon: PoundSterling, color: 'bg-secondary/10 text-secondary' },
+    { label: 'Avg per Trip', value: '\u00a30', icon: TrendingUp, color: 'bg-info/10 text-info' },
+    { label: 'Most Active Dept', value: '\u2014', icon: Building2, color: 'bg-warning/10 text-warning' },
+  ]);
+  const [departmentBreakdown, setDepartmentBreakdown] = useState<{ department: string; trips: number; totalCost: string; avgCost: string }[]>([]);
+  const [spendingTrend, setSpendingTrend] = useState<{ month: string; amount: number }[]>([]);
+  const [topRoutes, setTopRoutes] = useState<{ route: string; count: number; avgCost: string }[]>([]);
+  const [trendChange, setTrendChange] = useState('');
+
+  const fetchReports = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const res = await bookingsApi.getUserBookings(user.id);
+      const bookings: Booking[] = Array.isArray(res) ? res : (res as { data?: Booking[] }).data || [];
+      const completed = bookings.filter(b => b.status === 'COMPLETED');
+      if (completed.length === 0) return;
+
+      const totalSpend = completed.reduce((s, b) => s + (b.finalBill || 0), 0);
+      const avg = completed.length > 0 ? totalSpend / completed.length : 0;
+
+      // Build route stats
+      const routeMap = new Map<string, { count: number; total: number }>();
+      completed.forEach(b => {
+        const from = b.startFrom?.name || b.startFrom?.postCode || 'Pickup';
+        const to = b.destination?.name || b.destination?.postCode || 'Drop';
+        const route = `${from} \u2192 ${to}`;
+        const ex = routeMap.get(route) || { count: 0, total: 0 };
+        routeMap.set(route, { count: ex.count + 1, total: ex.total + (b.finalBill || 0) });
+      });
+      const sortedRoutes = [...routeMap.entries()].sort((a, b) => b[1].count - a[1].count).slice(0, 5);
+      setTopRoutes(sortedRoutes.map(([route, data]) => ({
+        route,
+        count: data.count,
+        avgCost: `\u00a3${(data.total / data.count).toFixed(2)}`,
+      })));
+
+      // Department breakdown (derive from riderName as department proxy)
+      const deptMap = new Map<string, { trips: number; total: number }>();
+      completed.forEach(b => {
+        const dept = 'General';
+        const ex = deptMap.get(dept) || { trips: 0, total: 0 };
+        deptMap.set(dept, { trips: ex.trips + 1, total: ex.total + (b.finalBill || 0) });
+      });
+      const deptList = [...deptMap.entries()].sort((a, b) => b[1].trips - a[1].trips);
+      setDepartmentBreakdown(deptList.map(([dept, data]) => ({
+        department: dept,
+        trips: data.trips,
+        totalCost: `\u00a3${data.total.toFixed(0)}`,
+        avgCost: `\u00a3${(data.total / data.trips).toFixed(2)}`,
+      })));
+
+      const topDept = deptList.length > 0 ? deptList[0][0] : '\u2014';
+
+      setOverviewCards([
+        { label: 'Total Trips', value: String(completed.length), icon: MapPin, color: 'bg-primary/10 text-primary' },
+        { label: 'Total Spend', value: `\u00a3${totalSpend.toFixed(0)}`, icon: PoundSterling, color: 'bg-secondary/10 text-secondary' },
+        { label: 'Avg per Trip', value: `\u00a3${avg.toFixed(2)}`, icon: TrendingUp, color: 'bg-info/10 text-info' },
+        { label: 'Most Active Dept', value: topDept, icon: Building2, color: 'bg-warning/10 text-warning' },
+      ]);
+
+      // Spending trend — last 6 months
+      const now = new Date();
+      const months: { month: string; amount: number }[] = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+        const inMonth = completed.filter(b => {
+          const bd = new Date(b.createdAt);
+          return bd >= d && bd <= end;
+        });
+        months.push({
+          month: d.toLocaleDateString('en-GB', { month: 'short' }),
+          amount: Math.round(inMonth.reduce((s, b) => s + (b.finalBill || 0), 0)),
+        });
+      }
+      setSpendingTrend(months);
+
+      // Trend change
+      if (months.length >= 2) {
+        const curr = months[months.length - 1].amount;
+        const prev = months[months.length - 2].amount;
+        if (prev > 0) {
+          const pct = ((curr - prev) / prev) * 100;
+          setTrendChange(`${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`);
+        }
+      }
+    } catch { /* keep defaults */ }
+  }, [user]);
+
+  useEffect(() => { fetchReports(); }, [fetchReports]);
+
+  const maxSpend = Math.max(...spendingTrend.map(s => s.amount), 1);
 
   return (
     <DashboardLayout role="company">
@@ -155,7 +202,9 @@ export default function CompanyReportsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04]">
-                {departmentBreakdown.map((dept) => (
+                {departmentBreakdown.length === 0 ? (
+                  <tr><td colSpan={4} className="text-center py-8 text-white/30 text-sm">No data yet</td></tr>
+                ) : departmentBreakdown.map((dept) => (
                   <tr
                     key={dept.department}
                     className="hover:bg-white/[0.04] transition-colors"
@@ -191,7 +240,11 @@ export default function CompanyReportsPage() {
 
           {/* Bar Chart */}
           <div className="flex items-end gap-3 h-52">
-            {spendingTrend.map((s) => (
+            {spendingTrend.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-white/30 text-sm">No spending data</p>
+              </div>
+            ) : spendingTrend.map((s) => (
               <div key={s.month} className="flex-1 flex flex-col items-center gap-2">
                 <span className="text-xs font-semibold text-white">
                   £{(s.amount / 1000).toFixed(1)}k
@@ -206,13 +259,15 @@ export default function CompanyReportsPage() {
           </div>
 
           {/* Trend Summary */}
+          {trendChange && (
           <div className="mt-4 pt-4 border-t border-white/[0.06] flex items-center gap-2 text-sm">
             <TrendingUp size={16} className="text-secondary" />
             <span className="text-white/60">
-              <span className="font-semibold text-secondary">+8.2%</span> vs previous
+              <span className="font-semibold text-secondary">{trendChange}</span> vs previous
               period
             </span>
           </div>
+          )}
         </div>
       </div>
 
@@ -225,7 +280,11 @@ export default function CompanyReportsPage() {
           </p>
         </div>
         <div className="divide-y divide-white/[0.04]">
-          {topRoutes.map((r, i) => (
+          {topRoutes.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-white/30 text-sm">No route data yet</p>
+            </div>
+          ) : topRoutes.map((r, i) => (
             <div
               key={i}
               className="flex items-center gap-4 px-6 py-4 hover:bg-white/[0.04] transition-colors"

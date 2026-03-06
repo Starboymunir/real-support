@@ -13,28 +13,32 @@ import type {
   ChangePasswordDto,
 } from '../types';
 
-export interface AuthResponse {
-  user: User;
-  token: string;        // Cognito ID token
-  refreshToken?: string;
-  accessToken?: string;
+/** Shape returned by the backend login endpoint (after envelope unwrap) */
+export interface LoginResponse {
+  idToken: string;
+  accessToken: string;
+  cognitoId: string;
+  userData: User;
 }
 
 export const authApi = {
   register: (dto: RegisterDto) =>
-    api.post<AuthResponse>('/auth/register', dto),
+    api.post<User>('/auth/register', dto),
 
   confirmEmail: (dto: ConfirmOtpDto) =>
-    api.post<AuthResponse>('/auth/confirmEmail', dto),
+    api.post<void>('/auth/confirmEmail', dto),
 
   resendOtp: (email: string) =>
     api.post('/auth/resend-otp', { email }),
 
   login: (dto: LoginDto) =>
-    api.post<AuthResponse>('/auth/login', dto),
+    api.post<LoginResponse>('/auth/login', dto),
 
   companyLogin: (dto: LoginDto) =>
-    api.post<AuthResponse>('/auth/company-login', dto),
+    api.post<LoginResponse>('/auth/company-login', dto),
+
+  adminLogin: (dto: LoginDto) =>
+    api.post<LoginResponse>('/admin/adminUsers/login', dto),
 
   getCurrentUser: () =>
     api.get<User>('/auth/current-user'),

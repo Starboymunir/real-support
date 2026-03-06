@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { driverApi } from '@/lib/services';
 import { useAuth } from '@/lib/auth-context';
+import type { Driver } from '@/lib/types';
 import {
   User,
   Car,
@@ -62,7 +63,7 @@ function FormField({
 
 export default function DriverRegistrationPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -79,18 +80,23 @@ export default function DriverRegistrationPage() {
     setError('');
     setSubmitting(true);
     try {
-      await driverApi.register({
+      const result = await driverApi.register({
+        userId: user!.id,
         nationalInsuranceNumber: formData.niNumber,
         selfAssessmentTaxId: formData.taxId,
         dateOfBirth: formData.dob,
         bio: formData.bio,
         hobby: formData.hobby,
-      });
+      }) as unknown as Driver;
+      // Store the new driver ID so subsequent pages can use it immediately
+      if (result?.id) {
+        localStorage.setItem('rs_driver_id', result.id);
+      }
+      // Refresh user context so user.driver is populated
+      await refreshUser();
       router.push('/driver/vehicle');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
-      // Still allow navigation for demo
-      setTimeout(() => router.push('/driver/vehicle'), 1500);
     } finally {
       setSubmitting(false);
     }

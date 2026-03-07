@@ -72,7 +72,7 @@ export function useSocket() {
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_BACKEND_API
   ? process.env.NEXT_PUBLIC_BACKEND_API.replace('/api', '')
-  : 'http://localhost:8000'
+  : 'https://backend.real-support.com'
 
 export function SocketProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();

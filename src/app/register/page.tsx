@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, User, Phone, Loader2, Car } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_API ?? 'http://localhost:8000/api'
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_API ?? 'https://backend.real-support.com/api'
 
 type FormRole = 'rider' | 'driver';
 

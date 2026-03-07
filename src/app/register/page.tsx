@@ -1,26 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, User, Phone, Loader2, Car } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+
 type FormRole = 'rider' | 'driver';
 
-export default function RegisterPage() {
+function RegisterContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [otpStep, setOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
   const [role, setRole] = useState<FormRole>('rider');
+  const [socialLoading, setSocialLoading] = useState(false);
   const [form, setForm] = useState({
     firstName: '', lastName: '', phone: '', email: '', password: '', confirmPassword: '',
   });
-  const { register, confirmEmail, resendOtp, login, loading, error, clearError } = useAuth();
+  const { register, confirmEmail, resendOtp, login, handleSocialCallback, loading, error, clearError } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Handle OAuth callback code
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (!code || socialLoading) return;
+    setSocialLoading(true);
+    handleSocialCallback('google', code).catch(() =>
+      handleSocialCallback('facebook', code)
+    ).catch(() => {
+      setSocialLoading(false);
+    });
+  }, [searchParams, handleSocialCallback, socialLoading]);
 
   const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -125,7 +141,12 @@ export default function RegisterPage() {
 
             {/* Social signup */}
             <div className="flex gap-3 mb-5">
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm hover:bg-gray-100 transition-colors">
+              <button
+                type="button"
+                disabled={socialLoading}
+                onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -134,7 +155,12 @@ export default function RegisterPage() {
                 </svg>
                 Google
               </button>
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1877F2] text-white font-semibold text-sm hover:bg-[#166FE5] transition-colors">
+              <button
+                type="button"
+                disabled={socialLoading}
+                onClick={() => { window.location.href = `${API_BASE}/auth/facebook`; }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1877F2] text-white font-semibold text-sm hover:bg-[#166FE5] transition-colors disabled:opacity-50"
+              >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                 </svg>
@@ -258,5 +284,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: '#060B14' }}><Loader2 className="w-8 h-8 text-white animate-spin" /></div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }

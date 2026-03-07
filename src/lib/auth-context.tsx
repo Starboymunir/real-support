@@ -41,6 +41,7 @@ interface AuthContextValue extends AuthState {
   resendOtp: (email: string) => Promise<void>;
   forgotPassword: (dto: ForgotPasswordDto) => Promise<void>;
   resetPassword: (dto: ResetPasswordDto) => Promise<void>;
+  handleSocialCallback: (provider: 'google' | 'facebook', code: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   clearError: () => void;
@@ -182,6 +183,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const handleSocialCallback = useCallback(
+    async (provider: 'google' | 'facebook', code: string) => {
+      const cb = provider === 'google' ? authApi.googleCallback : authApi.facebookCallback;
+      await handleAuth(cb(code));
+    },
+    [handleAuth],
+  );
+
   const refreshUser = useCallback(async () => {
     try {
       const res = await authApi.getCurrentUser();
@@ -208,6 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resendOtp,
         forgotPassword,
         resetPassword,
+        handleSocialCallback,
         logout,
         refreshUser,
         clearError,

@@ -5,7 +5,7 @@
 
 // ApiResponse type used internally for backend envelope detection
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+const BASE = process.env.NEXT_PUBLIC_BACKEND_API ?? 'http://localhost:8000/api'
 
 // ── Token management ──
 

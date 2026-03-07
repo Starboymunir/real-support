@@ -9,7 +9,6 @@ import {
   useContext,
   useEffect,
   useState,
-  useCallback,
   useRef,
   type ReactNode,
 } from 'react';
@@ -71,9 +70,9 @@ export function useSocket() {
 
 // ── Provider ──
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL
-  ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '')
-  : 'http://localhost:8000';
+const SOCKET_URL = process.env.NEXT_PUBLIC_BACKEND_API
+  ? process.env.NEXT_PUBLIC_BACKEND_API.replace('/api', '')
+  : 'http://localhost:8000'
 
 export function SocketProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();

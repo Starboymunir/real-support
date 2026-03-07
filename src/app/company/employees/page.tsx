@@ -43,8 +43,8 @@ export default function CompanyEmployeesPage() {
   const [search, setSearch] = useState('');
   const [activeDept, setActiveDept] = useState('All');
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteFirstName, setInviteFirstName] = useState('');
-  const [inviteLastName, setInviteLastName] = useState('');
+  const [, setInviteFirstName] = useState('');
+  const [, setInviteLastName] = useState('');
   const [inviting, setInviting] = useState(false);
   const [inviteError, setInviteError] = useState('');
   const [inviteSuccess, setInviteSuccess] = useState(false);

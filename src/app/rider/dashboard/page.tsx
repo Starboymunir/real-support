@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Car,
   MapPin,
@@ -13,10 +13,7 @@ import {
   CalendarDays,
   Bookmark,
   TrendingUp,
-  Gift,
   ChevronRight,
-  Zap,
-  Shield,
   Sparkles,
   Route,
   CreditCard,
@@ -28,7 +25,6 @@ import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { useAuth } from '@/lib/auth-context';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bookingsApi } from '@/lib/services/bookings';
 import { walletApi } from '@/lib/services/wallet';

@@ -121,7 +121,7 @@ export default function MyRides() {
   const [activeTab, setActiveTab] = useState<RideStatus>('All');
   const [search, setSearch] = useState('');
   const [rides, setRides] = useState<Ride[]>([]);
-  const [loadingRides, setLoadingRides] = useState(true);
+  const [, setLoadingRides] = useState(true);
 
   const fetchRides = useCallback(async () => {
     if (!user?.id) return;

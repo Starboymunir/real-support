@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
@@ -353,7 +354,7 @@ export default function VehiclePage() {
               >
                 {photoPreview ? (
                   <div className="flex flex-col items-center gap-3">
-                    <img src={photoPreview} alt="Vehicle preview" className="w-32 h-24 object-cover rounded-lg" />
+                    <Image src={photoPreview} alt="Vehicle preview" width={128} height={96} className="w-32 h-24 object-cover rounded-lg" />
                     <p className="text-sm text-secondary font-medium">{vehiclePhoto?.name}</p>
                     <p className="text-xs text-white/35">Click to change photo</p>
                   </div>

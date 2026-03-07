@@ -157,6 +157,7 @@ export default function DocumentsPage() {
         }));
       }
     } catch { /* keep initial */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   useEffect(() => { fetchDocuments(); }, [fetchDocuments]);

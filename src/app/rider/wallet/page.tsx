@@ -108,7 +108,7 @@ export default function WalletPage() {
   const [txCount, setTxCount] = useState(0);
   const [transactions, setTransactions] = useState<DisplayTx[]>([]);
   const [lastTopup, setLastTopup] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [monthlySpend, setMonthlySpend] = useState<{ month: string; amount: number }[]>([]);
 
   const balance = useCounter(walletBalance, 1000);

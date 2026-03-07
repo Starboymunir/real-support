@@ -17,15 +17,6 @@ type DisplayNotification = {
   read: boolean;
 };
 
-const fallbackNotifications: DisplayNotification[] = [
-  { id: 1, type: 'success', icon: CheckCircle, title: 'Ride Completed', message: 'You completed a ride to Canary Wharf. £24.50 earned.', time: '10 min ago', read: false },
-  { id: 2, type: 'info', icon: DollarSign, title: 'Weekly Payout Processed', message: 'Your weekly earnings of £823.00 have been transferred to your bank account.', time: '2 hours ago', read: false },
-  { id: 3, type: 'warning', icon: AlertTriangle, title: 'Document Expiring', message: 'Your vehicle insurance expires in 14 days. Please upload an updated document.', time: '5 hours ago', read: false },
-  { id: 4, type: 'info', icon: Star, title: 'New Rating Received', message: 'You received a 5-star rating from Sarah P. Keep up the great work!', time: '1 day ago', read: true },
-  { id: 5, type: 'info', icon: Info, title: 'Platform Update', message: 'RS CAB v2.5 is now available with improved navigation and earning reports.', time: '2 days ago', read: true },
-  { id: 6, type: 'success', icon: CheckCircle, title: 'Background Check Passed', message: 'Your annual background check has been approved. No action needed.', time: '3 days ago', read: true },
-];
-
 const colorMap = {
   success: 'bg-secondary/10 text-secondary',
   warning: 'bg-amber-500/10 text-amber-400',
@@ -35,7 +26,7 @@ const colorMap = {
 export default function DriverNotificationsPage() {
   const { user } = useRequireAuth();
   const [items, setItems] = useState<DisplayNotification[]>([]);
-  const [loadingNotifications, setLoadingNotifications] = useState(true);
+  const [, setLoadingNotifications] = useState(true);
 
   const mapApiNotification = (n: ApiNotification): DisplayNotification => {
     const title = n.ROC || 'Notification';

@@ -7,17 +7,12 @@ import { useSocket } from '@/lib/socket-context';
 import { bookingsApi } from '@/lib/services/bookings';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MapPin,
-  Clock,
-  DollarSign,
   Users,
   Navigation,
   CheckCircle,
   Loader2,
   Phone,
   MessageSquare,
-  Route,
-  Car,
   CreditCard,
   Banknote,
   ArrowRight,

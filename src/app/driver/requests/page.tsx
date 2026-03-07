@@ -14,7 +14,6 @@ import {
   Clock,
   DollarSign,
   Users,
-  Navigation,
   CheckCircle,
   XCircle,
   Loader2,
@@ -27,7 +26,6 @@ import {
   ChevronUp,
   Send,
   Inbox,
-  ArrowRight,
   Calendar,
   StickyNote,
 } from 'lucide-react';

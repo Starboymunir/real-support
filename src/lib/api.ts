@@ -5,7 +5,8 @@
 
 // ApiResponse type used internally for backend envelope detection
 
-const BASE = process.env.NEXT_PUBLIC_BACKEND_API ?? 'https://backend.real-support.com/api'
+const _raw = process.env.NEXT_PUBLIC_BACKEND_API ?? 'https://backend.real-support.com/api';
+const BASE = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
 
 // ── Token management ──
 

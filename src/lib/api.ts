@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════
    RS CAB — API Client
-   Central HTTP helper that attaches the Cognito ID token.
+   Central HTTP helper that attaches the JWT access token.
    ═══════════════════════════════════════════════════════════ */
 
 // ApiResponse type used internally for backend envelope detection

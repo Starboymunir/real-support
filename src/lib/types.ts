@@ -62,7 +62,7 @@ export interface User {
   coverImage?: string;
   ratings: number;
   mode: UserMode;
-  cognitoId: string;
+  cognitoId?: string;
   socketId?: string;
   isEmailConfirm?: string;
   isDeleted: boolean;
@@ -585,7 +585,7 @@ export interface CreatePaymentIntentDto {
   amount: number;
   email: string;
   userId: string;
-  cognitoId: string;
+  cognitoId?: string;
   currency?: string;
   description?: string;
 }

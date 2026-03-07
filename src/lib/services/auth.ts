@@ -15,9 +15,8 @@ import type {
 
 /** Shape returned by the backend login endpoint (after envelope unwrap) */
 export interface LoginResponse {
-  idToken: string;
   accessToken: string;
-  cognitoId: string;
+  refreshToken: string;
   userData: User;
 }
 
@@ -58,14 +57,4 @@ export const authApi = {
   changePassword: (dto: ChangePasswordDto) =>
     api.post('/auth/change-password', dto),
 
-  /** Exchange OAuth code for tokens via backend callback */
-  googleCallback: (code: string) =>
-    api.get<LoginResponse>(`/auth/google/callback?code=${encodeURIComponent(code)}`),
-
-  facebookCallback: (code: string) =>
-    api.get<LoginResponse>(`/auth/facebook/callback?code=${encodeURIComponent(code)}`),
-
-  /** Register a user who signed in via social OAuth (no Cognito password) */
-  socialRegister: (data: { firstName: string; lastName: string; emailAddress: string; phone_number: string; cognitoId: string }) =>
-    api.post<User>('/auth/register/social', data),
 };

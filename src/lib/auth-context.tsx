@@ -41,7 +41,6 @@ interface AuthContextValue extends AuthState {
   resendOtp: (email: string) => Promise<void>;
   forgotPassword: (dto: ForgotPasswordDto) => Promise<void>;
   resetPassword: (dto: ResetPasswordDto) => Promise<void>;
-  handleSocialCallback: (provider: 'google' | 'facebook', code: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   clearError: () => void;
@@ -85,8 +84,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const res = await promise;
-      // Backend returns { idToken, accessToken, cognitoId, userData }
-      setToken(res.idToken);
+      setToken(res.accessToken);
+      if (typeof window !== 'undefined' && res.refreshToken) {
+        localStorage.setItem('rs_refresh_token', res.refreshToken);
+      }
       setState({ user: res.userData, loading: false, error: null });
     } catch (err) {
       const message =
@@ -183,14 +184,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const handleSocialCallback = useCallback(
-    async (provider: 'google' | 'facebook', code: string) => {
-      const cb = provider === 'google' ? authApi.googleCallback : authApi.facebookCallback;
-      await handleAuth(cb(code));
-    },
-    [handleAuth],
-  );
-
   const refreshUser = useCallback(async () => {
     try {
       const res = await authApi.getCurrentUser();
@@ -202,6 +195,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     setToken(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('rs_refresh_token');
+    }
     setState({ user: null, loading: false, error: null });
   }, []);
 
@@ -217,7 +213,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resendOtp,
         forgotPassword,
         resetPassword,
-        handleSocialCallback,
         logout,
         refreshUser,
         clearError,

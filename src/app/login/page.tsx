@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
@@ -15,22 +15,8 @@ function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [socialLoading, setSocialLoading] = useState(false);
-  const { login, handleSocialCallback, loading, error, clearError, user } = useAuth();
+  const { login, loading, error, clearError, user } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Handle OAuth callback code
-  useEffect(() => {
-    const code = searchParams.get('code');
-    if (!code || socialLoading) return;
-    setSocialLoading(true);
-    // Try Google first, fallback to Facebook — the backend will handle whichever is valid
-    handleSocialCallback('google', code).catch(() =>
-      handleSocialCallback('facebook', code)
-    ).catch(() => {
-      setSocialLoading(false);
-    });
-  }, [searchParams, handleSocialCallback, socialLoading]);
 
   // If already logged in, redirect
   if (user) {

@@ -226,7 +226,7 @@ export default function DriverRegistrationPage() {
 
               {/* Buttons */}
               <div className="flex items-center justify-between pt-8 border-t border-white/[0.04]">
-                <Link href="/login" className="px-7 py-3.5 rounded-full border border-white/[0.08] text-white/40 font-medium text-sm hover:border-white/15 hover:text-white/60 transition-all">
+                <Link href="/rider/dashboard" className="px-7 py-3.5 rounded-full border border-white/[0.08] text-white/40 font-medium text-sm hover:border-white/15 hover:text-white/60 transition-all">
                   Cancel
                 </Link>
                 <button type="submit" disabled={submitting} className="inline-flex items-center gap-2.5 bg-white text-black font-semibold px-7 py-3.5 rounded-full text-sm hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50">

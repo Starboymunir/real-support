@@ -20,18 +20,16 @@ import {
   ArrowUpRight,
   CalendarOff,
   ShieldCheck,
-  Loader2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bookingsApi } from '@/lib/services/bookings';
 import { walletApi } from '@/lib/services/wallet';
-import { userAddressApi, userInfoApi } from '@/lib/services/user';
+import { userAddressApi } from '@/lib/services/user';
 import type { Booking } from '@/lib/types';
 
 const fadeUp = {
@@ -93,12 +91,10 @@ function timeAgo(dateStr: string) {
 
 export default function RiderDashboard() {
   const { user } = useRequireAuth();
-  const router = useRouter();
   const [greeting, setGreeting] = useState('Good Morning');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [walletBalance, setWalletBalance] = useState(0);
   const [savedPlacesCount, setSavedPlacesCount] = useState(0);
-  const [switchingMode, setSwitchingMode] = useState(false);
 
   const totalRides = useCounter(bookings.length || 0);
   const monthRides = useCounter(
@@ -284,22 +280,12 @@ export default function RiderDashboard() {
                   Driver Dashboard <ArrowRight size={14} />
                 </Link>
               ) : (
-                <button
-                  onClick={async () => {
-                    if (!user) return;
-                    setSwitchingMode(true);
-                    try {
-                      await userInfoApi.updateMode(user.id, 'DRIVER');
-                      router.push('/driver/dashboard');
-                    } catch { /* ignore */ } finally {
-                      setSwitchingMode(false);
-                    }
-                  }}
-                  disabled={switchingMode}
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 text-black text-sm font-bold hover:bg-amber-400 transition-all flex items-center gap-2 disabled:opacity-50"
+                <Link
+                  href="/driver"
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 text-black text-sm font-bold hover:bg-amber-400 transition-all flex items-center gap-2"
                 >
-                  {switchingMode ? <><Loader2 className="w-4 h-4 animate-spin" /> Applying...</> : <>Become Driver <ArrowRight size={14} /></>}
-                </button>
+                  Become Driver <ArrowRight size={14} />
+                </Link>
               )}
             </div>
           </div>

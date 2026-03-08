@@ -22,11 +22,7 @@ function LoginContent() {
 
   // If already logged in, redirect
   if (user) {
-    const dest = user.Admin
-      ? '/admin/dashboard'
-      : user.driver
-        ? '/driver/dashboard'
-        : '/rider/dashboard';
+    const dest = user.Admin ? '/admin/dashboard' : '/rider/dashboard';
     router.replace(dest);
     return null;
   }
@@ -219,18 +215,7 @@ function LoginContent() {
               </button>
             </form>
 
-            {/* Quick access */}
-            <div className="mt-6 pt-6 border-t border-white/[0.04]">
-              <p className="text-white/20 text-xs text-center mb-3 uppercase tracking-wider">Quick Access</p>
-              <div className="flex gap-2">
-                <Link href="/rider/dashboard" className="flex-1 block text-center py-2.5 rounded-lg bg-white/[0.03] text-white/40 text-xs font-medium hover:bg-white/[0.06] hover:text-white/60 transition-all border border-white/[0.04]">
-                  Rider Dashboard
-                </Link>
-                <Link href="/driver/dashboard" className="flex-1 block text-center py-2.5 rounded-lg bg-white/[0.03] text-white/40 text-xs font-medium hover:bg-white/[0.06] hover:text-white/60 transition-all border border-white/[0.04]">
-                  Driver Dashboard
-                </Link>
-              </div>
-            </div>
+
 
             <p className="text-center text-white/35 mt-6 text-sm">
               New here?{' '}

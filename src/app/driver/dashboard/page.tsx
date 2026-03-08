@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { motion } from 'framer-motion';
 import {
@@ -72,6 +73,15 @@ type WeeklyBar = { day: string; amount: number; pct: number };
 
 export default function DriverDashboardPage() {
   const { user } = useRequireAuth();
+  const router = useRouter();
+
+  // Guard: redirect non-drivers to driver registration
+  useEffect(() => {
+    if (user && !user.driver) {
+      router.replace('/driver');
+    }
+  }, [user, router]);
+
   const [isOnline, setIsOnline] = useState(false);
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [todayRides, setTodayRides] = useState(0);

@@ -7,11 +7,9 @@ import {
   ArrowLeft,
   CreditCard,
   Wallet,
-  Sparkles,
   Shield,
   Check,
   ChevronRight,
-  Zap,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -44,7 +42,6 @@ function TopUpContent() {
   const [currentBalance, setCurrentBalance] = useState(0);
 
   const numAmount = parseFloat(amount) || 0;
-  const cashback = numAmount >= 50 ? (numAmount * 0.05).toFixed(2) : null;
   const total = numAmount;
 
   useEffect(() => {
@@ -63,7 +60,6 @@ function TopUpContent() {
         amount: numAmount,
         userId: user.id,
         email: user.emailAddress || '',
-        cognitoId: user.cognitoId || '',
       });
       await walletApi.createTopUp({
         userId: user.id,
@@ -77,7 +73,7 @@ function TopUpContent() {
     } finally {
       setProcessing(false);
     }
-  }, [user?.id, numAmount, user?.emailAddress, user?.cognitoId]);
+  }, [user?.id, numAmount, user?.emailAddress]);
 
   return (
     <DashboardLayout role="rider" pageTitle="Top Up Wallet">
@@ -150,11 +146,6 @@ function TopUpContent() {
                       }`}
                     >
                       £{a}
-                      {a >= 50 && (
-                        <span className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-secondary text-dark text-[9px] font-bold uppercase tracking-wide flex items-center gap-0.5">
-                          <Zap size={8} /> 5% back
-                        </span>
-                      )}
                     </button>
                   ))}
                 </div>
@@ -182,22 +173,6 @@ function TopUpContent() {
                     />
                   </div>
                 </div>
-
-                {cashback && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="mt-4 p-4 rounded-xl bg-secondary/[0.08] border border-secondary/20 flex items-center gap-3"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center shrink-0">
-                      <Sparkles size={18} className="text-secondary" />
-                    </div>
-                    <div>
-                      <p className="text-secondary font-bold text-sm">5% Cashback Eligible!</p>
-                      <p className="text-white/30 text-xs">You&apos;ll receive £{cashback} bonus credit</p>
-                    </div>
-                  </motion.div>
-                )}
 
                 <div className="mt-6">
                   <Button
@@ -288,14 +263,7 @@ function TopUpContent() {
                     <span className="text-white/50 text-sm">Top-up Amount</span>
                     <span className="text-white font-bold text-lg">£{total.toFixed(2)}</span>
                   </div>
-                  {cashback && (
-                    <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
-                      <span className="text-secondary text-sm font-medium flex items-center gap-1.5">
-                        <Sparkles size={14} /> Cashback Bonus
-                      </span>
-                      <span className="text-secondary font-bold">+£{cashback}</span>
-                    </div>
-                  )}
+
                   <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
                     <span className="text-white/50 text-sm">Payment Method</span>
                     <span className="text-white font-semibold text-sm">Card via Stripe</span>
@@ -304,14 +272,7 @@ function TopUpContent() {
                     <span className="text-white/50 text-sm">Total Charge</span>
                     <span className="text-white font-black text-xl">£{total.toFixed(2)}</span>
                   </div>
-                  {cashback && (
-                    <div className="flex justify-between items-center py-3 bg-secondary/[0.06] rounded-xl px-4">
-                      <span className="text-secondary text-sm font-medium">Added to Wallet</span>
-                      <span className="text-secondary font-black text-xl">
-                        £{(total + parseFloat(cashback)).toFixed(2)}
-                      </span>
-                    </div>
-                  )}
+
                 </div>
 
                 {error && (
@@ -374,14 +335,13 @@ function TopUpContent() {
                 <h2 className="text-2xl font-black text-white mb-2">Top-up Successful!</h2>
                 <p className="text-white/40 text-sm mb-6 max-w-sm mx-auto">
                   £{total.toFixed(2)} has been added to your wallet.
-                  {cashback && <> Plus £{cashback} cashback bonus!</>}
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/[0.04] border border-white/[0.08] mb-8">
                   <Wallet size={18} className="text-secondary" />
                   <span className="text-white font-bold">New Balance:</span>
                   <span className="text-secondary font-black text-lg">
-                    £{(currentBalance + total + (cashback ? parseFloat(cashback) : 0)).toFixed(2)}
+                    £{(currentBalance + total).toFixed(2)}
                   </span>
                 </div>
 

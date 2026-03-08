@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { contactApi } from '@/lib/services/contact';
+import { chatApi } from '@/lib/services/chat';
 import {
   Search,
   HelpCircle,
@@ -72,6 +74,7 @@ const faqs = [
 
 export default function SupportPage() {
   const { user } = useRequireAuth();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [subject, setSubject] = useState('');
@@ -79,6 +82,7 @@ export default function SupportPage() {
   const [description, setDescription] = useState('');
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [submitError, setSubmitError] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
 
   const handleSubmitTicket = useCallback(async () => {
     if (!user || !subject || !description) return;
@@ -289,10 +293,23 @@ export default function SupportPage() {
           {/* ── Contact Cards ────────────────────────────────────── */}
           {contactCards.map((c) => {
             const Icon = c.icon;
+            const isLiveChat = c.label === 'Live Chat';
             return (
               <div
                 key={c.label}
-                className="bg-white/[0.02] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.04] transition-all"
+                onClick={isLiveChat ? async () => {
+                  if (!user?.id || chatLoading) return;
+                  setChatLoading(true);
+                  try {
+                    await chatApi.getOneOnOneAdmin(user.id);
+                    router.push('/rider/chat');
+                  } catch {
+                    router.push('/rider/chat');
+                  } finally {
+                    setChatLoading(false);
+                  }
+                } : undefined}
+                className={`bg-white/[0.02] rounded-2xl p-6 border border-white/[0.06] hover:bg-white/[0.04] transition-all ${isLiveChat ? 'cursor-pointer hover:border-accent/30' : ''}`}
               >
                 <div className="flex items-start gap-4">
                   <div className={`w-11 h-11 rounded-xl ${c.bg} flex items-center justify-center shrink-0`}>

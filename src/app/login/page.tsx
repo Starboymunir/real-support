@@ -15,7 +15,9 @@ function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [socialLoading, setSocialLoading] = useState(false);
-  const { login, loading, error, clearError, user } = useAuth();
+  const [otpStep, setOtpStep] = useState(false);
+  const [otp, setOtp] = useState('');
+  const { login, confirmEmail, resendOtp, loading, error, clearError, user } = useAuth();
   const router = useRouter();
 
   // If already logged in, redirect
@@ -34,9 +36,33 @@ function LoginContent() {
     clearError();
     try {
       await login({ emailAddress: email, password });
-      // Redirect is handled by the user check above on re-render
+    } catch (err: unknown) {
+      // If user is not confirmed, show OTP step
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.toLowerCase().includes('not confirmed') || msg.toLowerCase().includes('confirmation code')) {
+        setOtpStep(true);
+      }
+    }
+  };
+
+  const handleConfirmOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+    try {
+      await confirmEmail({ emailAddress: email, otp });
+      await login({ emailAddress: email, password });
+      router.push('/rider/dashboard');
     } catch {
-      // error is set in context
+      // error set in context
+    }
+  };
+
+  const handleResendOtp = async () => {
+    clearError();
+    try {
+      await resendOtp(email);
+    } catch {
+      // error set in context
     }
   };
 
@@ -103,6 +129,36 @@ function LoginContent() {
             <h2 className="text-3xl font-bold text-white text-center mb-2">Welcome back</h2>
             <p className="text-white/35 text-center mb-8">Sign in to continue your journey</p>
 
+            {otpStep ? (
+              /* ── OTP Verification Step ── */
+              <div>
+                <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 text-amber-400 text-sm mb-6">
+                  Your email is not yet verified. Enter the code sent to <span className="font-semibold text-secondary">{email}</span>
+                </div>
+                {error && (
+                  <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm mb-4">
+                    {error}
+                  </div>
+                )}
+                <form onSubmit={handleConfirmOtp} className="space-y-4">
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
+                    <input type="text" placeholder="Enter 6-digit code" value={otp} onChange={(e) => setOtp(e.target.value)} className="input-dark pl-12 text-center text-lg tracking-[0.3em]" maxLength={6} required />
+                  </div>
+                  <button type="submit" disabled={loading} className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Verifying...</> : 'Verify & Sign In'}
+                  </button>
+                  <p className="text-center text-white/35 text-sm mt-2">
+                    Didn&apos;t get the code?{' '}
+                    <button type="button" onClick={handleResendOtp} className="text-secondary font-semibold hover:underline underline-offset-4">Resend</button>
+                  </p>
+                  <button type="button" onClick={() => { setOtpStep(false); clearError(); }} className="text-white/30 text-sm hover:text-white/50 transition-colors w-full text-center mt-2">
+                    ← Back to login
+                  </button>
+                </form>
+              </div>
+            ) : (
+            <>
             {/* Social buttons */}
             <div className="flex gap-3 mb-6">
               <button
@@ -189,6 +245,8 @@ function LoginContent() {
                 Admin Login <span className="text-secondary">→</span>
               </Link>
             </div>
+            </>
+            )}
           </div>
         </div>
       </div>

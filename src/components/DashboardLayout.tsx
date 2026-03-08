@@ -33,6 +33,9 @@ import {
   Shield,
   Package,
   Settings,
+  ArrowLeftRight,
+  FileCheck,
+  Landmark,
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -49,6 +52,9 @@ const sidebarLinks = {
     { label: 'My Rides', href: '/rider/rides', icon: History },
     { label: 'Profile', href: '/rider/profile', icon: User },
     { label: 'Wallet', href: '/rider/wallet', icon: Wallet },
+    { label: 'Transfer', href: '/rider/wallet/transfer', icon: ArrowLeftRight },
+    { label: 'Requests', href: '/rider/wallet/requests', icon: FileCheck },
+    { label: 'Bank Accounts', href: '/rider/wallet/bank-accounts', icon: Landmark },
     { label: 'Payment', href: '/rider/payment', icon: CreditCard },
     { label: 'Messages', href: '/rider/chat', icon: MessageSquare },
     { label: 'Notifications', href: '/rider/notifications', icon: Bell },

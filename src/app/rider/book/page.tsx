@@ -58,16 +58,13 @@ function estimateFareFromPackage(
   pkg: Package,
   distanceMeters: number,
   durationSeconds: number
-): { min: number; max: number } {
+): number {
   const miles = distanceMeters / 1609.34;
   const mins = durationSeconds / 60;
   const baseFare = pkg.pricePerMilage * miles + pkg.drivingProMin * mins;
   const withService = baseFare + pkg.serviceFee;
   const fare = Math.max(pkg.minBill, withService);
-  return {
-    min: Math.round(fare * 0.95 * 100) / 100,
-    max: Math.round(fare * 1.15 * 100) / 100,
-  };
+  return Math.round(fare * 100) / 100;
 }
 
 export default function BookRide() {
@@ -87,7 +84,7 @@ export default function BookRide() {
   const [time, setTime] = useState('');
   const [note, setNote] = useState('');
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
-  const [fareEstimate, setFareEstimate] = useState<{ min: number; max: number } | null>(null);
+  const [fareEstimate, setFareEstimate] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [loadingRoute, setLoadingRoute] = useState(false);
   const [error, setError] = useState('');
@@ -225,7 +222,7 @@ export default function BookRide() {
         paymentType: paymentMethod === 'card' ? 'WALLET' : 'CASH',
         totalDistance: routeInfo ? Math.round(routeInfo.distance) : 0,
         totalDuration: routeInfo ? Math.round(routeInfo.duration) : 0,
-        totalBill: fareEstimate ? Math.round(fareEstimate.max) : 0,
+        totalBill: fareEstimate ? Math.round(fareEstimate) : 0,
         totalPersons: passengers,
         totalLuggage: 0,
         notes: note || undefined,
@@ -446,7 +443,7 @@ export default function BookRide() {
                         <p className="text-xs text-white/40 mt-0.5">{pkg.summary}</p>
                         <div className="flex items-center justify-between mt-3">
                           <span className="text-sm font-bold text-white">
-                            {fare ? `£${fare.min.toFixed(0)} – £${fare.max.toFixed(0)}` : `from £${pkg.minBill.toFixed(0)}`}
+                            {fare ? `£${fare.toFixed(2)}` : `from £${pkg.minBill.toFixed(0)}`}
                           </span>
                           <span className="text-xs text-white/40 flex items-center gap-1">
                             <Clock size={12} /> {routeInfo ? formatDuration(routeInfo.duration) : '—'}
@@ -589,16 +586,28 @@ export default function BookRide() {
                     </div>
                   </>
                 )}
+                {date && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/40 flex items-center gap-2"><CalendarDays size={15} /> Date</span>
+                    <span className="font-medium text-white">{new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                  </div>
+                )}
+                {time && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/40 flex items-center gap-2"><Clock size={15} /> Time</span>
+                    <span className="font-medium text-white">{time}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-white/40 flex items-center gap-2"><Car size={15} /> Vehicle</span>
                   <span className="font-medium text-white capitalize">{selectedPackage?.name || '—'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/40">Est. Fare</span>
+                  <span className="text-white/40">Fare</span>
                   {loadingRoute ? (
                     <Loader2 size={14} className="text-secondary animate-spin" />
                   ) : fareEstimate ? (
-                    <span className="font-bold text-white">£{fareEstimate.min.toFixed(0)} – £{fareEstimate.max.toFixed(0)}</span>
+                    <span className="font-bold text-white">£{fareEstimate.toFixed(2)}</span>
                   ) : (
                     <span className="text-white/30">—</span>
                   )}

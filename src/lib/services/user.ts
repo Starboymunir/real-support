@@ -6,9 +6,6 @@ import { api } from '../api';
 import type { User, UserAddress } from '../types';
 
 export const userInfoApi = {
-  getByCognitoId: (cognitoId: string) =>
-    api.get<User>(`/users/info/${cognitoId}`),
-
   updateMode: (id: string, mode: 'DRIVER' | 'PASSENGER') =>
     api.patch<User>(`/users/info/mode/${id}`, { mode }),
 

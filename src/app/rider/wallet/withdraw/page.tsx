@@ -10,12 +10,18 @@ import {
   ChevronRight,
   AlertTriangle,
   Info,
+  Landmark,
+  Loader2,
+  Star,
+  Plus,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi } from '@/lib/services/wallet';
+import { bankAccountApi } from '@/lib/services/bank-accounts';
+import type { BankAccount } from '@/lib/types';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -30,9 +36,9 @@ export default function WithdrawPage() {
   const { user } = useRequireAuth();
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState('');
-  const [bankName, setBankName] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [sortCode, setSortCode] = useState('');
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -40,24 +46,32 @@ export default function WithdrawPage() {
 
   const numAmount = parseFloat(amount) || 0;
   const isValid = numAmount >= 5 && numAmount <= walletBalance;
-  const bankValid = bankName.trim().length > 0 && accountNumber.trim().length >= 4;
+  const selectedAccount = bankAccounts.find(a => a.id === selectedAccountId);
 
   useEffect(() => {
     if (!user?.id) return;
-    walletApi.getUserWallet(user.id)
-      .then(w => setWalletBalance(w.balance ?? 0))
-      .catch(() => {});
+    Promise.all([
+      walletApi.getUserWallet(user.id).then(w => setWalletBalance(w.balance ?? 0)).catch(() => {}),
+      bankAccountApi.getByUser(user.id).then(res => {
+        const list = Array.isArray(res) ? res : (res as unknown as { data: BankAccount[] })?.data ?? [];
+        setBankAccounts(list);
+        const defaultAcc = list.find(a => a.isDefault);
+        if (defaultAcc) setSelectedAccountId(defaultAcc.id);
+        else if (list.length > 0) setSelectedAccountId(list[0].id);
+      }).catch(() => {}),
+    ]).finally(() => setLoadingAccounts(false));
   }, [user?.id]);
 
   const handleConfirm = useCallback(async () => {
-    if (!user?.id || !isValid) return;
+    if (!user?.id || !isValid || !selectedAccountId) return;
     setProcessing(true);
     setError('');
     try {
       await walletApi.createWithdrawRequest({
         userId: user.id,
         amount: numAmount,
-        notes: `Withdrawal to ${bankName || 'bank account'}`,
+        bankAccountId: selectedAccountId,
+        notes: `Withdrawal to ${selectedAccount?.bankName || 'bank account'} (****${selectedAccount?.accountNumber.slice(-4) || ''})`,
       });
       setSuccess(true);
     } catch (err: unknown) {
@@ -65,7 +79,7 @@ export default function WithdrawPage() {
     } finally {
       setProcessing(false);
     }
-  }, [user?.id, numAmount, isValid, bankName]);
+  }, [user?.id, numAmount, isValid, selectedAccountId, selectedAccount]);
 
   return (
     <DashboardLayout role="rider" pageTitle="Withdraw Funds">
@@ -222,7 +236,7 @@ export default function WithdrawPage() {
             </motion.div>
           )}
 
-          {/* ═══════ STEP 2: BANK ACCOUNT ═══════ */}
+          {/* ═══════ STEP 2: SELECT BANK ACCOUNT ═══════ */}
           {step === 2 && (
             <motion.div
               key="step2"
@@ -235,47 +249,79 @@ export default function WithdrawPage() {
               <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8">
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-secondary via-accent to-secondary" />
 
-                <h2 className="text-xl font-bold text-white mb-1">Bank account details</h2>
-                <p className="text-white/30 text-sm mb-6">Enter the bank account to receive your funds</p>
+                <h2 className="text-xl font-bold text-white mb-1">Select bank account</h2>
+                <p className="text-white/30 text-sm mb-6">Choose which bank account to receive your funds</p>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-white/60 mb-2">Bank Name</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Barclays, Monzo, HSBC"
-                      value={bankName}
-                      onChange={(e) => setBankName(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 outline-none focus:border-secondary/40 transition-colors"
-                    />
+                {loadingAccounts ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 text-secondary animate-spin" />
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-white/60 mb-2">Account Number</label>
-                    <input
-                      type="text"
-                      placeholder="12345678"
-                      value={accountNumber}
-                      onChange={(e) => setAccountNumber(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 outline-none focus:border-secondary/40 transition-colors"
-                    />
+                ) : bankAccounts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-4">
+                      <Landmark size={24} className="text-white/20" />
+                    </div>
+                    <p className="text-white/40 text-sm font-medium mb-1">No bank accounts</p>
+                    <p className="text-white/20 text-xs mb-4">Add a bank account first to withdraw funds</p>
+                    <Button href="/rider/wallet/bank-accounts" variant="green" size="md">
+                      <Plus size={16} /> Add Bank Account
+                    </Button>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-white/60 mb-2">Sort Code (optional)</label>
-                    <input
-                      type="text"
-                      placeholder="XX-XX-XX"
-                      value={sortCode}
-                      onChange={(e) => setSortCode(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-white/20 outline-none focus:border-secondary/40 transition-colors"
-                    />
+                ) : (
+                  <div className="space-y-3">
+                    {bankAccounts.map((acc) => (
+                      <button
+                        key={acc.id}
+                        onClick={() => setSelectedAccountId(acc.id)}
+                        className={`w-full p-4 rounded-xl border text-left transition-all ${
+                          selectedAccountId === acc.id
+                            ? 'border-secondary/40 bg-secondary/[0.06]'
+                            : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                              selectedAccountId === acc.id ? 'bg-secondary/10' : 'bg-white/[0.04]'
+                            }`}>
+                              <Landmark size={18} className={selectedAccountId === acc.id ? 'text-secondary' : 'text-white/30'} />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-bold text-white">{acc.accountName}</p>
+                                {acc.isDefault && (
+                                  <span className="px-1.5 py-0.5 rounded-full bg-secondary/10 text-secondary text-[9px] font-bold flex items-center gap-0.5">
+                                    <Star size={7} /> Default
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-white/30 mt-0.5">{acc.bankName} · ****{acc.accountNumber.slice(-4)} · {acc.sortCode}</p>
+                            </div>
+                          </div>
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            selectedAccountId === acc.id
+                              ? 'border-secondary bg-secondary'
+                              : 'border-white/20 bg-transparent'
+                          }`}>
+                            {selectedAccountId === acc.id && <Check size={12} className="text-dark" />}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                    <Link
+                      href="/rider/wallet/bank-accounts"
+                      className="flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-white/[0.08] text-white/30 hover:text-white/50 hover:border-white/[0.15] transition-all text-sm font-medium"
+                    >
+                      <Plus size={14} /> Add Another Account
+                    </Link>
                   </div>
-                </div>
+                )}
 
                 <div className="flex gap-3 mt-6">
                   <Button variant="outline" size="md" onClick={() => setStep(1)}>
                     Back
                   </Button>
-                  <Button variant="green" size="lg" className="flex-1" onClick={() => bankValid && setStep(3)} disabled={!bankValid}>
+                  <Button variant="green" size="lg" className="flex-1" onClick={() => selectedAccountId && setStep(3)} disabled={!selectedAccountId}>
                     Review Withdrawal <ChevronRight size={16} />
                   </Button>
                 </div>
@@ -309,11 +355,19 @@ export default function WithdrawPage() {
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
                     <span className="text-white/50 text-sm">Bank Account</span>
-                    <span className="text-white font-semibold text-sm">{bankName}</span>
+                    <span className="text-white font-semibold text-sm">{selectedAccount?.bankName}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
+                    <span className="text-white/50 text-sm">Account Holder</span>
+                    <span className="text-white/60 text-sm font-medium">{selectedAccount?.accountName}</span>
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
                     <span className="text-white/50 text-sm">Account Number</span>
-                    <span className="text-white/60 text-sm font-medium">••••{accountNumber.slice(-4)}</span>
+                    <span className="text-white/60 text-sm font-medium">••••{selectedAccount?.accountNumber.slice(-4)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
+                    <span className="text-white/50 text-sm">Sort Code</span>
+                    <span className="text-white/60 text-sm font-medium">{selectedAccount?.sortCode}</span>
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
                     <span className="text-white/50 text-sm">Estimated Arrival</span>
@@ -384,7 +438,7 @@ export default function WithdrawPage() {
 
                 <h2 className="text-2xl font-black text-white mb-2">Withdrawal Initiated!</h2>
                 <p className="text-white/40 text-sm mb-6 max-w-sm mx-auto">
-                  £{numAmount.toFixed(2)} will be transferred to your {bankName || 'bank account'} within 1-2 business days.
+                  £{numAmount.toFixed(2)} will be transferred to your {selectedAccount?.bankName || 'bank account'} within 1-2 business days.
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/[0.04] border border-white/[0.08] mb-8">

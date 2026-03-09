@@ -13,9 +13,7 @@ import {
   Eye,
   EyeOff,
   ChevronRight,
-  Gift,
   Shield,
-  Zap,
   CreditCard,
   Clock,
   ArrowRight,
@@ -254,6 +252,12 @@ export default function WalletPage() {
                   <Button href="/rider/wallet/withdraw" variant="outline" size="md">
                     <Send size={16} /> Withdraw
                   </Button>
+                  <Button href="/rider/wallet/transfer" variant="outline" size="md">
+                    <ArrowRight size={16} /> Transfer
+                  </Button>
+                  <Button href="/rider/wallet/requests" variant="outline" size="md">
+                    <CreditCard size={16} /> Request
+                  </Button>
                 </div>
               </div>
 
@@ -459,30 +463,9 @@ export default function WalletPage() {
           </motion.div>
         </div>
 
-        {/* ═══════ BOTTOM ROW: PROMO + SECURITY ═══════ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* ═══════ WALLET SECURITY ═══════ */}
+        <div className="grid grid-cols-1 gap-6">
           <motion.div initial="hidden" animate="visible" custom={7} variants={fadeUp}>
-            <div className="relative h-full overflow-hidden rounded-2xl border border-secondary/20 bg-gradient-to-br from-secondary/[0.08] via-dark-surface to-accent/[0.04] p-6 flex flex-col justify-between">
-              <div className="absolute -top-16 -right-16 w-40 h-40 bg-secondary/[0.1] rounded-full blur-[60px] pointer-events-none" />
-              <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-accent/[0.06] rounded-full blur-[40px] pointer-events-none" />
-              <div className="relative">
-                <div className="w-14 h-14 rounded-2xl bg-secondary/10 border border-secondary/20 flex items-center justify-center mb-5">
-                  <Gift size={26} className="text-secondary" />
-                </div>
-                <h3 className="text-xl font-black text-white mb-2">Earn 5% Cashback!</h3>
-                <p className="text-white/40 text-sm leading-relaxed">
-                  Top up £50 or more and receive 5% bonus credit automatically added to your wallet.
-                </p>
-              </div>
-              <div className="relative mt-6">
-                <Button href="/rider/wallet/topup?amount=50" variant="green" size="md" className="w-full">
-                  <Zap size={16} /> Claim Cashback <ArrowRight size={14} />
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div initial="hidden" animate="visible" custom={8} variants={fadeUp}>
             <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 h-full">
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-secondary/30 to-transparent" />
               <h2 className="text-lg font-bold text-white mb-5 flex items-center gap-2">

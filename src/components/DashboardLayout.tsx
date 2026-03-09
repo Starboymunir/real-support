@@ -244,11 +244,16 @@ export default function DashboardLayout({
         </div>
 
         {/* User */}
-        <div className={`border-t border-white/5 p-4 ${collapsed ? 'flex justify-center' : ''}`}>
+        <div className={`border-t border-white/5 p-4 ${collapsed ? 'flex flex-col items-center gap-2' : ''}`}>
           {collapsed ? (
-            <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold">
-              {getInitials(displayName)}
-            </div>
+            <>
+              <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold">
+                {getInitials(displayName)}
+              </div>
+              <button onClick={handleLogout} title="Logout" className="p-2 rounded-lg text-white/20 hover:text-error hover:bg-error/10 transition-all">
+                <LogOut size={16} />
+              </button>
+            </>
           ) : (
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold shrink-0">
@@ -305,7 +310,7 @@ export default function DashboardLayout({
             <X size={20} />
           </button>
         </div>
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-1 flex-1">
           {links.map((link) => {
             const Icon = link.icon;
             const active = pathname === link.href;
@@ -326,6 +331,15 @@ export default function DashboardLayout({
             );
           })}
         </nav>
+        <div className="p-4 border-t border-white/5">
+          <button
+            onClick={() => { setMobileOpen(false); handleLogout(); }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-error/70 hover:text-error hover:bg-error/10 transition-all"
+          >
+            <LogOut size={20} />
+            <span className="text-sm font-medium">Logout</span>
+          </button>
+        </div>
       </aside>
 
       {/* â”€â”€ Main content â”€â”€ */}

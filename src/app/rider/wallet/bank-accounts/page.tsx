@@ -19,6 +19,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bankAccountApi } from '@/lib/services/bank-accounts';
+import { documentsApi } from '@/lib/services/documents';
 import type { BankAccount } from '@/lib/types';
 
 const fadeUp = {
@@ -51,6 +52,7 @@ export default function BankAccountsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [docFile, setDocFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -76,21 +78,28 @@ export default function BankAccountsPage() {
     setSubmitting(true);
     setError('');
     try {
+      let documentUrl = '';
+      if (docFile) {
+        const uploadRes = await documentsApi.uploadFile(docFile, { type: 'bank-proof', userId: user.id });
+        documentUrl = (uploadRes as unknown as { data?: { fileUrl?: string }; fileUrl?: string })?.data?.fileUrl || (uploadRes as unknown as { fileUrl?: string })?.fileUrl || '';
+      }
+      const payload = { ...form, userId: user.id, ...(documentUrl ? { document: documentUrl } : {}) };
       if (editingId) {
-        await bankAccountApi.update(editingId, { ...form, userId: user.id });
+        await bankAccountApi.update(editingId, payload);
       } else {
-        await bankAccountApi.create({ ...form, userId: user.id });
+        await bankAccountApi.create(payload);
       }
       setShowForm(false);
       setEditingId(null);
       setForm(emptyForm);
+      setDocFile(null);
       fetchAccounts();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to save account');
     } finally {
       setSubmitting(false);
     }
-  }, [user?.id, form, editingId, fetchAccounts]);
+  }, [user?.id, form, editingId, docFile, fetchAccounts]);
 
   const handleDelete = useCallback(async (id: string) => {
     setDeletingId(id);
@@ -114,6 +123,7 @@ export default function BankAccountsPage() {
     });
     setEditingId(acc.id);
     setShowForm(true);
+    setDocFile(null);
     setError('');
   };
 
@@ -146,6 +156,7 @@ export default function BankAccountsPage() {
                 onClick={() => {
                   setForm(emptyForm);
                   setEditingId(null);
+                  setDocFile(null);
                   setShowForm(!showForm);
                   setError('');
                 }}
@@ -196,6 +207,11 @@ export default function BankAccountsPage() {
                           <span className="text-xs text-white/30">
                             Sort: {acc.sortCode}
                           </span>
+                          {acc.document && (
+                            <span className="text-xs text-secondary/70 flex items-center gap-1">
+                              <Upload size={10} /> Doc uploaded
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex gap-2 shrink-0">
@@ -291,6 +307,30 @@ export default function BankAccountsPage() {
                     />
                     <span className="text-sm text-white/60">Set as default account</span>
                   </label>
+
+                  {/* Proof of Account Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-white/50 mb-2">Proof of Account (optional)</label>
+                    <p className="text-xs text-white/25 mb-3">Upload a bank statement or screenshot showing your name, sort code and account number</p>
+                    <label className="flex flex-col items-center gap-2 p-5 rounded-xl border-2 border-dashed border-white/[0.08] bg-white/[0.02] hover:border-secondary/30 hover:bg-secondary/[0.02] transition-all cursor-pointer">
+                      <Upload size={22} className="text-white/20" />
+                      {docFile ? (
+                        <span className="text-sm text-secondary font-medium truncate max-w-full">{docFile.name}</span>
+                      ) : (
+                        <span className="text-sm text-white/30">Click to upload document</span>
+                      )}
+                      <span className="text-[10px] text-white/15">PDF, JPG, PNG up to 5MB</span>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file && file.size <= 5 * 1024 * 1024) setDocFile(file);
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 {error && (

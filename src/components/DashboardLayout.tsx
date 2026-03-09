@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useSocket } from '@/lib/socket-context';
 import { notificationsApi } from '@/lib/services/notifications';
 import { chatApi } from '@/lib/services/chat';
+import { userInfoApi } from '@/lib/services/user';
 import {
   LayoutDashboard,
   Navigation,
@@ -36,6 +37,8 @@ import {
   ArrowLeftRight,
   FileCheck,
   Landmark,
+  ChevronDown,
+  Repeat,
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -133,11 +136,44 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const links = sidebarLinks[role];
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [switchingMode, setSwitchingMode] = useState(false);
   const { unreadNotifications, unreadChats, setUnreadNotifications, setUnreadChats } = useSocket();
+
+  const hasDriver = !!user?.driver;
+  const currentMode = user?.mode || 'PASSENGER';
+  const isDriver = currentMode === 'DRIVER';
+  const otherRole = isDriver ? 'rider' : 'driver';
+  const otherLabel = isDriver ? 'Rider Dashboard' : 'Driver Dashboard';
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-profile-dropdown]')) setProfileOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [profileOpen]);
+
+  const handleSwitchMode = async () => {
+    if (!user?.id || switchingMode) return;
+    const newMode = isDriver ? 'PASSENGER' : 'DRIVER';
+    setSwitchingMode(true);
+    try {
+      await userInfoApi.updateMode(user.id, newMode);
+      await refreshUser();
+      const target = newMode === 'DRIVER' ? '/driver/dashboard' : '/rider/dashboard';
+      router.push(target);
+    } catch {
+      setSwitchingMode(false);
+    }
+  };
 
   // Use real user name if available
   const displayName = userName ?? (user ? `${user.firstName} ${user.lastName}` : 'Guest');
@@ -231,6 +267,28 @@ export default function DashboardLayout({
               </Link>
             );
           })}
+
+          {/* Switch mode — sidebar */}
+          {hasDriver && (role === 'rider' || role === 'driver') && (
+            <>
+              <div className={`my-3 h-px bg-white/5 ${collapsed ? 'mx-1' : 'mx-2'}`} />
+              <button
+                onClick={handleSwitchMode}
+                disabled={switchingMode}
+                title={collapsed ? `Switch to ${otherLabel}` : undefined}
+                className={`group w-full flex items-center gap-3 rounded-xl transition-all duration-200 text-accent/70 hover:text-accent hover:bg-accent/[0.06] disabled:opacity-50 cursor-pointer ${
+                  collapsed ? 'justify-center p-3' : 'px-4 py-3'
+                }`}
+              >
+                <Repeat size={20} className="text-accent/50 group-hover:text-accent" />
+                {!collapsed && (
+                  <span className="text-sm font-medium">
+                    {switchingMode ? 'Switching...' : otherLabel}
+                  </span>
+                )}
+              </button>
+            </>
+          )}
         </nav>
 
         {/* Collapse toggle */}
@@ -331,7 +389,17 @@ export default function DashboardLayout({
             );
           })}
         </nav>
-        <div className="p-4 border-t border-white/5">
+        <div className="p-4 border-t border-white/5 space-y-2">
+          {hasDriver && (role === 'rider' || role === 'driver') && (
+            <button
+              onClick={() => { setMobileOpen(false); handleSwitchMode(); }}
+              disabled={switchingMode}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-accent/70 hover:text-accent hover:bg-accent/[0.06] transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Repeat size={20} />
+              <span className="text-sm font-medium">{switchingMode ? 'Switching...' : `Switch to ${otherLabel}`}</span>
+            </button>
+          )}
           <button
             onClick={() => { setMobileOpen(false); handleLogout(); }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-error/70 hover:text-error hover:bg-error/10 transition-all"
@@ -361,14 +429,66 @@ export default function DashboardLayout({
                 </span>
               )}
             </Link>
-            <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-white/[0.08]">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center text-secondary text-xs font-bold">
-                {getInitials(displayName)}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white">{displayName}</p>
-                <p className="text-xs text-white/40 capitalize">{role}</p>
-              </div>
+            <div className="relative hidden sm:block" data-profile-dropdown>
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center gap-2.5 pl-3 border-l border-white/[0.08] cursor-pointer hover:bg-white/[0.03] rounded-lg pr-2 py-1.5 transition-colors"
+              >
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center text-secondary text-xs font-bold">
+                  {getInitials(displayName)}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-white">{displayName}</p>
+                  <p className="text-xs text-white/40 capitalize">{role}</p>
+                </div>
+                <ChevronDown size={14} className={`text-white/30 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 top-full mt-2 w-60 rounded-xl border border-white/[0.08] bg-[#0D1420] shadow-2xl overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-white/[0.06]">
+                    <p className="text-sm font-semibold text-white truncate">{displayName}</p>
+                    <p className="text-xs text-white/40 truncate">{user?.emailAddress}</p>
+                  </div>
+                  <div className="py-1">
+                    <Link
+                      href={`/${role}/profile`}
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.04] transition-colors"
+                    >
+                      <User size={16} />
+                      My Profile
+                    </Link>
+                    <Link
+                      href={`/${role}/dashboard`}
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.04] transition-colors"
+                    >
+                      <LayoutDashboard size={16} />
+                      Dashboard
+                    </Link>
+                    {hasDriver && (
+                      <button
+                        onClick={() => { setProfileOpen(false); handleSwitchMode(); }}
+                        disabled={switchingMode}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        <Repeat size={16} />
+                        {switchingMode ? 'Switching...' : `Switch to ${otherLabel}`}
+                      </button>
+                    )}
+                  </div>
+                  <div className="border-t border-white/[0.06] py-1">
+                    <button
+                      onClick={() => { setProfileOpen(false); handleLogout(); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-error/80 hover:text-error hover:bg-error/[0.04] transition-colors cursor-pointer"
+                    >
+                      <LogOut size={16} />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>

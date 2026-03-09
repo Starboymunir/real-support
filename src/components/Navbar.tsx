@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ArrowRight, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, ArrowRight, User, LogOut, LayoutDashboard, Repeat } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { userInfoApi } from '@/lib/services/user';
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -29,14 +30,32 @@ function getInitials(name: string) {
 }
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [switchingMode, setSwitchingMode] = useState(false);
 
   const displayName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '';
   const userRole = user?.mode?.toLowerCase() || 'passenger';
   const dashboardHref = userRole === 'driver' ? '/driver/dashboard' : '/rider/dashboard';
+  const hasDriver = !!user?.driver;
+  const isDriverMode = userRole === 'driver';
+  const otherDashLabel = isDriverMode ? 'Rider Dashboard' : 'Driver Dashboard';
+
+  const handleSwitchMode = async () => {
+    if (!user?.id || switchingMode) return;
+    const newMode = isDriverMode ? 'PASSENGER' : 'DRIVER';
+    setSwitchingMode(true);
+    try {
+      await userInfoApi.updateMode(user.id, newMode);
+      await refreshUser();
+      const target = newMode === 'DRIVER' ? '/driver/dashboard' : '/rider/dashboard';
+      window.location.href = target;
+    } catch {
+      setSwitchingMode(false);
+    }
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -151,6 +170,16 @@ export default function Navbar() {
                           <User size={16} />
                           Profile
                         </Link>
+                        {hasDriver && (
+                          <button
+                            onClick={() => { setProfileOpen(false); handleSwitchMode(); }}
+                            disabled={switchingMode}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            <Repeat size={16} />
+                            {switchingMode ? 'Switching...' : otherDashLabel}
+                          </button>
+                        )}
                       </div>
                       <div className="border-t border-white/[0.06] py-1">
                         <button
@@ -266,6 +295,16 @@ export default function Navbar() {
                 Book a Ride
                 <ArrowRight size={18} />
               </Link>
+              {hasDriver && (
+                <button
+                  onClick={() => { setMobileOpen(false); handleSwitchMode(); }}
+                  disabled={switchingMode}
+                  className="mt-2 py-3.5 px-4 rounded-xl text-center font-semibold text-accent/70 border border-accent/20 hover:bg-accent/5 hover:text-accent transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Repeat size={18} />
+                  {switchingMode ? 'Switching...' : otherDashLabel}
+                </button>
+              )}
               <button
                 onClick={handleLogout}
                 className="mt-2 py-3.5 px-4 rounded-xl text-center font-semibold text-error/70 border border-error/20 hover:bg-error/5 hover:text-error transition-all flex items-center justify-center gap-2 cursor-pointer"

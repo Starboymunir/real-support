@@ -19,8 +19,10 @@ import {
   ChevronRight,
   Lock,
   Loader2,
+  LogOut,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { useRouter } from 'next/navigation';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { authApi } from '@/lib/services/auth';
 import { ApiError } from '@/lib/api';
@@ -53,7 +55,8 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
 
 export default function RiderProfilePage() {
   const { user } = useRequireAuth();
-  const { refreshUser } = useAuth();
+  const { refreshUser, logout } = useAuth();
+  const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -320,6 +323,15 @@ export default function RiderProfilePage() {
               </button>
             </div>
           </div>
+
+          {/* ── Logout ──────────────────────────────────────────── */}
+          <button
+            onClick={() => { logout(); router.push('/login'); }}
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-white/[0.02] border border-white/5 text-white/60 hover:text-error hover:border-error/30 hover:bg-error/5 transition-all"
+          >
+            <LogOut size={18} />
+            <span className="text-sm font-semibold">Logout</span>
+          </button>
 
           {/* ── Danger Zone ──────────────────────────────────────── */}
           <div className="bg-white/[0.02] rounded-2xl p-6 border border-error/30">

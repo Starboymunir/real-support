@@ -583,9 +583,8 @@ export interface CreateBookingDto {
 
 export interface CreatePaymentIntentDto {
   amount: number;
-  email: string;
+  email?: string;
   userId: string;
-  cognitoId?: string;
   currency?: string;
   description?: string;
 }

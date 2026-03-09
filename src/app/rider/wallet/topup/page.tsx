@@ -5,17 +5,28 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft,
-  CreditCard,
   Wallet,
   Shield,
   Check,
   ChevronRight,
+  Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { loadStripe } from '@stripe/stripe-js';
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from '@stripe/react-stripe-js';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi } from '@/lib/services/wallet';
+
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -28,6 +39,149 @@ const fadeUp = {
 
 const presetAmounts = [10, 20, 30, 50, 75, 100];
 
+/* ──────────────────────────────────────────────
+   Stripe Card Form (rendered inside <Elements>)
+   ────────────────────────────────────────────── */
+function CardForm({
+  amount,
+  userId,
+  clientSecret: _clientSecret,
+  paymentIntentId,
+  currentBalance,
+  onSuccess,
+  onBack,
+}: {
+  amount: number;
+  userId: string;
+  clientSecret: string;
+  paymentIntentId: string;
+  currentBalance: number;
+  onSuccess: () => void;
+  onBack: () => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState('');
+  const [ready, setReady] = useState(false);
+
+  const handlePay = useCallback(async () => {
+    if (!stripe || !elements) return;
+    setProcessing(true);
+    setError('');
+
+    try {
+      const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: { return_url: window.location.href },
+        redirect: 'if_required',
+      });
+
+      if (stripeError) {
+        setError(stripeError.message || 'Payment failed. Please try again.');
+        setProcessing(false);
+        return;
+      }
+
+      if (paymentIntent?.status === 'succeeded') {
+        await walletApi.createTopUp({
+          userId,
+          amount,
+          stripeId: paymentIntentId,
+          type: 'TOPUP',
+        });
+        onSuccess();
+      } else {
+        setError('Payment was not completed. Please try again.');
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Payment failed. Please try again.');
+    } finally {
+      setProcessing(false);
+    }
+  }, [stripe, elements, userId, amount, paymentIntentId, onSuccess]);
+
+  return (
+    <motion.div
+      key="step2"
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6"
+    >
+      <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-secondary via-accent to-secondary" />
+
+        <h2 className="text-xl font-bold text-white mb-1">Enter card details</h2>
+        <p className="text-white/30 text-sm mb-6">
+          You&apos;ll be charged <span className="text-white font-semibold">£{amount.toFixed(2)}</span>
+        </p>
+
+        {/* Stripe Payment Element */}
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 mb-4">
+          <PaymentElement
+            onReady={() => setReady(true)}
+            options={{
+              layout: 'tabs',
+            }}
+          />
+        </div>
+
+        {/* Balance preview */}
+        <div className="flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+          <div className="w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center">
+            <Wallet size={18} className="text-white/40" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-white/60">Balance after top-up</p>
+            <p className="text-sm text-secondary font-bold">
+              £{currentBalance.toFixed(2)} → £{(currentBalance + amount).toFixed(2)}
+            </p>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mt-4 p-4 rounded-xl bg-red-500/[0.08] border border-red-500/20 text-red-400 text-sm flex items-start gap-2">
+            <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+            {error}
+          </div>
+        )}
+
+        <div className="flex gap-3 mt-6">
+          <Button variant="outline" size="md" onClick={onBack} disabled={processing}>
+            Back
+          </Button>
+          <Button
+            variant="green"
+            size="lg"
+            className="flex-1"
+            onClick={handlePay}
+            disabled={processing || !ready || !stripe}
+          >
+            {processing ? (
+              <span className="flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin" />
+                Processing...
+              </span>
+            ) : (
+              <>Pay £{amount.toFixed(2)}</>
+            )}
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2 mt-4 justify-center">
+          <Shield size={14} className="text-white/20" />
+          <span className="text-white/20 text-xs">Secured with 256-bit SSL encryption via Stripe</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ──────────────────────────────────────────────
+   Main Top-Up Page
+   ────────────────────────────────────────────── */
 function TopUpContent() {
   const { user } = useRequireAuth();
   const searchParams = useSearchParams();
@@ -36,13 +190,16 @@ function TopUpContent() {
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState(preselectedAmount || '');
   const [customAmount, setCustomAmount] = useState(false);
-  const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [currentBalance, setCurrentBalance] = useState(0);
 
+  // Stripe intent state
+  const [clientSecret, setClientSecret] = useState('');
+  const [paymentIntentId, setPaymentIntentId] = useState('');
+  const [creatingIntent, setCreatingIntent] = useState(false);
+
   const numAmount = parseFloat(amount) || 0;
-  const total = numAmount;
 
   useEffect(() => {
     if (!user?.id) return;
@@ -51,27 +208,29 @@ function TopUpContent() {
       .catch(() => {});
   }, [user?.id]);
 
-  const handleConfirm = useCallback(async () => {
+  const proceedToPayment = useCallback(async () => {
     if (!user?.id || numAmount < 1) return;
-    setProcessing(true);
+
+    if (!stripePromise) {
+      setError('Payment is not configured. Please contact support.');
+      return;
+    }
+
+    setCreatingIntent(true);
     setError('');
     try {
       const intent = await walletApi.createPaymentIntent({
         amount: numAmount,
         userId: user.id,
-        email: user.emailAddress || '',
+        email: user.emailAddress || undefined,
       });
-      await walletApi.createTopUp({
-        userId: user.id,
-        amount: numAmount,
-        stripeId: intent.clientSecret || '',
-        type: 'TOPUP',
-      });
-      setSuccess(true);
+      setClientSecret(intent.paymentIntent);
+      setPaymentIntentId(intent.paymentIntentId);
+      setStep(2);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Top-up failed. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to initialise payment. Please try again.');
     } finally {
-      setProcessing(false);
+      setCreatingIntent(false);
     }
   }, [user?.id, numAmount, user?.emailAddress]);
 
@@ -95,7 +254,7 @@ function TopUpContent() {
               <div key={s} className="flex items-center gap-2">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    step >= s
+                    step >= s || (s === 3 && success)
                       ? success
                         ? 'bg-secondary text-dark'
                         : 'bg-secondary/20 text-secondary border border-secondary/30'
@@ -106,20 +265,20 @@ function TopUpContent() {
                 </div>
                 {s < 3 && (
                   <div className={`w-12 sm:w-20 h-0.5 rounded-full ${
-                    step > s ? 'bg-secondary/30' : 'bg-white/[0.06]'
+                    step > s || (s === 2 && success) ? 'bg-secondary/30' : 'bg-white/[0.06]'
                   }`} />
                 )}
               </div>
             ))}
             <span className="text-xs text-white/30 font-medium ml-2 hidden sm:block">
-              {step === 1 ? 'Choose Amount' : step === 2 ? 'Payment Method' : success ? 'Complete!' : 'Confirm'}
+              {step === 1 ? 'Choose Amount' : step === 2 ? 'Pay with Card' : 'Complete!'}
             </span>
           </div>
         </motion.div>
 
         <AnimatePresence mode="wait">
           {/* ═══════ STEP 1: AMOUNT ═══════ */}
-          {step === 1 && (
+          {step === 1 && !success && (
             <motion.div
               key="step1"
               initial={{ opacity: 0, x: 20 }}
@@ -174,141 +333,84 @@ function TopUpContent() {
                   </div>
                 </div>
 
+                {error && (
+                  <div className="mt-4 p-4 rounded-xl bg-red-500/[0.08] border border-red-500/20 text-red-400 text-sm flex items-start gap-2">
+                    <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                    {error}
+                  </div>
+                )}
+
                 <div className="mt-6">
                   <Button
                     variant="green"
                     size="lg"
                     className="w-full"
-                    onClick={() => numAmount >= 1 && setStep(2)}
+                    onClick={proceedToPayment}
+                    disabled={numAmount < 1 || creatingIntent}
                   >
-                    Continue <ChevronRight size={16} />
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ═══════ STEP 2: PAYMENT METHOD ═══════ */}
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-6"
-            >
-              <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8">
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-secondary via-accent to-secondary" />
-
-                <h2 className="text-xl font-bold text-white mb-1">Payment method</h2>
-                <p className="text-white/30 text-sm mb-6">Your payment will be processed securely via Stripe</p>
-
-                <div className="space-y-3">
-                  {/* Stripe payment */}
-                  <div className="w-full flex items-center gap-4 p-4 rounded-xl border border-secondary/40 bg-secondary/[0.06] text-left">
-                    <div className="w-12 h-8 rounded-lg flex items-center justify-center bg-secondary/15">
-                      <CreditCard size={20} className="text-secondary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-white">Pay with Card</p>
-                      <p className="text-xs text-white/30">Secure payment via Stripe</p>
-                    </div>
-                    <div className="w-5 h-5 rounded-full border-2 border-secondary bg-secondary flex items-center justify-center">
-                      <Check size={12} className="text-dark" />
-                    </div>
-                  </div>
-
-                  {/* Wallet balance info */}
-                  <div className="flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                    <div className="w-12 h-8 rounded-lg bg-white/[0.06] flex items-center justify-center">
-                      <Wallet size={18} className="text-white/40" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-white/60">Current Balance</p>
-                      <p className="text-xs text-white/30">£{currentBalance.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 mt-6">
-                  <Button variant="outline" size="md" onClick={() => setStep(1)}>
-                    Back
-                  </Button>
-                  <Button variant="green" size="lg" className="flex-1" onClick={() => setStep(3)}>
-                    Review Top-up <ChevronRight size={16} />
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ═══════ STEP 3: CONFIRM ═══════ */}
-          {step === 3 && !success && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-6"
-            >
-              <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8">
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-secondary via-accent to-secondary" />
-
-                <h2 className="text-xl font-bold text-white mb-6">Review & Confirm</h2>
-
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
-                    <span className="text-white/50 text-sm">Top-up Amount</span>
-                    <span className="text-white font-bold text-lg">£{total.toFixed(2)}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center py-3 border-b border-white/[0.06]">
-                    <span className="text-white/50 text-sm">Payment Method</span>
-                    <span className="text-white font-semibold text-sm">Card via Stripe</span>
-                  </div>
-                  <div className="flex justify-between items-center py-3">
-                    <span className="text-white/50 text-sm">Total Charge</span>
-                    <span className="text-white font-black text-xl">£{total.toFixed(2)}</span>
-                  </div>
-
-                </div>
-
-                {error && (
-                  <div className="mt-4 p-4 rounded-xl bg-red-500/[0.08] border border-red-500/20 text-red-400 text-sm">
-                    {error}
-                  </div>
-                )}
-
-                <div className="flex gap-3 mt-8">
-                  <Button variant="outline" size="md" onClick={() => setStep(2)}>
-                    Back
-                  </Button>
-                  <Button
-                    variant="green"
-                    size="lg"
-                    className="flex-1"
-                    onClick={handleConfirm}
-                    disabled={processing}
-                  >
-                    {processing ? (
+                    {creatingIntent ? (
                       <span className="flex items-center gap-2">
-                        <span className="w-4 h-4 border-2 border-dark/30 border-t-dark rounded-full animate-spin" />
-                        Processing...
+                        <Loader2 size={16} className="animate-spin" />
+                        Setting up payment...
                       </span>
                     ) : (
-                      <>Confirm Top-up · £{total.toFixed(2)}</>
+                      <>Continue to Payment <ChevronRight size={16} /></>
                     )}
                   </Button>
                 </div>
-
-                <div className="flex items-center gap-2 mt-4 justify-center">
-                  <Shield size={14} className="text-white/20" />
-                  <span className="text-white/20 text-xs">Secured with 256-bit SSL encryption</span>
-                </div>
               </div>
             </motion.div>
+          )}
+
+          {/* ═══════ STEP 2: CARD PAYMENT (Stripe Elements) ═══════ */}
+          {step === 2 && !success && clientSecret && stripePromise && (
+            <Elements
+              stripe={stripePromise}
+              options={{
+                clientSecret,
+                appearance: {
+                  theme: 'night',
+                  variables: {
+                    colorPrimary: '#22c55e',
+                    colorBackground: '#0a0a0a',
+                    colorText: '#ffffff',
+                    colorTextSecondary: '#ffffff66',
+                    colorDanger: '#ef4444',
+                    fontFamily: 'inherit',
+                    borderRadius: '12px',
+                    spacingUnit: '4px',
+                  },
+                  rules: {
+                    '.Input': {
+                      backgroundColor: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      color: '#ffffff',
+                    },
+                    '.Input:focus': {
+                      border: '1px solid rgba(34,197,94,0.4)',
+                      boxShadow: '0 0 0 1px rgba(34,197,94,0.2)',
+                    },
+                    '.Label': {
+                      color: 'rgba(255,255,255,0.5)',
+                    },
+                  },
+                },
+              }}
+            >
+              <CardForm
+                amount={numAmount}
+                userId={user!.id}
+                clientSecret={clientSecret}
+                paymentIntentId={paymentIntentId}
+                currentBalance={currentBalance}
+                onSuccess={() => setSuccess(true)}
+                onBack={() => {
+                  setStep(1);
+                  setClientSecret('');
+                  setPaymentIntentId('');
+                }}
+              />
+            </Elements>
           )}
 
           {/* ═══════ SUCCESS ═══════ */}
@@ -334,14 +436,14 @@ function TopUpContent() {
 
                 <h2 className="text-2xl font-black text-white mb-2">Top-up Successful!</h2>
                 <p className="text-white/40 text-sm mb-6 max-w-sm mx-auto">
-                  £{total.toFixed(2)} has been added to your wallet.
+                  £{numAmount.toFixed(2)} has been added to your wallet.
                 </p>
 
                 <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/[0.04] border border-white/[0.08] mb-8">
                   <Wallet size={18} className="text-secondary" />
                   <span className="text-white font-bold">New Balance:</span>
                   <span className="text-secondary font-black text-lg">
-                    £{(currentBalance + total).toFixed(2)}
+                    £{(currentBalance + numAmount).toFixed(2)}
                   </span>
                 </div>
 

@@ -11,6 +11,7 @@ export type { CreateDriverDto } from './driver';
 export { driverCarsApi } from './cars';
 export type { CreateCarDto } from './cars';
 export { documentsApi } from './documents';
+export { bankAccountApi } from './bank-accounts';
 export { bidsApi } from './bids';
 export type { CreateBidDto, UpdateBidDto } from './bids';
 export { chatApi } from './chat';

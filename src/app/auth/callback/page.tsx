@@ -32,9 +32,7 @@ function CallbackContent() {
       .then((user) => {
         const dest = user.Admin
           ? '/admin/dashboard'
-          : user.driver
-            ? '/driver/dashboard'
-            : '/rider/dashboard';
+          : '/rider/dashboard';
         router.replace(dest);
       })
       .catch(() => {

@@ -1,0 +1,232 @@
+import PropTypes from "prop-types";
+import MenuItem from "@mui/material/MenuItem";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import IconButton from "@mui/material/IconButton";
+import ListItemText from "@mui/material/ListItemText";
+import {
+  useBoolean,
+  UseBooleanReturn,
+} from "@/app/(RSAdmin)/admin/hooks//use-boolean";
+import Iconify from "@/components/iconify/iconify";
+import CustomPopover, {
+  usePopover,
+} from "@/app/(RSAdmin)/admin/common/custom-popover";
+import { ConfirmDialog } from "@/app/(RSAdmin)/admin/common/custom-dialog";
+import AwsImageAvatar from "../../../common/aws-image-avatar/Avatar";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { CircularProgress } from "@mui/material";
+import { useRouter } from "next/navigation";
+import InvoicePDF from "@/components/booking/BookingInvoicePdf";
+import { IBookingType } from "@/types/type";
+
+export default function BookingsTableRow({
+  row,
+  selected,
+  onEditRow,
+  onViewRow,
+  onAllowGenerateInvoice,
+  onDisAllowGenerateInvoice,
+  deleteConfirm,
+  setChangeFlag,
+  onSelectRow,
+  onDeleteRow,
+}: {
+  row: IBookingType;
+  selected: boolean;
+  onEditRow: (row: IBookingType) => void;
+  onViewRow: (row: IBookingType) => void;
+  onAllowGenerateInvoice: (row: IBookingType) => void;
+  onDisAllowGenerateInvoice: (row: IBookingType) => void;
+  deleteConfirm?: UseBooleanReturn;
+  setChangeFlag?: (flag: boolean) => void;
+  onSelectRow?: (row: IBookingType) => void;
+  onDeleteRow?: (row: IBookingType) => void;
+}) {
+  const confirm = useBoolean();
+
+  const collapse = useBoolean();
+
+  const popover = usePopover();
+
+  const router = useRouter();
+
+  const renderPrimary = (
+    <TableRow hover selected={selected}>
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
+        {new Date(row?.bookingDate).toLocaleDateString()}
+      </TableCell>
+
+      <TableCell>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <AwsImageAvatar
+            imageKey={row?.riderInfo?.coverImage}
+            alt={`${row?.riderInfo?.firstName ?? ""}${
+              row?.riderInfo?.lastName ?? ""
+            }`}
+            sx={{ mr: 2 }}
+          />
+          <ListItemText
+            primary={
+              (row?.riderInfo?.firstName ?? "") +
+              (row?.riderInfo?.lastName ?? "")
+            }
+            secondary={row?.riderInfo?.emailAddress}
+            primaryTypographyProps={{ typography: "body2" }}
+            secondaryTypographyProps={{
+              component: "span",
+              color: "text.disabled",
+            }}
+          />
+        </div>
+      </TableCell>
+
+      <TableCell>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <AwsImageAvatar
+            imageKey={row?.driverInfo?.userInfo?.coverImage}
+            alt={`${row?.driverInfo?.userInfo?.firstName ?? ""} ${
+              row?.driverInfo?.userInfo?.lastName ?? ""
+            }`}
+            sx={{ mr: 2 }}
+          />
+          <ListItemText
+            primary={
+              (row?.driverInfo?.userInfo?.firstName ?? "") +
+              (row?.driverInfo?.userInfo?.lastName ?? "")
+            }
+            secondary={row?.driverInfo?.userInfo?.emailAddress}
+            primaryTypographyProps={{ typography: "body2" }}
+            secondaryTypographyProps={{
+              component: "span",
+              color: "text.disabled",
+            }}
+          />
+        </div>
+      </TableCell>
+
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
+        {row?.startFrom?.name}
+      </TableCell>
+
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
+        {row?.destination?.name}
+      </TableCell>
+
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
+        {Number(row?.totalBill).toFixed(2)}
+      </TableCell>
+
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
+        {Number(row?.totalDistance).toFixed(2)}
+      </TableCell>
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
+        {row?.riderInfo?.phone_number}
+      </TableCell>
+      <TableCell align="right" sx={{ px: 1, whiteSpace: "nowrap" }}>
+        <IconButton
+          color={collapse.value ? "inherit" : "default"}
+          onClick={collapse.onToggle}
+          sx={{
+            ...(collapse.value && {
+              bgcolor: "action.hover",
+            }),
+          }}
+        >
+          <Iconify icon="eva:arrow-ios-downward-fill" />
+        </IconButton>
+
+        <IconButton
+          color={popover.open ? "inherit" : "default"}
+          onClick={popover.onOpen}
+        >
+          <Iconify icon="eva:more-vertical-fill" />
+        </IconButton>
+      </TableCell>
+    </TableRow>
+  );
+  return (
+    <>
+      {renderPrimary}
+      <CustomPopover
+        open={popover.open}
+        onClose={popover.onClose}
+        arrow="right-top"
+        sx={{ width: 200 }}
+      >
+        <MenuItem
+          onClick={() => {
+            popover.onClose();
+          }}
+        >
+          <PDFDownloadLink
+            document={<InvoicePDF invoice={row} />}
+            fileName={row.id}
+            style={{ textDecoration: "none" }}
+          >
+            {({ loading }) => (
+              <>
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  <div className="flex items-center justify-center ">
+                    <Iconify icon="solar:eye-bold" />
+                    Generate Invoice
+                  </div>
+                )}
+              </>
+            )}
+          </PDFDownloadLink>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            onViewRow(row);
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:eye-bold" />
+          View
+        </MenuItem>
+        {row.isAllowGenerateInvoice ? (
+          <MenuItem
+            onClick={() => {
+              onDisAllowGenerateInvoice(row);
+              popover.onClose();
+            }}
+            sx={{ color: "error.main" }}
+          >
+            <Iconify icon="solar:trash-bin-trash-bold" />
+            Disallow Invoice
+          </MenuItem>
+        ) : (
+          <MenuItem
+            onClick={() => {
+              onAllowGenerateInvoice(row);
+              popover.onClose();
+            }}
+          >
+            <Iconify icon="icon-park:permissions" />
+            Allow Generate Invoice
+          </MenuItem>
+        )}
+
+        <MenuItem
+          onClick={() => {
+            onEditRow(row);
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:pen-bold" />
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            router.push(`/admin/dashboard/chat?bookingId=${row.id}`);
+          }}
+        >
+          Go to Chat
+        </MenuItem>
+      </CustomPopover>
+    </>
+  );
+}

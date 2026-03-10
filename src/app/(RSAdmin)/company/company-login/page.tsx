@@ -1,49 +1,42 @@
-"use client";
+'use client'
 
-import React, { useState } from "react";
-import "react-phone-input-2/lib/style.css";
-import Image from "next/image";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { redirect, useRouter } from "next/navigation";
-import { Icon } from "@iconify/react";
-import { Input } from "@/components/ui/input";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import {
-  LoginFromSchema,
-  TLoginValidator,
-} from "@/lib/validators/user-login-validator";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { signIn,  } from "aws-amplify/auth";
-import { useAuthContext } from "@/providers/auth-providers";
-import { Amplify } from "aws-amplify";
-import awsconfig from "@/amplifyconfiguration.json";
-import { useSnackbar } from "notistack";
-import axios from "axios";
+import React, { useState } from 'react'
+import 'react-phone-input-2/lib/style.css'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { redirect } from 'next/navigation'
+import { Icon } from '@iconify/react'
+import { Input } from '@/components/ui/input'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { ArrowRight } from 'lucide-react'
+import { LoginFromSchema, TLoginValidator } from '@/lib/validators/user-login-validator'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
+import { signIn } from 'aws-amplify/auth'
+import { useAuthContext } from '@/providers/auth-providers'
+import { Amplify } from 'aws-amplify'
+import awsconfig from '@/amplifyconfiguration.json'
+import { useSnackbar } from 'notistack'
+import axios from 'axios'
 
 const modifyJson = {
   ...awsconfig,
   oauth: {
     ...awsconfig.oauth,
   },
-};
+}
 
-Amplify.configure(modifyJson);
-type providerType = "Google" | "Facebook" | { custom: string } | undefined;
+Amplify.configure(modifyJson)
+// type providerType = 'Google' | 'Facebook' | { custom: string } | undefined
 
-const baseUrl = process.env.NEXT_PUBLIC_BACKEND_API;
+// const baseUrl = process.env.NEXT_PUBLIC_BACKEND_API
 
 const LoginForm = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const { enqueueSnackbar } = useSnackbar();
-  const {
-    loading,
-    setLoading,
-    company
-  } = useAuthContext();
+  const [showPassword, setShowPassword] = useState(false)
+  const { enqueueSnackbar } = useSnackbar()
+  const { loading, setLoading, company } = useAuthContext()
 
   const {
     register,
@@ -51,38 +44,36 @@ const LoginForm = () => {
     formState: { errors },
   } = useForm<TLoginValidator>({
     resolver: zodResolver(LoginFromSchema),
-  });
+  })
 
   async function handleSignIn({ emailAddress, password }: TLoginValidator) {
     if (loading) {
-      return;
+      return
     }
-    setLoading(true);
+    setLoading(true)
     try {
-
-      await signIn({ username: emailAddress, password });
-    } catch (error) {      
+      await signIn({ username: emailAddress, password })
+    } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         // Handle error response from the API
-        const errorMessage = error.response.data.message || "Something went wrong.";
-        enqueueSnackbar(errorMessage, { variant: "error" });
+        const errorMessage = error.response.data.message || 'Something went wrong.'
+        enqueueSnackbar(errorMessage, { variant: 'error' })
       } else {
         // Handle general errors
-        enqueueSnackbar("An unexpected error occurred", { variant: "error" });
+        enqueueSnackbar('An unexpected error occurred', { variant: 'error' })
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   if (company) {
-    return redirect("/company/dashboard");
+    return redirect('/company/dashboard')
   }
-  
 
   return (
     <main className="h-full bg-hero-section bg-cover bg-center pt-28">
-      <section className="max-w-[693px] mx-auto mt-5 bg-gradient-to-b from-white/20 to-white/0 rounded-sm p-5 md:p-10">
+      <section className="max-w-173.25 mx-auto mt-5 bg-linear-to-b from-white/20 to-white/0 rounded-sm p-5 md:p-10">
         <div className="grid place-items-center gap-8">
           <Image
             width={120}
@@ -164,6 +155,6 @@ const LoginForm = () => {
       </section>
     </main>
   )
-};
+}
 
-export default LoginForm;
+export default LoginForm

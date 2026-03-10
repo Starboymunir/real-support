@@ -20,7 +20,7 @@ const NavBar = () => {
   };
 
   return (
-    <MaxWidthWrapper className="max-w-[1666px] fixed top-0 inset-x-0 z-50 ">
+    <MaxWidthWrapper className="max-w-6xl fixed top-0 inset-x-0 z-50 ">
       <header className="relative bg-background">
         <div className="flex items-center px-2">
           {/* larger screen navbar */}

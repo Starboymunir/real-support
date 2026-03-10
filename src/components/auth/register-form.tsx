@@ -5,7 +5,7 @@ import Image from 'next/image'
 import PhoneInput from 'react-phone-input-2'
 import { Icon } from '@iconify/react'
 import Link from 'next/link'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import SocialButton from '@/components/SocialButton'
@@ -47,7 +47,6 @@ const RegisterForm = () => {
 
   const {
     register,
-    control,
     handleSubmit,
     reset,
     getValues,
@@ -130,7 +129,7 @@ const RegisterForm = () => {
 
   return (
     <div className="md:py-8">
-      <section className="max-w-[693px] mx-auto mt-5 bg-gradient-to-b from-white/20 to-white/0 rounded-sm p-5 md:p-10">
+      <section className="max-w-173.25 mx-auto mt-5 bg-linear-to-b from-white/20 to-white/0 rounded-sm p-5 md:p-10">
         <div className="grid place-items-center gap-5">
           <Image
             width={120}

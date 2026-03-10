@@ -18,7 +18,7 @@ const HeroView = () => {
 
   return (
     <section>
-      <div className="py-10 min-h-[700px] rounded-xl bg-hero-section bg-cover bg-center flex items-center">
+      <div className="py-10 min-h-screen rounded-xl bg-hero-section bg-cover bg-center flex items-center">
         <div className="h-full mx-auto md:px-8 flex flex-col-reverse md:flex-row md:justify-between md:items-center">
           <div className="flex justify-center flex-col md:w-1/2 px-2">
             <h3 className="text-primary font-poppins text-6xl font-medium text-center md:text-left">

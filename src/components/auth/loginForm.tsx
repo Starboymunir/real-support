@@ -1,58 +1,44 @@
-"use client";
+'use client'
 
-import React, { useState } from "react";
-import "react-phone-input-2/lib/style.css";
-import Image from "next/image";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import SocialButton from "@/components/SocialButton";
-import { Icon } from "@iconify/react";
-import { Input } from "@/components/ui/input";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { toast } from "sonner";
-import { ArrowRight } from "lucide-react";
-import {
-  LoginFromSchema,
-  TLoginValidator,
-} from "@/lib/validators/user-login-validator";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import {
-  fetchAuthSession,
-  getCurrentUser,
-  signIn,
-  signInWithRedirect,
-} from "aws-amplify/auth";
-import { useAuthContext } from "@/providers/auth-providers";
-import { Amplify } from "aws-amplify";
-import awsconfig from "@/amplifyconfiguration.json";
-import SeparatorLine from "@/components/SeparatorLine";
-import axiosInstance from "@/lib/axios";
-import { useSnackbar } from "notistack";
+import React, { useState } from 'react'
+import 'react-phone-input-2/lib/style.css'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
+import SocialButton from '@/components/SocialButton'
+import { Icon } from '@iconify/react'
+import { Input } from '@/components/ui/input'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { toast } from 'sonner'
+import { ArrowRight } from 'lucide-react'
+import { LoginFromSchema, TLoginValidator } from '@/lib/validators/user-login-validator'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
+import { fetchAuthSession, getCurrentUser, signIn, signInWithRedirect } from 'aws-amplify/auth'
+import { useAuthContext } from '@/providers/auth-providers'
+import { Amplify } from 'aws-amplify'
+import awsconfig from '@/amplifyconfiguration.json'
+import SeparatorLine from '@/components/SeparatorLine'
+import axiosInstance from '@/lib/axios'
+import { useSnackbar } from 'notistack'
 
 const modifyJson = {
   ...awsconfig,
   oauth: {
     ...awsconfig.oauth,
   },
-};
+}
 
-Amplify.configure(modifyJson);
-type providerType = "Google" | "Facebook" | { custom: string } | undefined;
+Amplify.configure(modifyJson)
+type providerType = 'Google' | 'Facebook' | { custom: string } | undefined
 
 const LoginForm = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const { enqueueSnackbar } = useSnackbar();
-  const router = useRouter();
-  const {
-    user,
-    loading,
-    setLoading,
-    setConfirmationEmail,
-    handleSocialLogin,
-  } = useAuthContext();
+  const [showPassword, setShowPassword] = useState(false)
+  const { enqueueSnackbar } = useSnackbar()
+  const router = useRouter()
+  const { user, loading, setLoading, setConfirmationEmail, handleSocialLogin } = useAuthContext()
 
   const {
     register,
@@ -61,43 +47,43 @@ const LoginForm = () => {
     formState: { errors },
   } = useForm<TLoginValidator>({
     resolver: zodResolver(LoginFromSchema),
-  });
+  })
 
   async function handleSignIn({ emailAddress, password }: TLoginValidator) {
     if (loading) {
-      return;
+      return
     }
-    setLoading(true);
+    setLoading(true)
     try {
       const {
         nextStep: { signInStep },
-      } = await signIn({ username: emailAddress, password });
-      if (signInStep === "CONFIRM_SIGN_UP") {
-        setConfirmationEmail(emailAddress);
-        router.push("/register/confirm-email");
-        return;
+      } = await signIn({ username: emailAddress, password })
+      if (signInStep === 'CONFIRM_SIGN_UP') {
+        setConfirmationEmail(emailAddress)
+        router.push('/register/confirm-email')
+        return
       }
     } catch (error) {
-      toast.error((error as Error).message);
+      toast.error((error as Error).message)
     } finally {
-      setLoading(false);
-      reset();
+      setLoading(false)
+      reset()
     }
   }
 
   async function socialLogin(provider: providerType) {
-    try { 
-      await signInWithRedirect({ provider });
+    try {
+      await signInWithRedirect({ provider })
     } catch (error) {
-      console.log("Social login error:", error);
-      const user = await getCurrentUser();
+      console.log('Social login error:', error)
+      const user = await getCurrentUser()
       if (user) {
-        handleSocialLogin();
-        return;
+        handleSocialLogin()
+        return
       }
-      enqueueSnackbar(error as string, { variant: 'error' });
+      enqueueSnackbar(error as string, { variant: 'error' })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -108,26 +94,24 @@ const LoginForm = () => {
           <Image
             width={120}
             height={120}
-            src={"/home/header logo.png"}
+            src={'/assets/logo.png'}
             alt="RS CAB"
             className="mx-auto"
           />
 
-          <p className=" text-primary font-poppins mb-5 text-4xl font-semibold ">
-            Sign in account
-          </p>
+          <p className=" text-primary font-poppins mb-5 text-4xl font-semibold ">Sign in account</p>
 
           <SocialButton
             social="Google"
             imgSrc="/images/signup/Group879.png"
             bgColor="bg-sky-500 hover:bg-sky-600"
-            onClick={() => socialLogin("Google")}
+            onClick={() => socialLogin('Google')}
           />
           <SocialButton
             social="Facebook"
             imgSrc="/images/signup/Group878.png"
             bgColor="bg-sky-700 hover:bg-sky-800"
-            onClick={() => socialLogin("Facebook")}
+            onClick={() => socialLogin('Facebook')}
           />
 
           <SeparatorLine />
@@ -137,14 +121,12 @@ const LoginForm = () => {
             onSubmit={handleSubmit(handleSignIn)}
           >
             <div className="w-full space-y-1">
-              <Label className="font-semibold text-white">
-                Email Address *
-              </Label>
+              <Label className="font-semibold text-white">Email Address *</Label>
               <Input
-                {...register("emailAddress")}
+                {...register('emailAddress')}
                 placeholder="Email Address"
-                className={cn("w-full outline-none p-4 rounded-sm", {
-                  "focus-visible:ring-red-500": errors?.emailAddress,
+                className={cn('w-full outline-none p-4 rounded-sm', {
+                  'focus-visible:ring-red-500': errors?.emailAddress,
                 })}
                 type="email"
               />
@@ -159,11 +141,11 @@ const LoginForm = () => {
               <Label className="font-semibold text-white">Password *</Label>
               <div className="relative">
                 <Input
-                  {...register("password")}
-                  type={showPassword ? "text" : "password"}
+                  {...register('password')}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
-                  className={cn("w-full outline-none p-4 rounded-sm", {
-                    "focus-visible:ring-red-500": errors?.password,
+                  className={cn('w-full outline-none p-4 rounded-sm', {
+                    'focus-visible:ring-red-500': errors?.password,
                   })}
                 />
                 <div
@@ -171,9 +153,7 @@ const LoginForm = () => {
                   onClick={() => setShowPassword((v) => !v)}
                 >
                   <Icon
-                    icon={
-                      showPassword ? "solar:eye-closed-bold" : "solar:eye-bold"
-                    }
+                    icon={showPassword ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
                     fontSize={20}
                   />
                 </div>
@@ -187,8 +167,8 @@ const LoginForm = () => {
             <div className="w-full flex flex-col items-end">
               <Link
                 className={buttonVariants({
-                  variant: "link",
-                  className: "gap-1.5",
+                  variant: 'link',
+                  className: 'gap-1.5',
                 })}
                 href="/forget-password"
               >
@@ -196,19 +176,15 @@ const LoginForm = () => {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            <Button
-              disabled={loading}
-              className="w-full flex justify-center"
-              type="submit"
-            >
+            <Button disabled={loading} className="w-full flex justify-center" type="submit">
               Login
             </Button>
 
             <div className="w-full flex flex-col items-end">
               <Link
                 className={buttonVariants({
-                  variant: "link",
-                  className: "gap-1.5",
+                  variant: 'link',
+                  className: 'gap-1.5',
                 })}
                 href="/register"
               >
@@ -220,7 +196,7 @@ const LoginForm = () => {
         </div>
       </section>
     </>
-  );
-};
+  )
+}
 
-export default LoginForm;
+export default LoginForm

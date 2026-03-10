@@ -87,7 +87,7 @@ const LoginForm = () => {
           <Image
             width={120}
             height={120}
-            src={"/home/header logo.png"}
+            src={'/assets/logo.png'}
             alt="RS CAB"
             className="mx-auto"
           />
@@ -101,14 +101,12 @@ const LoginForm = () => {
             onSubmit={handleSubmit(handleSignIn)}
           >
             <div className="w-full space-y-1">
-              <Label className="font-semibold text-white">
-                Email Address *
-              </Label>
+              <Label className="font-semibold text-white">Email Address *</Label>
               <Input
-                {...register("emailAddress")}
+                {...register('emailAddress')}
                 placeholder="Email Address"
-                className={cn("w-full outline-none p-4 rounded-sm", {
-                  "focus-visible:ring-red-500": errors?.emailAddress,
+                className={cn('w-full outline-none p-4 rounded-sm', {
+                  'focus-visible:ring-red-500': errors?.emailAddress,
                 })}
                 type="email"
               />
@@ -123,11 +121,11 @@ const LoginForm = () => {
               <Label className="font-semibold text-white">Password *</Label>
               <div className="relative">
                 <Input
-                  {...register("password")}
-                  type={showPassword ? "text" : "password"}
+                  {...register('password')}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
-                  className={cn("w-full outline-none p-4 rounded-sm", {
-                    "focus-visible:ring-red-500": errors?.password,
+                  className={cn('w-full outline-none p-4 rounded-sm', {
+                    'focus-visible:ring-red-500': errors?.password,
                   })}
                 />
                 <div
@@ -135,9 +133,7 @@ const LoginForm = () => {
                   onClick={() => setShowPassword((v) => !v)}
                 >
                   <Icon
-                    icon={
-                      showPassword ? "solar:eye-closed-bold" : "solar:eye-bold"
-                    }
+                    icon={showPassword ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
                     fontSize={20}
                   />
                 </div>
@@ -151,8 +147,8 @@ const LoginForm = () => {
             <div className="w-full flex flex-col items-end">
               <Link
                 className={buttonVariants({
-                  variant: "link",
-                  className: "gap-1.5",
+                  variant: 'link',
+                  className: 'gap-1.5',
                 })}
                 href="/forget-password"
               >
@@ -160,18 +156,14 @@ const LoginForm = () => {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            <Button
-              disabled={loading}
-              className="w-full flex justify-center"
-              type="submit"
-            >
+            <Button disabled={loading} className="w-full flex justify-center" type="submit">
               Login
             </Button>
           </form>
         </div>
       </section>
     </main>
-  );
+  )
 };
 
 export default LoginForm;

@@ -30,7 +30,7 @@ const NavBar = () => {
               <Image
                 width={70}
                 height={70}
-                src={"/home/header logo.png"}
+                src={"/assets/logo.png"}
                 alt="RS CAB"
               />
             </Link>

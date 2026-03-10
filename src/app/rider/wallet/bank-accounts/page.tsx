@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bankAccountApi } from '@/lib/services/bank-accounts';
 import { documentsApi } from '@/lib/services/documents';

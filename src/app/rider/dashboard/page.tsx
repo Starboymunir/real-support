@@ -24,8 +24,8 @@ import {
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bookingsApi } from '@/lib/services/bookings';
 import { walletApi } from '@/lib/services/wallet';

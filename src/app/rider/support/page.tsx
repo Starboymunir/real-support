@@ -3,8 +3,8 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { contactApi } from '@/lib/services/contact';
 import { chatApi } from '@/lib/services/chat';

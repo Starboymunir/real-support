@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi } from '@/lib/services/wallet';
 

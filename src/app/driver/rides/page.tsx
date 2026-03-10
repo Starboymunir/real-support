@@ -24,7 +24,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import type { Booking, BookingStatus } from '@/lib/types';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import Link from 'next/link';
 
 const fadeUp = {

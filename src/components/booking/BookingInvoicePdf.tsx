@@ -1,22 +1,33 @@
-import { useMemo } from 'react'
-import { Page, View, Text, Font, Image, Document, StyleSheet } from '@react-pdf/renderer'
+import { useMemo } from "react";
+import {
+  Page,
+  View,
+  Text,
+  Font,
+  Image,
+  Document,
+  StyleSheet,
+} from "@react-pdf/renderer";
 
-import { IBookingType } from '@/types/type'
-import { fDate } from '@/lib/format-time'
-import { formatDistance, formatDuration, formattedPrice } from '@/lib/utils'
+import { IBookingType } from "@/types/type";
+import { fDate } from "@/lib/format-time";
+import { formatDistance, formatDuration, formattedPrice } from "@/lib/utils";
 
 Font.register({
-  family: 'Roboto',
-  fonts: [{ src: '/fonts/Roboto-Regular.ttf' }, { src: '/fonts/Roboto-Bold.ttf' }],
-})
+  family: "Roboto",
+  fonts: [
+    { src: "/fonts/Roboto-Regular.ttf" },
+    { src: "/fonts/Roboto-Bold.ttf" },
+  ],
+});
 
 const useStyles = () =>
   useMemo(
     () =>
       StyleSheet.create({
-        col4: { width: '25%' },
-        col8: { width: '75%' },
-        col6: { width: '50%' },
+        col4: { width: "25%" },
+        col8: { width: "75%" },
+        col6: { width: "50%" },
         mb4: { marginBottom: 4 },
         mb8: { marginBottom: 8 },
         mb40: { marginBottom: 40 },
@@ -27,40 +38,40 @@ const useStyles = () =>
         body2: { fontSize: 9 },
         subtitle1: { fontSize: 10, fontWeight: 700 },
         subtitle2: { fontSize: 9, fontWeight: 700 },
-        alignRight: { textAlign: 'right' },
+        alignRight: { textAlign: "right" },
         page: {
           fontSize: 12,
           lineHeight: 1.6,
-          fontFamily: 'Roboto',
-          backgroundColor: '#FFFFFF',
-          textTransform: 'capitalize',
-          padding: '48px 36px 60px 48px',
+          fontFamily: "Roboto",
+          backgroundColor: "#FFFFFF",
+          textTransform: "capitalize",
+          padding: "48px 36px 60px 48px",
         },
         footer: {
           left: 0,
           right: 0,
           bottom: 0,
           padding: 24,
-          margin: 'auto',
+          margin: "auto",
           borderTopWidth: 1,
-          borderStyle: 'solid',
-          position: 'absolute',
-          borderColor: '#DFE3E8',
+          borderStyle: "solid",
+          position: "absolute",
+          borderColor: "#DFE3E8",
         },
         gridContainer: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
+          flexDirection: "row",
+          justifyContent: "space-between",
         },
         table: {
-          display: 'flex',
-          width: 'auto',
+          display: "flex",
+          width: "auto",
         },
         tableRow: {
-          padding: '8px 0',
-          flexDirection: 'row',
+          padding: "8px 0",
+          flexDirection: "row",
           borderBottomWidth: 1,
-          borderStyle: 'solid',
-          borderColor: '#DFE3E8',
+          borderStyle: "solid",
+          borderColor: "#DFE3E8",
         },
         noBorder: {
           paddingTop: 8,
@@ -68,23 +79,32 @@ const useStyles = () =>
           borderBottomWidth: 0,
         },
         tableCell_1: {
-          width: '5%',
+          width: "5%",
         },
         tableCell_2: {
-          width: '50%',
+          width: "50%",
           paddingRight: 16,
         },
         tableCell_3: {
-          width: '15%',
+          width: "15%",
         },
       }),
     []
-  )
+  );
 
 export default function InvoicePDF({ invoice }: { invoice: IBookingType }) {
-  const { id, status, riderInfo, driverInfo, bookingDate, bookingTime, requestInfo } = invoice || {}
+  const {
+    id,
+    status,
+    riderInfo,
+    driverInfo,
+    bookingDate,
+    bookingTime,
+    requestInfo,
+  } = invoice || {};
 
-  const styles = useStyles()
+  const styles = useStyles();
+  
 
   return (
     <Document>
@@ -92,12 +112,12 @@ export default function InvoicePDF({ invoice }: { invoice: IBookingType }) {
         <View style={[styles.gridContainer, styles.mb60]}>
           {/* eslint-disable-next-line jsx-a11y/alt-text */}
           <Image
-            src="/assets/logo.png"
-            source="/assets/logo.png"
+            src="/home/header logo.png"
+            source="/home/header logo.png"
             style={{ width: 48, height: 48 }}
           />
 
-          <View style={{ alignItems: 'flex-end', flexDirection: 'column' }}>
+          <View style={{ alignItems: "flex-end", flexDirection: "column" }}>
             <Text style={[styles.h3, { marginBottom: 8 }]}>{status}</Text>
             <Text>Booking ID: {id} </Text>
           </View>
@@ -111,11 +131,17 @@ export default function InvoicePDF({ invoice }: { invoice: IBookingType }) {
             <Text style={styles.body2}>{riderInfo?.phone_number}</Text>
           </View>
 
-          <View style={[styles.col6, { alignItems: 'flex-end', flexDirection: 'column' }]}>
+          <View
+            style={[
+              styles.col6,
+              { alignItems: "flex-end", flexDirection: "column" },
+            ]}
+          >
             <Text style={[styles.subtitle2, styles.mb4]}>Invoice FROM</Text>
             <Text style={styles.body2}>{driverInfo?.userInfo?.firstName}</Text>
             <Text style={styles.body2}>
-              {driverInfo?.selfAssessmentTaxId || driverInfo?.nationalInsuranceNumber}
+              {driverInfo?.selfAssessmentTaxId ||
+                driverInfo?.nationalInsuranceNumber}
             </Text>
             <Text style={styles.body2}>info@real-support.co.uk</Text>
             <Text style={styles.body2}>07769372911</Text>
@@ -133,11 +159,15 @@ export default function InvoicePDF({ invoice }: { invoice: IBookingType }) {
           </View>
           <View style={styles.col6}>
             <Text style={[styles.subtitle2, styles.mb4]}>Total Duration</Text>
-            <Text style={styles.body2}>{formatDuration(invoice?.totalDuration)}</Text>
+            <Text style={styles.body2}>
+              {formatDuration(invoice?.totalDuration)}
+            </Text>
           </View>
           <View style={styles.col6}>
             <Text style={[styles.subtitle2, styles.mb4]}>Total Distance</Text>
-            <Text style={styles.body2}>{formatDistance(invoice?.totalDistance)}</Text>
+            <Text style={styles.body2}>
+              {formatDistance(invoice?.totalDistance)}
+            </Text>
           </View>
         </View>
 
@@ -148,9 +178,7 @@ export default function InvoicePDF({ invoice }: { invoice: IBookingType }) {
           </View>
           <View style={styles.col6}>
             <Text style={[styles.subtitle2, styles.mb4]}>Destination:</Text>
-            <Text style={styles.body2}>
-              {invoice?.destination?.name || invoice?.destination?.description}
-            </Text>
+            <Text style={styles.body2}>{invoice?.destination?.name || invoice?.destination?.description}</Text>
           </View>
         </View>
 
@@ -207,10 +235,12 @@ export default function InvoicePDF({ invoice }: { invoice: IBookingType }) {
             <Text style={styles.h4}>Total</Text>
           </View>
           <View style={[styles.tableCell_3, styles.alignRight]}>
-            <Text style={styles.h4}>{formattedPrice(invoice?.totalBill || 0)}</Text>
+            <Text style={styles.h4}>
+              {formattedPrice(invoice?.totalBill || 0)}
+            </Text>
           </View>
         </View>
       </Page>
     </Document>
-  )
+  );
 }

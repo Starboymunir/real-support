@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield,
   MapPin,
@@ -134,9 +134,6 @@ function Stat({ value, suffix, label }: { value: number; suffix: string; label: 
 
 export default function Home() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   useEffect(() => {
     const t = setInterval(() => setActiveTestimonial((p) => (p + 1) % testimonials.length), 5000);
@@ -148,55 +145,42 @@ export default function Home() {
       <Navbar />
 
       {/* ------- HERO ------- */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center overflow-hidden" style={{ background: 'linear-gradient(180deg, #000 0%, #060B14 50%, #0A1628 100%)' }}>
+      <section className="relative min-h-screen flex items-center overflow-hidden" style={{ background: 'linear-gradient(180deg, #000 0%, #060B14 50%, #0A1628 100%)' }}>
         {/* Single subtle gradient accent */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-secondary/[0.07] to-transparent rounded-full blur-[120px] pointer-events-none" />
 
         {/* Grid */}
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
 
-        <motion.div
-          style={{ opacity: heroOpacity }}
+        <div
           className="relative z-10 mx-auto max-w-7xl w-full px-6 sm:px-8 pt-32 pb-24 lg:pt-40 lg:pb-36"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
             {/* Left */}
             <div className="max-w-xl">
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] text-[13px] text-white/50 mb-8"
+              <div
+                className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] text-[13px] text-white/50 mb-8 animate-slide-up"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
                 Available 24/7 across the UK
-              </motion.div>
+              </div>
 
-              <motion.h1
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-[-0.03em] text-white"
+              <h1
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-[-0.03em] text-white animate-slide-up"
               >
                 Your ride,
                 <br />
                 <span className="bg-gradient-to-r from-secondary via-accent to-secondary bg-[length:200%_100%] bg-clip-text text-transparent animate-gradient">reimagined.</span>
-              </motion.h1>
+              </h1>
 
-              <motion.p
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="mt-6 text-lg text-white/40 max-w-md leading-relaxed"
+              <p
+                className="mt-6 text-lg text-white/40 max-w-md leading-relaxed animate-slide-up"
               >
                 Premium rides with verified drivers, real-time tracking, and transparent pricing. No surge, ever.
-              </motion.p>
+              </p>
 
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="flex flex-wrap gap-3 mt-10"
+              <div
+                className="flex flex-wrap gap-3 mt-10 animate-slide-up"
               >
                 <Link href="/rider/book" className="group relative inline-flex items-center gap-2.5 bg-white text-black font-semibold text-[15px] px-7 py-3.5 rounded-full overflow-hidden transition-all hover:shadow-[0_0_40px_rgba(255,255,255,0.15)]">
                   <span className="relative z-10 flex items-center gap-2.5">
@@ -207,15 +191,12 @@ export default function Home() {
                 <Link href="/about" className="inline-flex items-center gap-2 text-[15px] font-medium text-white/50 px-6 py-3.5 rounded-full border border-white/[0.08] hover:border-white/20 hover:text-white/70 transition-all">
                   Learn more
                 </Link>
-              </motion.div>
+              </div>
             </div>
 
             {/* Right — Booking Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 32 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-              className="flex justify-center lg:justify-end"
+            <div
+              className="flex justify-center lg:justify-end animate-slide-up"
             >
               <div className="relative w-full max-w-sm">
                 {/* Subtle glow behind card */}
@@ -253,25 +234,20 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
+        <div
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
         >
-          <motion.div
-            animate={{ y: [0, 5, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-5 h-8 rounded-full border border-white/10 flex items-start justify-center p-1.5"
+          <div
+            className="w-5 h-8 rounded-full border border-white/10 flex items-start justify-center p-1.5 animate-bounce"
           >
             <div className="w-1 h-1.5 rounded-full bg-white/40" />
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </section>
 
       {/* ------- TRUST BAR ------- */}

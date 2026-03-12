@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -20,18 +20,20 @@ function LoginContent() {
   const { login, confirmEmail, resendOtp, loading, error, clearError, user } = useAuth();
   const router = useRouter();
 
-  // If already logged in, redirect
-  if (user) {
-    const dest = user.Admin ? '/admin/dashboard' : '/rider/dashboard';
-    router.replace(dest);
-    return null;
-  }
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      const dest = user.Admin ? '/admin/dashboard' : '/rider/dashboard';
+      router.replace(dest);
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
     try {
       await login({ emailAddress: email, password });
+      router.replace('/rider/dashboard');
     } catch (err: unknown) {
       // If user is not confirmed, show OTP step
       const msg = err instanceof Error ? err.message : String(err);

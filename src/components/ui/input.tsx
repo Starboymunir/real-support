@@ -1,12 +1,41 @@
 import * as React from "react"
-
 import { cn } from "@/lib/utils"
+import type { LucideIcon } from "lucide-react"
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  icon?: LucideIcon;
+}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, label, icon: Icon, ...props }, ref) => {
+    if (label || Icon) {
+      return (
+        <div className="w-full">
+          {label && (
+            <label className="block text-sm font-medium text-white mb-1.5">
+              {label}
+            </label>
+          )}
+          <div className="relative">
+            {Icon && (
+              <Icon
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/25 pointer-events-none"
+              />
+            )}
+            <input
+              type={type}
+              className={cn("input-field", Icon && "pl-11", className)}
+              ref={ref}
+              {...props}
+            />
+          </div>
+        </div>
+      )
+    }
+
     return (
       <input
         type={type}

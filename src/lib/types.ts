@@ -612,8 +612,9 @@ export interface CreatePaymentRequestDto {
 
 export interface CalculatePriceDto {
   packageId: string;
-  totalDistance: number;
-  totalDuration: number;
+  distance: number;
+  time: number;
+  couponDiscount?: number;
 }
 
 // ── API Response wrapper ──

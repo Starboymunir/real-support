@@ -23,6 +23,7 @@ import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { requestsApi } from '@/lib/services/bookings';
 import { packagesApi } from '@/lib/services/packages';
+import { othersApi } from '@/lib/services/others';
 import type { Package } from '@/lib/types';
 import AddressAutocomplete, { type PlaceResult } from '@/components/maps/AddressAutocomplete';
 import MapView from '@/components/maps/MapView';
@@ -53,18 +54,23 @@ function getEmoji(name: string): string {
   return '🚗';
 }
 
-/** Estimate fare using the backend Package pricing fields */
-function estimateFareFromPackage(
-  pkg: Package,
+/** Fetch fare estimate from backend */
+async function fetchFareFromBackend(
+  packageId: string,
   distanceMeters: number,
   durationSeconds: number
-): number {
-  const miles = distanceMeters / 1609.34;
-  const mins = durationSeconds / 60;
-  const baseFare = pkg.pricePerMilage * miles + pkg.drivingProMin * mins;
-  const withService = baseFare + pkg.serviceFee;
-  const fare = Math.max(pkg.minBill, withService);
-  return Math.round(fare * 100) / 100;
+): Promise<number> {
+  try {
+    const result = await othersApi.calculatePrice({
+      packageId,
+      distance: distanceMeters,
+      time: durationSeconds,
+    });
+    return result?.price ?? 0;
+  } catch (err) {
+    console.error('[BookRide] Backend price calc failed:', err);
+    return 0;
+  }
 }
 
 export default function BookRide() {
@@ -145,8 +151,9 @@ export default function BookRide() {
 
       if (route) {
         setRouteInfo(route);
-        if (selectedPackage) {
-          setFareEstimate(estimateFareFromPackage(selectedPackage, route.distance, route.duration));
+        if (selectedPackageId) {
+          const fare = await fetchFareFromBackend(selectedPackageId, route.distance, route.duration);
+          setFareEstimate(fare);
         }
       }
       setLoadingRoute(false);
@@ -158,10 +165,10 @@ export default function BookRide() {
 
   // Recalculate fare when vehicle changes
   useEffect(() => {
-    if (routeInfo && selectedPackage) {
-      setFareEstimate(estimateFareFromPackage(selectedPackage, routeInfo.distance, routeInfo.duration));
+    if (routeInfo && selectedPackageId) {
+      fetchFareFromBackend(selectedPackageId, routeInfo.distance, routeInfo.duration).then(setFareEstimate);
     }
-  }, [selectedPackageId, selectedPackage, routeInfo]);
+  }, [selectedPackageId, routeInfo]);
 
   // Build map markers
   const markers = [];

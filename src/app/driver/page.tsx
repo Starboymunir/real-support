@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { driverApi } from '@/lib/services';
+import { authApi } from '@/lib/services/auth';
 import { useAuth } from '@/lib/auth-context';
 import type { Driver } from '@/lib/types';
 import {
@@ -66,40 +67,78 @@ export default function DriverRegistrationPage() {
   const { user, refreshUser } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  const existingDriver = user?.driver;
+
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || '', lastName: user?.lastName || '', email: user?.emailAddress || 'driver@rscab.co.uk', phone: user?.phone_number || '', dob: '',
+    firstName: '', lastName: '', email: '', phone: '', dob: '',
     niNumber: '', taxId: '', address: '', city: '', postcode: '', bio: '', hobby: '',
   });
+
+  // Pre-fill from user and existing driver data
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.emailAddress || '',
+        phone: user.phone_number || '',
+        dob: existingDriver?.dateOfBirth
+          ? new Date(existingDriver.dateOfBirth).toISOString().split('T')[0]
+          : prev.dob,
+        niNumber: existingDriver?.nationalInsuranceNumber || prev.niNumber,
+        taxId: existingDriver?.selfAssessmentTaxId || prev.taxId,
+        bio: existingDriver?.bio || prev.bio,
+        hobby: existingDriver?.hobby || prev.hobby,
+      }));
+    }
+  }, [user, existingDriver]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (navigateNext = false) => {
     setError('');
+    setSuccessMsg('');
     setSubmitting(true);
     try {
-      const result = await driverApi.register({
-        userId: user!.id,
-        nationalInsuranceNumber: formData.niNumber,
-        selfAssessmentTaxId: formData.taxId,
-        dateOfBirth: formData.dob,
-        bio: formData.bio,
-        hobby: formData.hobby,
-      }) as unknown as Driver;
-      // Store the new driver ID so subsequent pages can use it immediately
+      const dto: Record<string, string> = { userId: user!.id };
+      if (formData.niNumber) dto.nationalInsuranceNumber = formData.niNumber;
+      if (formData.taxId) dto.selfAssessmentTaxId = formData.taxId;
+      if (formData.dob) dto.dateOfBirth = formData.dob;
+      if (formData.bio) dto.bio = formData.bio;
+      if (formData.hobby) dto.hobby = formData.hobby;
+
+      const result = await driverApi.register(dto as Parameters<typeof driverApi.register>[0]) as unknown as Driver;
       if (result?.id) {
         localStorage.setItem('rs_driver_id', result.id);
       }
-      // Refresh user context so user.driver is populated
+      // Also update user name/phone if changed
+      await authApi.updateCurrentUser({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone_number: formData.phone,
+      });
       await refreshUser();
-      router.push('/driver/vehicle');
+      if (navigateNext) {
+        router.push('/driver/vehicle');
+      } else {
+        setSuccessMsg('Progress saved! You can continue later.');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to save. Please try again.');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleSave(true);
   };
 
   return (
@@ -190,26 +229,26 @@ export default function DriverRegistrationPage() {
 
             <form onSubmit={handleSubmit} className="space-y-7">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField label="First Name" name="firstName" icon={<User size={18} />} placeholder="Enter your first name" value={formData.firstName} onChange={handleChange} required />
-                <FormField label="Last Name" name="lastName" icon={<User size={18} />} placeholder="Enter your last name" value={formData.lastName} onChange={handleChange} required />
+                <FormField label="First Name" name="firstName" icon={<User size={18} />} placeholder="Enter your first name" value={formData.firstName} onChange={handleChange} />
+                <FormField label="Last Name" name="lastName" icon={<User size={18} />} placeholder="Enter your last name" value={formData.lastName} onChange={handleChange} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField label="Email Address" name="email" type="email" icon={<Mail size={18} />} value={formData.email} disabled />
-                <FormField label="Phone Number" name="phone" type="tel" icon={<Phone size={18} />} placeholder="+44 7700 900000" value={formData.phone} onChange={handleChange} required />
+                <FormField label="Phone Number" name="phone" type="tel" icon={<Phone size={18} />} placeholder="+44 7700 900000" value={formData.phone} onChange={handleChange} />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormField label="Date of Birth" name="dob" type="date" icon={<Calendar size={18} />} value={formData.dob} onChange={handleChange} required />
-                <FormField label="NI Number" name="niNumber" icon={<Hash size={18} />} placeholder="QQ 12 34 56 C" value={formData.niNumber} onChange={handleChange} required />
+                <FormField label="Date of Birth" name="dob" type="date" icon={<Calendar size={18} />} value={formData.dob} onChange={handleChange} />
+                <FormField label="NI Number" name="niNumber" icon={<Hash size={18} />} placeholder="QQ 12 34 56 C" value={formData.niNumber} onChange={handleChange} />
                 <FormField label="Tax ID" name="taxId" icon={<Hash size={18} />} placeholder="Enter tax ID" value={formData.taxId} onChange={handleChange} />
               </div>
 
-              <FormField label="Address" name="address" icon={<MapPin size={18} />} placeholder="Enter your full address" value={formData.address} onChange={handleChange} required />
+              <FormField label="Address" name="address" icon={<MapPin size={18} />} placeholder="Enter your full address" value={formData.address} onChange={handleChange} />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField label="City" name="city" icon={<Building2 size={18} />} placeholder="Enter your city" value={formData.city} onChange={handleChange} required />
-                <FormField label="Postcode" name="postcode" icon={<MapPin size={18} />} placeholder="Enter postcode" value={formData.postcode} onChange={handleChange} required />
+                <FormField label="City" name="city" icon={<Building2 size={18} />} placeholder="Enter your city" value={formData.city} onChange={handleChange} />
+                <FormField label="Postcode" name="postcode" icon={<MapPin size={18} />} placeholder="Enter postcode" value={formData.postcode} onChange={handleChange} />
               </div>
 
               <div>
@@ -219,9 +258,12 @@ export default function DriverRegistrationPage() {
 
               <FormField label="Hobby" name="hobby" icon={<Heart size={18} />} placeholder="What do you enjoy doing?" value={formData.hobby} onChange={handleChange} />
 
-              {/* Error Display */}
+              {/* Error / Success Display */}
               {error && (
                 <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>
+              )}
+              {successMsg && (
+                <div className="p-3 rounded-xl bg-secondary/10 border border-secondary/20 text-secondary text-sm">{successMsg}</div>
               )}
 
               {/* Buttons */}
@@ -229,9 +271,19 @@ export default function DriverRegistrationPage() {
                 <Link href="/rider/dashboard" className="px-7 py-3.5 rounded-full border border-white/[0.08] text-white/40 font-medium text-sm hover:border-white/15 hover:text-white/60 transition-all">
                   Cancel
                 </Link>
-                <button type="submit" disabled={submitting} className="inline-flex items-center gap-2.5 bg-white text-black font-semibold px-7 py-3.5 rounded-full text-sm hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50">
-                  {submitting ? 'Saving...' : 'Next: Vehicle Details'} <Car size={16} />
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => handleSave(false)}
+                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-white/[0.08] text-white/60 font-medium text-sm hover:border-secondary/30 hover:text-secondary transition-all disabled:opacity-50"
+                  >
+                    {submitting ? 'Saving...' : 'Save Progress'}
+                  </button>
+                  <button type="submit" disabled={submitting} className="inline-flex items-center gap-2.5 bg-white text-black font-semibold px-7 py-3.5 rounded-full text-sm hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50">
+                    {submitting ? 'Saving...' : 'Next: Vehicle Details'} <Car size={16} />
+                  </button>
+                </div>
               </div>
             </form>
           </div>

@@ -6,10 +6,16 @@ import { api } from '../api';
 import type { CalculatePriceDto } from '../types';
 
 export interface PriceResult {
-  totalBill: number;
+  price: number;
   serviceFee: number;
+  discountAmount: number;
+  farePerMile: number;
+  farePerMinute: number;
+  distancePrice: number;
+  timePrice: number;
+  averagePrice: number;
+  totalFareBeforeVat: number;
   vat: number;
-  breakdown: Record<string, number>;
 }
 
 export interface UpdateLocationDto {

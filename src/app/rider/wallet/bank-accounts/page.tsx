@@ -81,7 +81,7 @@ export default function BankAccountsPage() {
       let documentUrl = '';
       if (docFile) {
         const uploadRes = await documentsApi.uploadFile(docFile, { type: 'bank-proof', userId: user.id });
-        documentUrl = (uploadRes as unknown as { data?: { fileUrl?: string }; fileUrl?: string })?.data?.fileUrl || (uploadRes as unknown as { fileUrl?: string })?.fileUrl || '';
+        documentUrl = (uploadRes as { fileUrl?: string })?.fileUrl || '';
       }
       const payload = { ...form, userId: user.id, ...(documentUrl ? { document: documentUrl } : {}) };
       if (editingId) {

@@ -92,6 +92,9 @@ export default function DriverRegistrationPage() {
         taxId: existingDriver?.selfAssessmentTaxId || prev.taxId,
         bio: existingDriver?.bio || prev.bio,
         hobby: existingDriver?.hobby || prev.hobby,
+        address: existingDriver?.address || prev.address,
+        city: existingDriver?.city || prev.city,
+        postcode: existingDriver?.postcode || prev.postcode,
       }));
     }
   }, [user, existingDriver]);
@@ -111,6 +114,9 @@ export default function DriverRegistrationPage() {
       if (formData.dob) dto.dateOfBirth = formData.dob;
       if (formData.bio) dto.bio = formData.bio;
       if (formData.hobby) dto.hobby = formData.hobby;
+      if (formData.address) dto.address = formData.address;
+      if (formData.city) dto.city = formData.city;
+      if (formData.postcode) dto.postcode = formData.postcode;
 
       const result = await driverApi.register(dto as Parameters<typeof driverApi.register>[0]) as unknown as Driver;
       if (result?.id) {

@@ -82,6 +82,7 @@ export default function RiderProfilePage() {
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
       setPhone(user.phone_number || '');
+      setAddress((user as any).address || '');
     }
   }, [user]);
 
@@ -93,7 +94,8 @@ export default function RiderProfilePage() {
         firstName,
         lastName,
         phone_number: phone,
-      });
+        address,
+      } as any);
       await refreshUser();
       setSaveMsg('Profile updated successfully!');
     } catch (err) {

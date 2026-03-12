@@ -20,6 +20,7 @@ import {
   Users,
   ChevronDown,
   ArrowLeft,
+  Save,
 } from 'lucide-react';
 
 const steps = [
@@ -56,6 +57,7 @@ export default function VehiclePage() {
     seats: '',
   });
   const [wheelchairAccessible, setWheelchairAccessible] = useState(false);
+  const [savingProgress, setSavingProgress] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -76,6 +78,46 @@ export default function VehiclePage() {
   const getDriverId = (): string => {
     if (user?.driver?.id) return user.driver.id;
     return localStorage.getItem('rs_driver_id') || '';
+  };
+
+  const handleSaveProgress = async () => {
+    setError('');
+    const driverId = getDriverId();
+    if (!driverId) {
+      setError('Driver profile not found. Please complete Step 1 first.');
+      return;
+    }
+    setSavingProgress(true);
+    try {
+      let carImageUrl: string | undefined;
+      if (vehiclePhoto) {
+        const uploaded = await documentsApi.uploadFile(vehiclePhoto);
+        carImageUrl = (uploaded as { fileUrl?: string; url?: string })?.fileUrl
+          || (uploaded as { url?: string })?.url;
+      }
+      const createData = {
+        make: formData.make,
+        model: formData.model,
+        year: formData.year,
+        color: formData.color,
+        numberPlate: formData.regNumber,
+        engine: formData.vehicleType || 'Petrol',
+        seats: formData.seats ? parseInt(formData.seats, 10) : 4,
+        driverId,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result: any = await driverCarsApi.create(carImageUrl ? { ...createData, carImage: carImageUrl } as any : createData);
+      if (result?.id) {
+        localStorage.setItem('rs_car_id', result.id);
+      }
+      await refreshUser();
+      setError('');
+      alert('Vehicle progress saved!');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save vehicle progress.');
+    } finally {
+      setSavingProgress(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,6 +148,7 @@ export default function VehiclePage() {
         color: formData.color,
         numberPlate: formData.regNumber,
         engine: formData.vehicleType || 'Petrol',
+        seats: formData.seats ? parseInt(formData.seats, 10) : 4,
         driverId,
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -385,10 +428,16 @@ export default function VehiclePage() {
                 <ArrowLeft size={18} />
                 Back
               </Button>
-              <button type="submit" disabled={submitting} className="inline-flex items-center gap-2 bg-secondary text-dark font-semibold px-6 py-3 rounded-xl text-sm hover:bg-secondary-light transition-all disabled:opacity-50">
-                {submitting ? 'Saving...' : 'Next: Documents'}
-                <FileText size={18} />
-              </button>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={handleSaveProgress} disabled={savingProgress || submitting} className="inline-flex items-center gap-2 border border-white/10 text-white/70 font-semibold px-5 py-3 rounded-xl text-sm hover:border-secondary/50 hover:text-secondary transition-all disabled:opacity-50">
+                  {savingProgress ? 'Saving...' : 'Save Progress'}
+                  <Save size={18} />
+                </button>
+                <button type="submit" disabled={submitting || savingProgress} className="inline-flex items-center gap-2 bg-secondary text-dark font-semibold px-6 py-3 rounded-xl text-sm hover:bg-secondary-light transition-all disabled:opacity-50">
+                  {submitting ? 'Saving...' : 'Next: Documents'}
+                  <FileText size={18} />
+                </button>
+              </div>
             </div>
           </form>
         </div>

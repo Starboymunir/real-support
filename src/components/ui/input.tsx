@@ -27,7 +27,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             )}
             <input
               type={type}
-              className={cn("input-field", Icon && "pl-11", className)}
+              className={cn(
+                "w-full py-3.5 px-4.5 border-[1.5px] border-white/10 rounded-xl bg-white/[0.04] text-white text-[0.95rem] transition-all duration-250 placeholder:text-white/35 focus:outline-none focus:border-secondary focus:shadow-[0_0_0_4px_rgba(0,230,118,0.08)] focus:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-50",
+                Icon && "pl-11",
+                className
+              )}
               ref={ref}
               {...props}
             />

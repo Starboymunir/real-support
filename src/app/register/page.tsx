@@ -121,7 +121,7 @@ function RegisterContent() {
               <button
                 type="button"
                 disabled={socialLoading}
-                onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
+                onClick={() => { window.location.href = `${API_BASE}/auth/google?origin=${encodeURIComponent(window.location.origin)}`; }}
                 className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@ function RegisterContent() {
               <button
                 type="button"
                 disabled={socialLoading}
-                onClick={() => { window.location.href = `${API_BASE}/auth/apple`; }}
+                onClick={() => { window.location.href = `${API_BASE}/auth/apple?origin=${encodeURIComponent(window.location.origin)}`; }}
                 className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-black text-white font-semibold text-sm hover:bg-gray-900 transition-colors disabled:opacity-50 border border-white/10"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

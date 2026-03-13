@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
 import {
   User,
   Mail,
@@ -19,11 +19,15 @@ import {
   ChevronRight,
   Lock,
   Loader2,
+  LogOut,
+  Camera,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { useRouter } from 'next/navigation';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { authApi } from '@/lib/services/auth';
-import { ApiError } from '@/lib/api';
+import { documentsApi } from '@/lib/services/documents';
+import { ApiError, resolveImageUrl } from '@/lib/api';
 
 /* ------------------------------------------------------------------ */
 /*  Toggle Switch                                                      */
@@ -53,7 +57,9 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
 
 export default function RiderProfilePage() {
   const { user } = useRequireAuth();
-  const { refreshUser } = useAuth();
+  const { refreshUser, logout } = useAuth();
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -62,6 +68,9 @@ export default function RiderProfilePage() {
   const [defaultPayment, setDefaultPayment] = useState('cash');
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
 
   const [notifRideUpdates, setNotifRideUpdates] = useState(true);
   const [notifPromotions, setNotifPromotions] = useState(true);
@@ -74,6 +83,7 @@ export default function RiderProfilePage() {
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
       setPhone(user.phone_number || '');
+      setAddress((user as any).address || '');
     }
   }, [user]);
 
@@ -85,13 +95,45 @@ export default function RiderProfilePage() {
         firstName,
         lastName,
         phone_number: phone,
-      });
+        address,
+      } as any);
       await refreshUser();
       setSaveMsg('Profile updated successfully!');
     } catch (err) {
       setSaveMsg(err instanceof ApiError ? err.message : 'Failed to save');
     } finally {
       setSaving(false);
+      setTimeout(() => setSaveMsg(''), 3000);
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveMsg('Photo must be under 5 MB');
+      setTimeout(() => setSaveMsg(''), 3000);
+      return;
+    }
+    setUploadingPhoto(true);
+    setSaveMsg('');
+    try {
+      // Show preview immediately from the file
+      const preview = URL.createObjectURL(file);
+      setLocalPreview(preview);
+      setImgError(false);
+
+      const res = await documentsApi.uploadFile(file) as { fileUrl?: string };
+      const fileUrl = res?.fileUrl;
+      if (!fileUrl) throw new Error('Upload failed');
+      await authApi.updateCurrentUser({ profileImageUrl: fileUrl });
+      await refreshUser();
+      setSaveMsg('Photo updated successfully!');
+    } catch (err) {
+      setLocalPreview(null);
+      setSaveMsg(err instanceof ApiError ? err.message : 'Failed to upload photo');
+    } finally {
+      setUploadingPhoto(false);
       setTimeout(() => setSaveMsg(''), 3000);
     }
   };
@@ -132,8 +174,38 @@ export default function RiderProfilePage() {
       {/* ── Profile Header ──────────────────────────────────────── */}
       <div className="bg-white/[0.02] rounded-2xl p-6 sm:p-8 border border-white/[0.06] mb-8 hover:bg-white/[0.04] transition-all">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center text-3xl font-bold text-white shrink-0 ring-4 ring-secondary/20">
-            {initials}
+          <div className="relative group">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={handlePhotoUpload}
+            />
+            {(localPreview || resolveImageUrl(user?.profileImageUrl)) && !imgError ? (
+              <img
+                src={localPreview || resolveImageUrl(user?.profileImageUrl)!}
+                alt="Profile"
+                onError={() => { setLocalPreview(null); setImgError(true); }}
+                className="w-24 h-24 rounded-full object-cover ring-4 ring-secondary/20"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-secondary to-accent flex items-center justify-center text-3xl font-bold text-white shrink-0 ring-4 ring-secondary/20">
+                {initials}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
+            >
+              {uploadingPhoto ? (
+                <Loader2 size={20} className="text-white animate-spin" />
+              ) : (
+                <Camera size={20} className="text-white" />
+              )}
+            </button>
           </div>
 
           <div className="text-center sm:text-left flex-1">
@@ -320,6 +392,33 @@ export default function RiderProfilePage() {
               </button>
             </div>
           </div>
+
+          {/* ── Logout ──────────────────────────────────────────── */}
+          <button
+            onClick={() => { logout(); router.push('/login'); }}
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-white/[0.02] border border-white/5 text-white/60 hover:text-error hover:border-error/30 hover:bg-error/5 transition-all"
+          >
+            <LogOut size={18} />
+            <span className="text-sm font-semibold">Logout</span>
+          </button>
+
+          {/* ── Become a Driver ──────────────────────────────────── */}
+          {!user?.driver && (
+            <div className="bg-gradient-to-br from-secondary/[0.06] to-accent/[0.04] rounded-2xl p-6 border border-secondary/20">
+              <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                  <Car size={18} className="text-secondary" />
+                </div>
+                Become a Driver
+              </h3>
+              <p className="text-sm text-white/40 mb-4 leading-relaxed">
+                Earn on your own schedule. Register as a driver and start accepting rides.
+              </p>
+              <Button variant="green" size="md" href="/driver" className="w-full">
+                <Car size={16} /> Start Registration
+              </Button>
+            </div>
+          )}
 
           {/* ── Danger Zone ──────────────────────────────────────── */}
           <div className="bg-white/[0.02] rounded-2xl p-6 border border-error/30">

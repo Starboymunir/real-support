@@ -1,0 +1,185 @@
+"use client";
+
+import { ColumnDef } from "@tanstack/react-table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DataTableColumnHeader } from "./TableColumnHeader";
+import { DataTableRowActions } from "./TableRowActions";
+import { formatToLocalDate, formattedPrice } from "@/lib/utils";
+import { statuses } from "./Status";
+import { FormattedBookingType } from "../UserBookingsTable";
+
+export const columns: ColumnDef<FormattedBookingType>[] = [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        className="translate-y-[2px]"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        className="translate-y-[2px]"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "id",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Booking ID" />
+    ),
+    cell: ({ row }) => <div className="flex">{row.getValue("id")}</div>,
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "bookingDate",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Date" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex space-x-2">
+          <span className="flex truncate font-medium">
+            {formatToLocalDate(row.getValue("bookingDate"))}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "bookingTime",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Time" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex space-x-2">
+          <span className="flex truncate font-medium">
+            {row.getValue("bookingTime")}
+          </span>
+        </div>
+      );
+    },
+  },
+
+  {
+    accessorKey: "status",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Status" />
+    ),
+    cell: ({ row }) => {
+      const status = statuses.find(
+        (status) => status.value === row.getValue("status")
+      );
+
+      if (!status) {
+        return null;
+      }
+
+      return (
+        <div className="flex w-[100px] items-center">
+          {status.icon && (
+            <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+          )}
+          <span>{status.label}</span>
+        </div>
+      );
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
+    },
+  },
+  {
+    accessorKey: "packageName",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Package" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex space-x-2">
+          <span className="flex truncate font-medium">
+            {row.getValue("packageName")}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "start",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="From" />
+    ),
+    cell: ({ row }) => {
+      console.log("row-----", row);
+      
+      return (
+        <div className="flex space-x-2">
+          <span className="flex truncate font-medium">
+            {row.getValue("start")}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "destination",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Destination" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex space-x-2">
+          <span className="flex truncate font-medium">
+            {row.getValue("destination")}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "paymentType",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Payment Type" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex space-x-2">
+          <span className="flex truncate font-medium">
+            {row.getValue("paymentType")}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "totalBill",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Total Bill" />
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex space-x-2">
+          <span className="flex truncate font-medium">
+            {formattedPrice(row.getValue("totalBill"))}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    id: "actions",
+    header: () => <div>Action</div>,
+    cell: ({ row }) => <DataTableRowActions row={row} />,
+  },
+];

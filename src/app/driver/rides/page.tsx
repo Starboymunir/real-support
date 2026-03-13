@@ -7,17 +7,12 @@ import { useSocket } from '@/lib/socket-context';
 import { bookingsApi } from '@/lib/services/bookings';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  MapPin,
-  Clock,
-  DollarSign,
   Users,
   Navigation,
   CheckCircle,
   Loader2,
   Phone,
   MessageSquare,
-  Route,
-  Car,
   CreditCard,
   Banknote,
   ArrowRight,
@@ -29,7 +24,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import type { Booking, BookingStatus } from '@/lib/types';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import Link from 'next/link';
 
 const fadeUp = {

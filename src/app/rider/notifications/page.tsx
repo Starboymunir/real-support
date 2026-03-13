@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { notificationsApi } from '@/lib/services/notifications';
 import type { Notification as ApiNotification } from '@/lib/types';

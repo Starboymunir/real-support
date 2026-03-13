@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { documentsApi } from '@/lib/services';
 import {
@@ -157,6 +157,7 @@ export default function DocumentsPage() {
         }));
       }
     } catch { /* keep initial */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   useEffect(() => { fetchDocuments(); }, [fetchDocuments]);

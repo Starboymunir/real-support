@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Car,
   MapPin,
@@ -13,22 +13,19 @@ import {
   CalendarDays,
   Bookmark,
   TrendingUp,
-  Gift,
   ChevronRight,
-  Zap,
-  Shield,
   Sparkles,
   Route,
   CreditCard,
   ArrowUpRight,
   CalendarOff,
+  ShieldCheck,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import { useAuth } from '@/lib/auth-context';
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bookingsApi } from '@/lib/services/bookings';
 import { walletApi } from '@/lib/services/wallet';
@@ -256,6 +253,43 @@ export default function RiderDashboard() {
             </div>
           </motion.div>
         </div>
+
+        {/* ═══════ BECOME DRIVER / SWITCH TO DRIVER ═══════ */}
+        <motion.div initial="hidden" animate="visible" custom={4.5} variants={fadeUp}>
+          <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-r from-amber-500/[0.06] via-white/[0.02] to-orange-500/[0.04] p-5 sm:p-6">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-amber-500/[0.06] rounded-full blur-[60px] pointer-events-none" />
+            <div className="relative flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                  <ShieldCheck size={22} className="text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    {user?.driver ? 'Switch to Driver Dashboard' : 'Become a Driver'}
+                  </h3>
+                  <p className="text-white/35 text-xs mt-0.5">
+                    {user?.driver ? 'Access your driver dashboard and start accepting rides.' : 'Start earning by driving with RS CAB. Apply now!'}
+                  </p>
+                </div>
+              </div>
+              {user?.driver ? (
+                <Link
+                  href="/driver/dashboard"
+                  className="px-5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-bold hover:bg-amber-500/20 transition-all flex items-center gap-2"
+                >
+                  Driver Dashboard <ArrowRight size={14} />
+                </Link>
+              ) : (
+                <Link
+                  href="/driver"
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 text-black text-sm font-bold hover:bg-amber-400 transition-all flex items-center gap-2"
+                >
+                  Become Driver <ArrowRight size={14} />
+                </Link>
+              )}
+            </div>
+          </div>
+        </motion.div>
 
         {/* ═══════ QUICK BOOK + UPCOMING ═══════ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

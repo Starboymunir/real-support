@@ -1,38 +1,66 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
-export default function LoginPage() {
+const _raw = process.env.NEXT_PUBLIC_BACKEND_API ?? 'https://backend.real-support.com/api';
+const API_BASE = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
+
+function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, loading, error, clearError, user } = useAuth();
+  const [socialLoading, setSocialLoading] = useState(false);
+  const [otpStep, setOtpStep] = useState(false);
+  const [otp, setOtp] = useState('');
+  const { login, confirmEmail, resendOtp, loading, error, clearError, user } = useAuth();
   const router = useRouter();
 
-  // If already logged in, redirect
-  if (user) {
-    const dest = user.Admin
-      ? '/admin/dashboard'
-      : user.driver
-        ? '/driver/dashboard'
-        : '/rider/dashboard';
-    router.replace(dest);
-    return null;
-  }
+  // If already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      const dest = user.Admin ? '/admin/dashboard' : '/rider/dashboard';
+      router.replace(dest);
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
     try {
       await login({ emailAddress: email, password });
-      // Redirect is handled by the user check above on re-render
+      router.replace('/rider/dashboard');
+    } catch (err: unknown) {
+      // If user is not confirmed, show OTP step
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.toLowerCase().includes('not confirmed') || msg.toLowerCase().includes('confirmation code')) {
+        setOtpStep(true);
+      }
+    }
+  };
+
+  const handleConfirmOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+    try {
+      await confirmEmail({ emailAddress: email, otp });
+      await login({ emailAddress: email, password });
+      router.push('/rider/dashboard');
     } catch {
-      // error is set in context
+      // error set in context
+    }
+  };
+
+  const handleResendOtp = async () => {
+    clearError();
+    try {
+      await resendOtp(email);
+    } catch {
+      // error set in context
     }
   };
 
@@ -99,9 +127,44 @@ export default function LoginPage() {
             <h2 className="text-3xl font-bold text-white text-center mb-2">Welcome back</h2>
             <p className="text-white/35 text-center mb-8">Sign in to continue your journey</p>
 
+            {otpStep ? (
+              /* ── OTP Verification Step ── */
+              <div>
+                <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 text-amber-400 text-sm mb-6">
+                  Your email is not yet verified. Enter the code sent to <span className="font-semibold text-secondary">{email}</span>
+                </div>
+                {error && (
+                  <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm mb-4">
+                    {error}
+                  </div>
+                )}
+                <form onSubmit={handleConfirmOtp} className="space-y-4">
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
+                    <input type="text" placeholder="Enter 6-digit code" value={otp} onChange={(e) => setOtp(e.target.value)} className="input-dark pl-12 text-center text-lg tracking-[0.3em]" maxLength={6} required />
+                  </div>
+                  <button type="submit" disabled={loading} className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Verifying...</> : 'Verify & Sign In'}
+                  </button>
+                  <p className="text-center text-white/35 text-sm mt-2">
+                    Didn&apos;t get the code?{' '}
+                    <button type="button" onClick={handleResendOtp} className="text-secondary font-semibold hover:underline underline-offset-4">Resend</button>
+                  </p>
+                  <button type="button" onClick={() => { setOtpStep(false); clearError(); }} className="text-white/30 text-sm hover:text-white/50 transition-colors w-full text-center mt-2">
+                    ← Back to login
+                  </button>
+                </form>
+              </div>
+            ) : (
+            <>
             {/* Social buttons */}
             <div className="flex gap-3 mb-6">
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm hover:bg-gray-100 transition-colors">
+              <button
+                type="button"
+                disabled={socialLoading}
+                onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -110,11 +173,16 @@ export default function LoginPage() {
                 </svg>
                 Google
               </button>
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1877F2] text-white font-semibold text-sm hover:bg-[#166FE5] transition-colors">
+              <button
+                type="button"
+                disabled={socialLoading}
+                onClick={() => { window.location.href = `${API_BASE}/auth/apple`; }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-black text-white font-semibold text-sm hover:bg-gray-900 transition-colors disabled:opacity-50 border border-white/10"
+              >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                 </svg>
-                Facebook
+                Apple
               </button>
             </div>
 
@@ -149,18 +217,7 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Quick access */}
-            <div className="mt-6 pt-6 border-t border-white/[0.04]">
-              <p className="text-white/20 text-xs text-center mb-3 uppercase tracking-wider">Quick Access</p>
-              <div className="flex gap-2">
-                <Link href="/rider/dashboard" className="flex-1 block text-center py-2.5 rounded-lg bg-white/[0.03] text-white/40 text-xs font-medium hover:bg-white/[0.06] hover:text-white/60 transition-all border border-white/[0.04]">
-                  Rider Dashboard
-                </Link>
-                <Link href="/driver/dashboard" className="flex-1 block text-center py-2.5 rounded-lg bg-white/[0.03] text-white/40 text-xs font-medium hover:bg-white/[0.06] hover:text-white/60 transition-all border border-white/[0.04]">
-                  Driver Dashboard
-                </Link>
-              </div>
-            </div>
+
 
             <p className="text-center text-white/35 mt-6 text-sm">
               New here?{' '}
@@ -175,9 +232,19 @@ export default function LoginPage() {
                 Admin Login <span className="text-secondary">→</span>
               </Link>
             </div>
+            </>
+            )}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: '#060B14' }}><Loader2 className="w-8 h-8 text-white animate-spin" /></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

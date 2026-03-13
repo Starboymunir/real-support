@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { companyApi, bookingsApi } from '@/lib/services';
 import type { Booking } from '@/lib/types';
@@ -43,8 +43,8 @@ export default function CompanyEmployeesPage() {
   const [search, setSearch] = useState('');
   const [activeDept, setActiveDept] = useState('All');
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteFirstName, setInviteFirstName] = useState('');
-  const [inviteLastName, setInviteLastName] = useState('');
+  const [, setInviteFirstName] = useState('');
+  const [, setInviteLastName] = useState('');
   const [inviting, setInviting] = useState(false);
   const [inviteError, setInviteError] = useState('');
   const [inviteSuccess, setInviteSuccess] = useState(false);

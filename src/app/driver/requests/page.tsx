@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useSocket } from '@/lib/socket-context';
 import { requestsApi, bookingsApi } from '@/lib/services/bookings';
@@ -14,7 +14,6 @@ import {
   Clock,
   DollarSign,
   Users,
-  Navigation,
   CheckCircle,
   XCircle,
   Loader2,
@@ -27,7 +26,6 @@ import {
   ChevronUp,
   Send,
   Inbox,
-  ArrowRight,
   Calendar,
   StickyNote,
 } from 'lucide-react';

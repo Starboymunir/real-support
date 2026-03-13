@@ -84,8 +84,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const res = await promise;
-      // Backend returns { idToken, accessToken, cognitoId, userData }
-      setToken(res.idToken);
+      setToken(res.accessToken);
+      if (typeof window !== 'undefined' && res.refreshToken) {
+        localStorage.setItem('rs_refresh_token', res.refreshToken);
+      }
       setState({ user: res.userData, loading: false, error: null });
     } catch (err) {
       const message =
@@ -193,6 +195,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     setToken(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('rs_refresh_token');
+    }
     setState({ user: null, loading: false, error: null });
   }, []);
 

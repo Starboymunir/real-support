@@ -1,21 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Eye, EyeOff, User, Phone, Loader2, Car } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Phone, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
-type FormRole = 'rider' | 'driver';
+const _raw = process.env.NEXT_PUBLIC_BACKEND_API ?? 'https://backend.real-support.com/api';
+const API_BASE = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
 
-export default function RegisterPage() {
+type FormRole = 'rider';
+
+function RegisterContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [otpStep, setOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
-  const [role, setRole] = useState<FormRole>('rider');
+  const [socialLoading, setSocialLoading] = useState(false);
   const [form, setForm] = useState({
     firstName: '', lastName: '', phone: '', email: '', password: '', confirmPassword: '',
   });
@@ -36,7 +39,7 @@ export default function RegisterPage() {
         emailAddress: form.email,
         password: form.password,
         phone_number: form.phone.startsWith('+44') ? form.phone : `+44${form.phone.replace(/^0/, '')}`,
-        mode: role === 'driver' ? 'DRIVER' : 'PASSENGER',
+        mode: 'PASSENGER',
       });
       setOtpStep(true);
     } catch {
@@ -51,7 +54,7 @@ export default function RegisterPage() {
       await confirmEmail({ emailAddress: form.email, otp });
       // Auto-login after verification
       await login({ emailAddress: form.email, password: form.password });
-      router.push(role === 'driver' ? '/driver' : '/rider/dashboard');
+      router.push('/rider/dashboard');
     } catch {
       // error set in context
     }
@@ -113,19 +116,14 @@ export default function RegisterPage() {
             <h2 className="text-3xl font-bold text-white text-center mb-2">Create Account</h2>
             <p className="text-white/35 text-center mb-5">Join the premium ride experience</p>
 
-            {/* Role toggle */}
-            <div className="flex gap-2 mb-5 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-              <button type="button" onClick={() => setRole('rider')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${role === 'rider' ? 'bg-white text-black' : 'text-white/40 hover:text-white/60'}`}>
-                <User className="w-4 h-4" /> Rider
-              </button>
-              <button type="button" onClick={() => setRole('driver')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${role === 'driver' ? 'bg-white text-black' : 'text-white/40 hover:text-white/60'}`}>
-                <Car className="w-4 h-4" /> Driver
-              </button>
-            </div>
-
             {/* Social signup */}
             <div className="flex gap-3 mb-5">
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm hover:bg-gray-100 transition-colors">
+              <button
+                type="button"
+                disabled={socialLoading}
+                onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
+              >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -134,11 +132,16 @@ export default function RegisterPage() {
                 </svg>
                 Google
               </button>
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#1877F2] text-white font-semibold text-sm hover:bg-[#166FE5] transition-colors">
+              <button
+                type="button"
+                disabled={socialLoading}
+                onClick={() => { window.location.href = `${API_BASE}/auth/apple`; }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-black text-white font-semibold text-sm hover:bg-gray-900 transition-colors disabled:opacity-50 border border-white/10"
+              >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                 </svg>
-                Facebook
+                Apple
               </button>
             </div>
 
@@ -258,5 +261,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" style={{ background: '#060B14' }}><Loader2 className="w-8 h-8 text-white animate-spin" /></div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }

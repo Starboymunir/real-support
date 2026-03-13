@@ -1,0 +1,52 @@
+{
+  "aws_project_region": "eu-west-1",
+  "aws_cognito_identity_pool_id": "eu-west-1:6c12228e-39dd-446f-bffc-8db5bd797461",
+  "aws_cognito_region": "eu-west-1",
+  "aws_user_pools_id": "eu-west-1_FyNcSVyDm",
+  "aws_user_pools_web_client_id": "1vmqk1ehvdo7l8h1cnfkqia12p",
+  "oauth": {
+    "domain": "1bore8wpsu8b-dev.auth.eu-west-1.amazoncognito.com",
+    "scope": [
+      "phone",
+      "email",
+      "openid",
+      "profile",
+      "aws.cognito.signin.user.admin"
+    ],
+    "redirectSignIn": "rscabpssl://,http://localhost:3000/login/,http://localhost:3000/register/,https://real-support.co.uk/login/,https://real-support.co.uk/register/,https://www.real-support.co.uk/login/,https://www.real-support.co.uk/register/,https://real-support.com/register/,https://www.real-support.com/login/,https://real-support.com/login/,https://www.real-support.com/register/",
+    "redirectSignOut": "rscabpssl://,http://localhost:3000/login/,http://localhost:3000/register/,https://real-support.co.uk/login/,https://real-support.co.uk/register/,https://www.real-support.co.uk/login/,https://www.real-support.co.uk/register/,https://real-support.com/register/,https://www.real-support.com/login/,https://real-support.com/login/,https://www.real-support.com/register/",
+    "responseType": "code"
+  },
+  "federationTarget": "COGNITO_USER_POOLS",
+  "aws_cognito_username_attributes": [
+    "EMAIL"
+  ],
+  "aws_cognito_social_providers": [
+    "FACEBOOK",
+    "GOOGLE"
+  ],
+  "aws_cognito_signup_attributes": [
+    "EMAIL",
+    "GIVEN_NAME",
+    "NAME"
+  ],
+  "aws_cognito_mfa_configuration": "OPTIONAL",
+  "aws_cognito_mfa_types": [
+    "SMS",
+    "TOTP"
+  ],
+  "aws_cognito_password_protection_settings": {
+    "passwordPolicyMinLength": 8,
+    "passwordPolicyCharacters": [
+      "REQUIRES_LOWERCASE",
+      "REQUIRES_NUMBERS",
+      "REQUIRES_SYMBOLS",
+      "REQUIRES_UPPERCASE"
+    ]
+  },
+  "aws_cognito_verification_mechanisms": [
+    "EMAIL"
+  ],
+  "aws_user_files_s3_bucket": "psslrscab-storage-bucket4439f-dev",
+  "aws_user_files_s3_bucket_region": "eu-west-1"
+}

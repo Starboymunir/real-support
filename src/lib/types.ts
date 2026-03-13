@@ -62,7 +62,6 @@ export interface User {
   coverImage?: string;
   ratings: number;
   mode: UserMode;
-  cognitoId: string;
   socketId?: string;
   isEmailConfirm?: string;
   isDeleted: boolean;
@@ -583,9 +582,8 @@ export interface CreateBookingDto {
 
 export interface CreatePaymentIntentDto {
   amount: number;
-  email: string;
+  email?: string;
   userId: string;
-  cognitoId: string;
   currency?: string;
   description?: string;
 }
@@ -614,8 +612,9 @@ export interface CreatePaymentRequestDto {
 
 export interface CalculatePriceDto {
   packageId: string;
-  totalDistance: number;
-  totalDuration: number;
+  distance: number;
+  time: number;
+  couponDiscount?: number;
 }
 
 // ── API Response wrapper ──

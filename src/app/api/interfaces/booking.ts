@@ -1,0 +1,36 @@
+interface Booking {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  status: BookingStatus;
+  driverInfo: Driver | null;
+  driverId: string;
+  passengerId: string;
+  riderInfo: Passenger | null;
+  paymentType: Payment;
+  paymentStatus: boolean;
+  paymentMethodToken?: string | null;
+  authorizationKey?: string | null;
+  requestId: string;
+  requestInfo: Request | null;
+  driverName: string;
+  servicePartnerEmail: string;
+  servicePartnerPhone: string;
+  nationalInsuranceNumber?: string | null;
+  selfAssessmentTaxId?: string | null;
+  commission?: number | null;
+  clientName: string;
+  clientNumber?: string | null;
+  clientEmail: string;
+  packageName: string;
+  bookingDate: Date;
+  bookingTime: string;
+  startAddress: string;
+  destination: string;
+  totalDistance: number;
+  totalDistanceTime?: string | null;
+  totalWaitingTime?: string | null;
+  totalBill: number;
+  vehicleNumberPlate: string;
+  Invoice: Invoice | null;
+}

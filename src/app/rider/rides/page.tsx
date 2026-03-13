@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bookingsApi, requestsApi } from '@/lib/services/bookings';
 import type { Booking, RideRequest } from '@/lib/types';
@@ -121,7 +121,7 @@ export default function MyRides() {
   const [activeTab, setActiveTab] = useState<RideStatus>('All');
   const [search, setSearch] = useState('');
   const [rides, setRides] = useState<Ride[]>([]);
-  const [loadingRides, setLoadingRides] = useState(true);
+  const [, setLoadingRides] = useState(true);
 
   const fetchRides = useCallback(async () => {
     if (!user?.id) return;

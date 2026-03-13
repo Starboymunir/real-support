@@ -15,9 +15,8 @@ import type {
 
 /** Shape returned by the backend login endpoint (after envelope unwrap) */
 export interface LoginResponse {
-  idToken: string;
   accessToken: string;
-  cognitoId: string;
+  refreshToken: string;
   userData: User;
 }
 
@@ -57,4 +56,5 @@ export const authApi = {
 
   changePassword: (dto: ChangePasswordDto) =>
     api.post('/auth/change-password', dto),
+
 };

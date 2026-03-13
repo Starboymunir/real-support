@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  MapPin,
   Plus,
   X,
   CalendarDays,
@@ -20,10 +19,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { requestsApi } from '@/lib/services/bookings';
 import { packagesApi } from '@/lib/services/packages';
+import { othersApi } from '@/lib/services/others';
 import type { Package } from '@/lib/types';
 import AddressAutocomplete, { type PlaceResult } from '@/components/maps/AddressAutocomplete';
 import MapView from '@/components/maps/MapView';
@@ -54,21 +54,23 @@ function getEmoji(name: string): string {
   return '🚗';
 }
 
-/** Estimate fare using the backend Package pricing fields */
-function estimateFareFromPackage(
-  pkg: Package,
+/** Fetch fare estimate from backend */
+async function fetchFareFromBackend(
+  packageId: string,
   distanceMeters: number,
   durationSeconds: number
-): { min: number; max: number } {
-  const miles = distanceMeters / 1609.34;
-  const mins = durationSeconds / 60;
-  const baseFare = pkg.pricePerMilage * miles + pkg.drivingProMin * mins;
-  const withService = baseFare + pkg.serviceFee;
-  const fare = Math.max(pkg.minBill, withService);
-  return {
-    min: Math.round(fare * 0.95 * 100) / 100,
-    max: Math.round(fare * 1.15 * 100) / 100,
-  };
+): Promise<number> {
+  try {
+    const result = await othersApi.calculatePrice({
+      packageId,
+      distance: distanceMeters,
+      time: durationSeconds,
+    });
+    return result?.price ?? 0;
+  } catch (err) {
+    console.error('[BookRide] Backend price calc failed:', err);
+    return 0;
+  }
 }
 
 export default function BookRide() {
@@ -88,7 +90,8 @@ export default function BookRide() {
   const [time, setTime] = useState('');
   const [note, setNote] = useState('');
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
-  const [fareEstimate, setFareEstimate] = useState<{ min: number; max: number } | null>(null);
+  const [fareEstimate, setFareEstimate] = useState<number | null>(null);
+  const [faresByPackage, setFaresByPackage] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [loadingRoute, setLoadingRoute] = useState(false);
   const [error, setError] = useState('');
@@ -132,6 +135,7 @@ export default function BookRide() {
     if (!pickupPlace || !dropoffPlace) {
       setRouteInfo(null);
       setFareEstimate(null);
+      setFaresByPackage({});
       return;
     }
 
@@ -149,8 +153,17 @@ export default function BookRide() {
 
       if (route) {
         setRouteInfo(route);
-        if (selectedPackage) {
-          setFareEstimate(estimateFareFromPackage(selectedPackage, route.distance, route.duration));
+        // Fetch fares for ALL packages in parallel
+        const faresMap: Record<string, number> = {};
+        await Promise.all(
+          packages.map(async (pkg) => {
+            const fare = await fetchFareFromBackend(pkg.id, route.distance, route.duration);
+            faresMap[pkg.id] = fare;
+          })
+        );
+        setFaresByPackage(faresMap);
+        if (selectedPackageId && faresMap[selectedPackageId] !== undefined) {
+          setFareEstimate(faresMap[selectedPackageId]);
         }
       }
       setLoadingRoute(false);
@@ -158,14 +171,14 @@ export default function BookRide() {
 
     fetchRoute();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pickupPlace, dropoffPlace, stops]);
+  }, [pickupPlace, dropoffPlace, stops, packages]);
 
-  // Recalculate fare when vehicle changes
+  // Update fareEstimate when selected vehicle changes
   useEffect(() => {
-    if (routeInfo && selectedPackage) {
-      setFareEstimate(estimateFareFromPackage(selectedPackage, routeInfo.distance, routeInfo.duration));
+    if (selectedPackageId && faresByPackage[selectedPackageId] !== undefined) {
+      setFareEstimate(faresByPackage[selectedPackageId]);
     }
-  }, [selectedPackageId, selectedPackage, routeInfo]);
+  }, [selectedPackageId, routeInfo]);
 
   // Build map markers
   const markers = [];
@@ -226,7 +239,7 @@ export default function BookRide() {
         paymentType: paymentMethod === 'card' ? 'WALLET' : 'CASH',
         totalDistance: routeInfo ? Math.round(routeInfo.distance) : 0,
         totalDuration: routeInfo ? Math.round(routeInfo.duration) : 0,
-        totalBill: fareEstimate ? Math.round(fareEstimate.max) : 0,
+        totalBill: fareEstimate ? Math.round(fareEstimate) : 0,
         totalPersons: passengers,
         totalLuggage: 0,
         notes: note || undefined,
@@ -424,7 +437,7 @@ export default function BookRide() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {packages.map((pkg) => {
                     const active = selectedPackageId === pkg.id;
-                    const fare = routeInfo ? estimateFareFromPackage(pkg, routeInfo.distance, routeInfo.duration) : null;
+                    const fare = faresByPackage[pkg.id] ?? null;
                     return (
                       <button
                         key={pkg.id}
@@ -447,7 +460,7 @@ export default function BookRide() {
                         <p className="text-xs text-white/40 mt-0.5">{pkg.summary}</p>
                         <div className="flex items-center justify-between mt-3">
                           <span className="text-sm font-bold text-white">
-                            {fare ? `£${fare.min.toFixed(0)} – £${fare.max.toFixed(0)}` : `from £${pkg.minBill.toFixed(0)}`}
+                            {fare ? `£${fare.toFixed(2)}` : `from £${pkg.minBill.toFixed(0)}`}
                           </span>
                           <span className="text-xs text-white/40 flex items-center gap-1">
                             <Clock size={12} /> {routeInfo ? formatDuration(routeInfo.duration) : '—'}
@@ -590,16 +603,28 @@ export default function BookRide() {
                     </div>
                   </>
                 )}
+                {date && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/40 flex items-center gap-2"><CalendarDays size={15} /> Date</span>
+                    <span className="font-medium text-white">{new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                  </div>
+                )}
+                {time && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/40 flex items-center gap-2"><Clock size={15} /> Time</span>
+                    <span className="font-medium text-white">{time}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-white/40 flex items-center gap-2"><Car size={15} /> Vehicle</span>
                   <span className="font-medium text-white capitalize">{selectedPackage?.name || '—'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/40">Est. Fare</span>
+                  <span className="text-white/40">Fare</span>
                   {loadingRoute ? (
                     <Loader2 size={14} className="text-secondary animate-spin" />
                   ) : fareEstimate ? (
-                    <span className="font-bold text-white">£{fareEstimate.min.toFixed(0)} – £{fareEstimate.max.toFixed(0)}</span>
+                    <span className="font-bold text-white">£{fareEstimate.toFixed(2)}</span>
                   ) : (
                     <span className="text-white/30">—</span>
                   )}

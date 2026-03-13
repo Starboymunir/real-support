@@ -19,7 +19,7 @@ export const walletApi = {
     api.get<Wallet>(`/payment-transaction/wallets/${userId}`),
 
   createPaymentIntent: (dto: CreatePaymentIntentDto) =>
-    api.post<{ clientSecret: string }>('/payment-transaction/intent', dto),
+    api.post<{ paymentIntent: string; paymentIntentId: string }>('/payment-transaction/intent', dto),
 
   createTopUp: (dto: CreateTopUpDto) =>
     api.post<Transaction>('/payment-transaction/transaction', dto),

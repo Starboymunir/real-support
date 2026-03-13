@@ -11,7 +11,6 @@ import {
   Send,
   ArrowLeft,
   Search,
-  Check,
   CheckCheck,
   User,
   Loader2,

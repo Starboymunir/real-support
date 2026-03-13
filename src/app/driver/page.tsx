@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { driverApi } from '@/lib/services';
 import { authApi } from '@/lib/services/auth';
 import { useAuth } from '@/lib/auth-context';
+import { toast } from '@/lib/toast';
 import type { Driver } from '@/lib/types';
 import {
   User,
@@ -130,13 +131,17 @@ export default function DriverRegistrationPage() {
       });
       await refreshUser();
       if (navigateNext) {
+        toast.success('Profile saved!', 'Proceeding to vehicle registration...');
         router.push('/driver/vehicle');
       } else {
+        toast.success('Progress saved!', 'You can continue later.');
         setSuccessMsg('Progress saved! You can continue later.');
         setTimeout(() => setSuccessMsg(''), 3000);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save. Please try again.');
+      const msg = err instanceof Error ? err.message : 'Failed to save. Please try again.';
+      setError(msg);
+      toast.error('Save failed', msg);
     } finally {
       setSubmitting(false);
     }

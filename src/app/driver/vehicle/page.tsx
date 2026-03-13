@@ -9,6 +9,7 @@ import Input from '@/components/ui/input';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useAuth } from '@/lib/auth-context';
 import { driverCarsApi, documentsApi } from '@/lib/services';
+import { toast } from '@/lib/toast';
 import {
   User,
   Car,
@@ -112,9 +113,11 @@ export default function VehiclePage() {
       }
       await refreshUser();
       setError('');
-      alert('Vehicle progress saved!');
+      toast.success('Progress saved!', 'Vehicle details have been saved. You can continue later.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save vehicle progress.');
+      const msg = err instanceof Error ? err.message : 'Failed to save vehicle progress.';
+      setError(msg);
+      toast.error('Save failed', msg);
     } finally {
       setSavingProgress(false);
     }
@@ -160,9 +163,12 @@ export default function VehiclePage() {
       }
       // Refresh user context so user.driver.car is populated
       await refreshUser();
+      toast.success('Vehicle registered!', 'Proceeding to document uploads...');
       router.push('/driver/documents');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save vehicle details.');
+      const msg = err instanceof Error ? err.message : 'Failed to save vehicle details.';
+      setError(msg);
+      toast.error('Registration failed', msg);
     } finally {
       setSubmitting(false);
     }

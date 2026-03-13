@@ -19,6 +19,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi } from '@/lib/services/wallet';
+import { toast } from '@/lib/toast';
 import type { PaymentRequest } from '@/lib/types';
 
 const fadeUp = {
@@ -91,6 +92,7 @@ export default function RequestsPage() {
         onAccountOf: onAccountOf.trim(),
         remarks: remarks.trim() || undefined,
       });
+      toast.success('Request sent!', 'Payment request has been sent successfully.');
       setShowForm(false);
       setRecipientEmail('');
       setAmount('');
@@ -98,7 +100,9 @@ export default function RequestsPage() {
       setRemarks('');
       fetchRequests();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to send request');
+      const msg = err instanceof Error ? err.message : 'Failed to send request';
+      setError(msg);
+      toast.error('Request failed', msg);
     } finally {
       setSubmitting(false);
     }
@@ -109,8 +113,10 @@ export default function RequestsPage() {
     try {
       if (action === 'confirm') {
         await walletApi.confirmRequest(id);
+        toast.success('Request confirmed!');
       } else {
         await walletApi.declineRequest(id);
+        toast.info('Request declined.');
       }
       fetchRequests();
     } catch {

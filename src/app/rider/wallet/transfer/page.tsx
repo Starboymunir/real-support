@@ -16,6 +16,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi } from '@/lib/services/wallet';
+import { toast } from '@/lib/toast';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -49,6 +50,7 @@ export default function TransferPage() {
     if (!user?.id || numAmount < 1 || !recipientEmail.trim()) return;
     if (numAmount > currentBalance) {
       setError('Insufficient balance');
+      toast.error('Insufficient balance', 'You do not have enough funds for this transfer.');
       return;
     }
     setProcessing(true);
@@ -60,9 +62,12 @@ export default function TransferPage() {
         amount: numAmount,
         narration: narration.trim() || undefined,
       });
+      toast.success('Transfer complete!', `£${numAmount.toFixed(2)} has been sent successfully.`);
       setSuccess(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Transfer failed. Please try again.');
+      const msg = err instanceof Error ? err.message : 'Transfer failed. Please try again.';
+      setError(msg);
+      toast.error('Transfer failed', msg);
     } finally {
       setProcessing(false);
     }

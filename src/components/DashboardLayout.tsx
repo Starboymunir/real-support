@@ -9,6 +9,7 @@ import { useSocket } from '@/lib/socket-context';
 import { notificationsApi } from '@/lib/services/notifications';
 import { chatApi } from '@/lib/services/chat';
 import { userInfoApi } from '@/lib/services/user';
+import { resolveImageUrl } from '@/lib/api';
 import {
   LayoutDashboard,
   Navigation,
@@ -177,6 +178,9 @@ export default function DashboardLayout({
 
   // Use real user name if available
   const displayName = userName ?? (user ? `${user.firstName} ${user.lastName}` : 'Guest');
+  const avatarUrl = resolveImageUrl(user?.profileImageUrl);
+  const [avatarError, setAvatarError] = useState(false);
+  const showAvatar = !!avatarUrl && !avatarError;
 
   // Fetch initial unread counts
   useEffect(() => {
@@ -305,18 +309,26 @@ export default function DashboardLayout({
         <div className={`border-t border-white/5 p-4 ${collapsed ? 'flex flex-col items-center gap-2' : ''}`}>
           {collapsed ? (
             <>
-              <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold">
-                {getInitials(displayName)}
-              </div>
+              {showAvatar ? (
+                <img src={avatarUrl!} alt="" onError={() => setAvatarError(true)} className="w-10 h-10 rounded-full object-cover" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold">
+                  {getInitials(displayName)}
+                </div>
+              )}
               <button onClick={handleLogout} title="Logout" className="p-2 rounded-lg text-white/20 hover:text-error hover:bg-error/10 transition-all">
                 <LogOut size={16} />
               </button>
             </>
           ) : (
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold shrink-0">
-                {getInitials(displayName)}
-              </div>
+              {showAvatar ? (
+                <img src={avatarUrl!} alt="" onError={() => setAvatarError(true)} className="w-10 h-10 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary text-xs font-bold shrink-0">
+                  {getInitials(displayName)}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="text-white text-sm font-medium truncate">{displayName}</p>
                 <p className="text-white/30 text-xs capitalize">{role}</p>
@@ -434,9 +446,13 @@ export default function DashboardLayout({
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center gap-2.5 pl-3 border-l border-white/[0.08] cursor-pointer hover:bg-white/[0.03] rounded-lg pr-2 py-1.5 transition-colors"
               >
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center text-secondary text-xs font-bold">
-                  {getInitials(displayName)}
-                </div>
+                {showAvatar ? (
+                  <img src={avatarUrl!} alt="" onError={() => setAvatarError(true)} className="w-9 h-9 rounded-full object-cover" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center text-secondary text-xs font-bold">
+                    {getInitials(displayName)}
+                  </div>
+                )}
                 <div className="text-left">
                   <p className="text-sm font-semibold text-white">{displayName}</p>
                   <p className="text-xs text-white/40 capitalize">{role}</p>

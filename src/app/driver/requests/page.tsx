@@ -8,6 +8,7 @@ import { useRequireAuth } from '@/lib/use-require-auth';
 import { useSocket } from '@/lib/socket-context';
 import { requestsApi, bookingsApi } from '@/lib/services/bookings';
 import { bidsApi } from '@/lib/services/bids';
+import { toast } from '@/lib/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin,
@@ -111,11 +112,14 @@ export default function DriverRequestsPage() {
     setError('');
     try {
       await bookingsApi.create({ driverId, requestId: request.id });
+      toast.success('Ride accepted!', 'You have been assigned to this ride.');
       // Remove from list after accepting
       setRequests(prev => prev.filter(r => r.id !== request.id));
       router.push('/driver/rides');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to accept ride');
+      const msg = err instanceof Error ? err.message : 'Failed to accept ride';
+      setError(msg);
+      toast.error('Accept failed', msg);
     } finally {
       setActionLoading(null);
     }
@@ -126,11 +130,13 @@ export default function DriverRequestsPage() {
     const amount = parseFloat(bidAmounts[request.id] || '');
     if (!amount || amount <= 0) {
       setError('Please enter a valid bid amount');
+      toast.error('Invalid bid', 'Please enter a valid bid amount.');
       return;
     }
     const minBid = (request.totalBill || 0) * 0.7;
     if (amount < minBid) {
       setError(`Minimum bid is £${minBid.toFixed(2)} (70% of fare)`);
+      toast.error('Bid too low', `Minimum bid is £${minBid.toFixed(2)} (70% of fare).`);
       return;
     }
     setActionLoading(request.id);
@@ -142,10 +148,13 @@ export default function DriverRequestsPage() {
         bidAmount: amount,
         passengerId: request.passengerId,
       });
+      toast.success('Bid placed!', `Your bid of £${amount.toFixed(2)} has been submitted.`);
       // Remove from list or mark as bid
       setRequests(prev => prev.filter(r => r.id !== request.id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to place bid');
+      const msg = err instanceof Error ? err.message : 'Failed to place bid';
+      setError(msg);
+      toast.error('Bid failed', msg);
     } finally {
       setActionLoading(null);
     }
@@ -156,9 +165,12 @@ export default function DriverRequestsPage() {
     setError('');
     try {
       await requestsApi.decline(requestId);
+      toast.info('Request declined.');
       setRequests(prev => prev.filter(r => r.id !== requestId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to decline request');
+      const msg = err instanceof Error ? err.message : 'Failed to decline request';
+      setError(msg);
+      toast.error('Decline failed', msg);
     } finally {
       setActionLoading(null);
     }

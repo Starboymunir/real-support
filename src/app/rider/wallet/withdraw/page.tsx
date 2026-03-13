@@ -21,6 +21,7 @@ import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi } from '@/lib/services/wallet';
 import { bankAccountApi } from '@/lib/services/bank-accounts';
+import { toast } from '@/lib/toast';
 import type { BankAccount } from '@/lib/types';
 
 const fadeUp = {
@@ -73,9 +74,12 @@ export default function WithdrawPage() {
         bankAccountId: selectedAccountId,
         notes: `Withdrawal to ${selectedAccount?.bankName || 'bank account'} (****${selectedAccount?.accountNumber.slice(-4) || ''})`,
       });
+      toast.success('Withdrawal requested!', `£${numAmount.toFixed(2)} withdrawal is being processed.`);
       setSuccess(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Withdrawal failed');
+      const msg = err instanceof Error ? err.message : 'Withdrawal failed';
+      setError(msg);
+      toast.error('Withdrawal failed', msg);
     } finally {
       setProcessing(false);
     }

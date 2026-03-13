@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useSocket } from '@/lib/socket-context';
 import { bookingsApi } from '@/lib/services/bookings';
+import { toast } from '@/lib/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users,
@@ -117,11 +118,22 @@ export default function DriverRidesPage() {
     setError('');
     try {
       await bookingsApi.update(bookingId, { status: newStatus });
+      const statusLabels: Record<string, string> = {
+        WAY_TO_PICKUP: 'On the way to pickup',
+        ARRIVED: 'Arrived at pickup',
+        PICKED_UP: 'Passenger picked up',
+        WAY_TO_DESTINATION: 'On the way',
+        COMPLETED: 'Ride completed!',
+        CANCELLED: 'Ride cancelled',
+      };
+      toast.success('Status updated', statusLabels[newStatus] || `Status changed to ${newStatus}`);
       setBookings(prev => prev.map(b =>
         b.id === bookingId ? { ...b, status: newStatus } : b
       ));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update ride status');
+      const msg = err instanceof Error ? err.message : 'Failed to update ride status';
+      setError(msg);
+      toast.error('Update failed', msg);
     } finally {
       setActionLoading(null);
     }

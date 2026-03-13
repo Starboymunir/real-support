@@ -20,6 +20,7 @@ import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bankAccountApi } from '@/lib/services/bank-accounts';
 import { documentsApi } from '@/lib/services/documents';
+import { toast } from '@/lib/toast';
 import type { BankAccount } from '@/lib/types';
 
 const fadeUp = {
@@ -89,13 +90,16 @@ export default function BankAccountsPage() {
       } else {
         await bankAccountApi.create(payload);
       }
+      toast.success(editingId ? 'Account updated!' : 'Account added!', 'Your bank account has been saved successfully.');
       setShowForm(false);
       setEditingId(null);
       setForm(emptyForm);
       setDocFile(null);
       fetchAccounts();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save account');
+      const msg = err instanceof Error ? err.message : 'Failed to save account';
+      setError(msg);
+      toast.error('Save failed', msg);
     } finally {
       setSubmitting(false);
     }

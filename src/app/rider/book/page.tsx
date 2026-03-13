@@ -2,13 +2,13 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Plus,
   X,
   CalendarDays,
   Clock,
   Car,
-  CreditCard,
   Banknote,
   Shield,
   Users,
@@ -16,6 +16,8 @@ import {
   ChevronRight,
   Route,
   Loader2,
+  Wallet,
+  AlertTriangle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -24,10 +26,12 @@ import { useRequireAuth } from '@/lib/use-require-auth';
 import { requestsApi } from '@/lib/services/bookings';
 import { packagesApi } from '@/lib/services/packages';
 import { othersApi } from '@/lib/services/others';
+import { walletApi } from '@/lib/services/wallet';
 import type { Package } from '@/lib/types';
 import AddressAutocomplete, { type PlaceResult } from '@/components/maps/AddressAutocomplete';
 import MapView from '@/components/maps/MapView';
 import { getRoute, formatDistance, formatDuration, type RouteInfo } from '@/lib/mapbox';
+import { toast } from '@/lib/toast';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -79,7 +83,7 @@ export default function BookRide() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [selectedPackageId, setSelectedPackageId] = useState('');
   const [loadingPackages, setLoadingPackages] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'wallet' | 'cash'>('wallet');
   const [stops, setStops] = useState<{ text: string; place?: PlaceResult }[]>([]);
   const [passengers, setPassengers] = useState(1);
   const [pickupPlace, setPickupPlace] = useState<PlaceResult | null>(null);
@@ -95,6 +99,10 @@ export default function BookRide() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingRoute, setLoadingRoute] = useState(false);
   const [error, setError] = useState('');
+
+  // Wallet state
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [loadingWallet, setLoadingWallet] = useState(false);
 
   const selectedPackage = packages.find((p) => p.id === selectedPackageId);
 
@@ -180,6 +188,17 @@ export default function BookRide() {
     }
   }, [selectedPackageId, routeInfo]);
 
+  // Fetch wallet balance
+  useEffect(() => {
+    if (!user) return;
+    setLoadingWallet(true);
+    walletApi
+      .getUserWallet(user.id)
+      .then((w) => setWalletBalance(w?.balance ?? 0))
+      .catch(() => setWalletBalance(0))
+      .finally(() => setLoadingWallet(false));
+  }, [user]);
+
   // Build map markers
   const markers = [];
   if (pickupPlace) {
@@ -203,9 +222,22 @@ export default function BookRide() {
   const handleConfirmBooking = useCallback(async () => {
     if (!user) return;
     if (!pickupPlace || !dropoffPlace) {
-      setError('Please select pickup and drop-off locations');
+      toast.error('Missing locations', 'Please select pickup and drop-off locations.');
       return;
     }
+
+    // Wallet balance check
+    if (paymentMethod === 'wallet') {
+      const needed = fareEstimate ?? 0;
+      if (walletBalance === null || walletBalance < needed) {
+        toast.error(
+          'Insufficient wallet balance',
+          `You need £${needed.toFixed(2)} but only have £${(walletBalance ?? 0).toFixed(2)}. Please top up your wallet first.`
+        );
+        return;
+      }
+    }
+
     setSubmitting(true);
     setError('');
     try {
@@ -220,6 +252,8 @@ export default function BookRide() {
 
       const bookingDateStr = date || new Date().toISOString().split('T')[0];
       const bookingTimeStr = time || new Date().toTimeString().slice(0, 5);
+
+      const paymentTypeMap = { wallet: 'WALLET', cash: 'CASH' } as const;
 
       const request = await requestsApi.create({
         startFrom: {
@@ -236,7 +270,7 @@ export default function BookRide() {
         },
         stoppages: stoppageAddresses.length > 0 ? stoppageAddresses : undefined,
         packageId: selectedPackageId,
-        paymentType: paymentMethod === 'card' ? 'WALLET' : 'CASH',
+        paymentType: paymentTypeMap[paymentMethod],
         totalDistance: routeInfo ? Math.round(routeInfo.distance) : 0,
         totalDuration: routeInfo ? Math.round(routeInfo.duration) : 0,
         totalBill: fareEstimate ? Math.round(fareEstimate) : 0,
@@ -255,14 +289,17 @@ export default function BookRide() {
         walletCollected: 0,
       });
       if (request?.id) {
+        toast.success('Ride booked!', 'Your ride has been confirmed. Finding a driver for you...');
         router.push('/rider/rides');
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create booking');
+      const msg = err instanceof Error ? err.message : 'Failed to create booking';
+      setError(msg);
+      toast.error('Booking failed', msg);
     } finally {
       setSubmitting(false);
     }
-  }, [user, pickupPlace, dropoffPlace, date, time, selectedPackageId, selectedPackage, fareEstimate, paymentMethod, passengers, note, stops, routeInfo, router]);
+  }, [user, pickupPlace, dropoffPlace, date, time, selectedPackageId, selectedPackage, fareEstimate, paymentMethod, passengers, note, stops, routeInfo, router, walletBalance]);
 
   return (
     <DashboardLayout role="rider" pageTitle="Book a Ride">
@@ -484,32 +521,36 @@ export default function BookRide() {
               <h2 className="text-lg font-semibold text-white mb-5">Payment Method</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Wallet */}
                 <button
-                  onClick={() => setPaymentMethod('card')}
+                  onClick={() => setPaymentMethod('wallet')}
                   className={`flex items-center gap-4 rounded-2xl border-2 p-4 transition-all duration-200 cursor-pointer ${
-                    paymentMethod === 'card'
+                    paymentMethod === 'wallet'
                       ? 'border-secondary bg-secondary/[0.06]'
                       : 'border-white/[0.06] hover:border-white/[0.1]'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    paymentMethod === 'card' ? 'bg-secondary/10 text-secondary' : 'bg-white/[0.06] text-white/40'
+                    paymentMethod === 'wallet' ? 'bg-secondary/10 text-secondary' : 'bg-white/[0.06] text-white/40'
                   }`}>
-                    <CreditCard size={20} />
+                    <Wallet size={20} />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-semibold text-white">Card / Wallet</p>
-                    <p className="text-xs text-white/40">Pay via wallet balance</p>
+                    <p className="text-sm font-semibold text-white">Wallet</p>
+                    <p className="text-xs text-white/40">
+                      {loadingWallet ? 'Loading...' : walletBalance !== null ? `Balance: £${walletBalance.toFixed(2)}` : 'Pay from balance'}
+                    </p>
                   </div>
                   <div className="ml-auto">
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      paymentMethod === 'card' ? 'border-secondary' : 'border-white/[0.15]'
+                      paymentMethod === 'wallet' ? 'border-secondary' : 'border-white/[0.15]'
                     }`}>
-                      {paymentMethod === 'card' && <div className="w-2.5 h-2.5 rounded-full bg-secondary" />}
+                      {paymentMethod === 'wallet' && <div className="w-2.5 h-2.5 rounded-full bg-secondary" />}
                     </div>
                   </div>
                 </button>
 
+                {/* Cash */}
                 <button
                   onClick={() => setPaymentMethod('cash')}
                   className={`flex items-center gap-4 rounded-2xl border-2 p-4 transition-all duration-200 cursor-pointer ${
@@ -536,6 +577,19 @@ export default function BookRide() {
                   </div>
                 </button>
               </div>
+
+              {/* Wallet insufficient balance warning */}
+              {paymentMethod === 'wallet' && walletBalance !== null && fareEstimate !== null && walletBalance < fareEstimate && (
+                <div className="mt-4 p-4 rounded-xl bg-amber-500/[0.08] border border-amber-500/20 text-amber-400 text-sm flex items-start gap-2">
+                  <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                  <div>
+                    <p>Insufficient balance. You need £{fareEstimate.toFixed(2)} but only have £{walletBalance.toFixed(2)}.</p>
+                    <Link href="/rider/wallet/topup" className="text-secondary underline font-medium mt-1 inline-block">
+                      Top up your wallet →
+                    </Link>
+                  </div>
+                </div>
+              )}
             </motion.div>
 
             {/* ── Notes ── */}
@@ -648,7 +702,7 @@ export default function BookRide() {
                   </div>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/40 flex items-center gap-2"><CreditCard size={15} /> Payment</span>
+                  <span className="text-white/40 flex items-center gap-2"><Wallet size={15} /> Payment</span>
                   <span className="font-medium text-white capitalize">{paymentMethod}</span>
                 </div>
               </div>

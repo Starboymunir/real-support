@@ -24,6 +24,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi } from '@/lib/services/wallet';
+import { toast } from '@/lib/toast';
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
@@ -79,6 +80,7 @@ function CardForm({
 
       if (stripeError) {
         setError(stripeError.message || 'Payment failed. Please try again.');
+        toast.error('Payment failed', stripeError.message || 'Please try again.');
         setProcessing(false);
         return;
       }
@@ -90,12 +92,16 @@ function CardForm({
           stripeId: paymentIntentId,
           type: 'TOPUP',
         });
+        toast.success('Top-up successful!', `£${amount.toFixed(2)} has been added to your wallet.`);
         onSuccess();
       } else {
         setError('Payment was not completed. Please try again.');
+        toast.error('Payment incomplete', 'Please try again.');
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Payment failed. Please try again.');
+      const msg = err instanceof Error ? err.message : 'Payment failed. Please try again.';
+      setError(msg);
+      toast.error('Payment failed', msg);
     } finally {
       setProcessing(false);
     }
@@ -213,6 +219,7 @@ function TopUpContent() {
 
     if (!stripePromise) {
       setError('Payment is not configured. Please contact support.');
+      toast.error('Payment unavailable', 'Payment is not configured. Please contact support.');
       return;
     }
 

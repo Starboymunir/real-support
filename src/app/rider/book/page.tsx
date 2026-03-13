@@ -91,6 +91,7 @@ export default function BookRide() {
   const [note, setNote] = useState('');
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [fareEstimate, setFareEstimate] = useState<number | null>(null);
+  const [faresByPackage, setFaresByPackage] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [loadingRoute, setLoadingRoute] = useState(false);
   const [error, setError] = useState('');
@@ -134,6 +135,7 @@ export default function BookRide() {
     if (!pickupPlace || !dropoffPlace) {
       setRouteInfo(null);
       setFareEstimate(null);
+      setFaresByPackage({});
       return;
     }
 
@@ -151,9 +153,17 @@ export default function BookRide() {
 
       if (route) {
         setRouteInfo(route);
-        if (selectedPackageId) {
-          const fare = await fetchFareFromBackend(selectedPackageId, route.distance, route.duration);
-          setFareEstimate(fare);
+        // Fetch fares for ALL packages in parallel
+        const faresMap: Record<string, number> = {};
+        await Promise.all(
+          packages.map(async (pkg) => {
+            const fare = await fetchFareFromBackend(pkg.id, route.distance, route.duration);
+            faresMap[pkg.id] = fare;
+          })
+        );
+        setFaresByPackage(faresMap);
+        if (selectedPackageId && faresMap[selectedPackageId] !== undefined) {
+          setFareEstimate(faresMap[selectedPackageId]);
         }
       }
       setLoadingRoute(false);
@@ -161,12 +171,12 @@ export default function BookRide() {
 
     fetchRoute();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pickupPlace, dropoffPlace, stops]);
+  }, [pickupPlace, dropoffPlace, stops, packages]);
 
-  // Recalculate fare when vehicle changes
+  // Update fareEstimate when selected vehicle changes
   useEffect(() => {
-    if (routeInfo && selectedPackageId) {
-      fetchFareFromBackend(selectedPackageId, routeInfo.distance, routeInfo.duration).then(setFareEstimate);
+    if (selectedPackageId && faresByPackage[selectedPackageId] !== undefined) {
+      setFareEstimate(faresByPackage[selectedPackageId]);
     }
   }, [selectedPackageId, routeInfo]);
 
@@ -427,7 +437,7 @@ export default function BookRide() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {packages.map((pkg) => {
                     const active = selectedPackageId === pkg.id;
-                    const fare = routeInfo ? estimateFareFromPackage(pkg, routeInfo.distance, routeInfo.duration) : null;
+                    const fare = faresByPackage[pkg.id] ?? null;
                     return (
                       <button
                         key={pkg.id}

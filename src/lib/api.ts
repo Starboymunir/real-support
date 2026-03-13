@@ -8,6 +8,20 @@
 const _raw = process.env.NEXT_PUBLIC_BACKEND_API ?? 'https://backend.real-support.com/api';
 const BASE = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
 
+// Backend origin without /api — used to resolve relative upload paths
+const BACKEND_ORIGIN = BASE.replace(/\/api\/?$/, '');
+
+/**
+ * Resolve an image URL from the backend.
+ * - Relative paths like `/uploads/file.png` are prefixed with the backend origin.
+ * - Absolute URLs (S3, Google, etc.) are returned as-is.
+ */
+export function resolveImageUrl(url: string | undefined | null): string | null {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${BACKEND_ORIGIN}${url}`;
+}
+
 // ── Token management ──
 
 let _token: string | null = null;

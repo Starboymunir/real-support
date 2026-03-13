@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
@@ -28,7 +27,7 @@ import { useRouter } from 'next/navigation';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { authApi } from '@/lib/services/auth';
 import { documentsApi } from '@/lib/services/documents';
-import { ApiError } from '@/lib/api';
+import { ApiError, resolveImageUrl } from '@/lib/api';
 
 /* ------------------------------------------------------------------ */
 /*  Toggle Switch                                                      */
@@ -70,6 +69,8 @@ export default function RiderProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
 
   const [notifRideUpdates, setNotifRideUpdates] = useState(true);
   const [notifPromotions, setNotifPromotions] = useState(true);
@@ -117,13 +118,19 @@ export default function RiderProfilePage() {
     setUploadingPhoto(true);
     setSaveMsg('');
     try {
+      // Show preview immediately from the file
+      const preview = URL.createObjectURL(file);
+      setLocalPreview(preview);
+      setImgError(false);
+
       const res = await documentsApi.uploadFile(file) as { fileUrl?: string };
       const fileUrl = res?.fileUrl;
       if (!fileUrl) throw new Error('Upload failed');
       await authApi.updateCurrentUser({ profileImageUrl: fileUrl });
       await refreshUser();
-      setSaveMsg('Photo updated!');
+      setSaveMsg('Photo updated successfully!');
     } catch (err) {
+      setLocalPreview(null);
       setSaveMsg(err instanceof ApiError ? err.message : 'Failed to upload photo');
     } finally {
       setUploadingPhoto(false);
@@ -175,12 +182,11 @@ export default function RiderProfilePage() {
               className="hidden"
               onChange={handlePhotoUpload}
             />
-            {user?.profileImageUrl ? (
-              <Image
-                src={user.profileImageUrl}
+            {(localPreview || resolveImageUrl(user?.profileImageUrl)) && !imgError ? (
+              <img
+                src={localPreview || resolveImageUrl(user?.profileImageUrl)!}
                 alt="Profile"
-                width={96}
-                height={96}
+                onError={() => { setLocalPreview(null); setImgError(true); }}
                 className="w-24 h-24 rounded-full object-cover ring-4 ring-secondary/20"
               />
             ) : (

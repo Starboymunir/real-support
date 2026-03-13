@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { setToken } from '@/lib/api';
 import { authApi } from '@/lib/services/auth';
 
 function CallbackContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
 
@@ -33,13 +32,14 @@ function CallbackContent() {
         const dest = user.Admin
           ? '/admin/dashboard'
           : '/rider/dashboard';
-        router.replace(dest);
+        // Use full page load so AuthProvider re-initialises with the stored token
+        window.location.href = dest;
       })
       .catch(() => {
         setToken(null);
         setError('Failed to fetch user profile. Please try logging in again.');
       });
-  }, [searchParams, router]);
+  }, [searchParams]);
 
   if (error) {
     return (

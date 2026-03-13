@@ -1,4 +1,8 @@
-import { loadingButtonClasses } from '@mui/material/LoadingButton';
+// MUI v7: loadingButtonClasses removed from @mui/lab — use stable class names directly
+const loadingButtonClasses = {
+  loadingIndicatorStart: 'MuiLoadingButton-loadingIndicatorStart',
+  loadingIndicatorEnd: 'MuiLoadingButton-loadingIndicatorEnd',
+};
 
 // ----------------------------------------------------------------------
 

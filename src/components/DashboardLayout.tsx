@@ -100,14 +100,14 @@ const bottomTabs: Record<string, { label: string; href: string; icon: typeof Lay
     { label: 'Book', href: '/rider/book', icon: Navigation },
     { label: 'Wallet', href: '/rider/wallet', icon: Wallet },
     { label: 'Rides', href: '/rider/rides', icon: History },
-    { label: 'Profile', href: '/rider/profile', icon: User },
+    { label: 'Chat', href: '/rider/chat', icon: MessageSquare },
   ],
   driver: [
     { label: 'Home', href: '/driver/dashboard', icon: LayoutDashboard },
     { label: 'Requests', href: '/driver/requests', icon: Navigation },
     { label: 'Rides', href: '/driver/rides', icon: History },
     { label: 'Earnings', href: '/driver/earnings', icon: Wallet },
-    { label: 'Alerts', href: '/driver/notifications', icon: Bell },
+    { label: 'Chat', href: '/driver/chat', icon: MessageSquare },
   ],
   company: [
     { label: 'Home', href: '/company/dashboard', icon: LayoutDashboard },
@@ -542,6 +542,11 @@ export default function DashboardLayout({
                   {tab.label === 'Alerts' && unreadNotifications > 0 && (
                     <span className="absolute -top-1 -right-1.5 min-w-[14px] h-[14px] px-0.5 flex items-center justify-center rounded-full bg-secondary text-dark text-[8px] font-bold">
                       {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                    </span>
+                  )}
+                  {tab.label === 'Chat' && unreadChats > 0 && (
+                    <span className="absolute -top-1 -right-1.5 min-w-[14px] h-[14px] px-0.5 flex items-center justify-center rounded-full bg-secondary text-dark text-[8px] font-bold">
+                      {unreadChats > 9 ? '9+' : unreadChats}
                     </span>
                   )}
                 </span>

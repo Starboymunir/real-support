@@ -52,12 +52,12 @@ function useCounter(end: number, dur = 1200) {
 }
 
 /* ── helpers ── */
-function mapTxType(type: string): TxFilter {
+function mapTxType(type: string, amount?: number): TxFilter {
   switch (type) {
     case 'TOPUP': return 'topup';
     case 'EXPENSE': return 'ride';
     case 'WITHDRAW': return 'withdraw';
-    case 'P2P_WALLET': return 'topup';
+    case 'P2P_WALLET': return amount != null && amount < 0 ? 'transfer' : 'topup';
     case 'REFUND': return 'refund';
     default: return 'ride';
   }
@@ -69,13 +69,15 @@ function txIcon(filter: TxFilter) {
     case 'ride': return { icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' };
     case 'refund': return { icon: RefreshCw, color: 'text-purple-400', bg: 'bg-purple-500/10' };
     case 'withdraw': return { icon: Send, color: 'text-orange-400', bg: 'bg-orange-500/10' };
+    case 'transfer': return { icon: ArrowUpRight, color: 'text-blue-400', bg: 'bg-blue-500/10' };
     default: return { icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' };
   }
 }
 
 function txDesc(type: TxFilter, tx: ApiTransaction): string {
   switch (type) {
-    case 'topup': return 'Wallet Top-up';
+    case 'topup': return tx.type === 'P2P_WALLET' ? `Transfer from ${tx.senderInfo?.firstName || 'user'}` : 'Wallet Top-up';
+    case 'transfer': return `Transfer to ${tx.receiverInfo?.firstName || 'user'}`;
     case 'ride': return tx.bookingId ? `Ride ${tx.bookingId.slice(-6)}` : 'Ride Payment';
     case 'refund': return tx.bookingId ? `Refund ${tx.bookingId.slice(-6)}` : 'Refund';
     case 'withdraw': return 'Withdrawal';
@@ -93,7 +95,7 @@ function formatTxDate(iso: string): { date: string; time: string } {
 
 const quickAmounts = [10, 20, 50, 100];
 
-type TxFilter = 'all' | 'topup' | 'ride' | 'refund' | 'withdraw';
+type TxFilter = 'all' | 'topup' | 'ride' | 'refund' | 'withdraw' | 'transfer';
 type DisplayTx = { id: string; type: TxFilter; desc: string; amount: string; date: string; time: string; method: string; icon: typeof ArrowUpRight; color: string; bg: string };
 
 export default function WalletPage() {
@@ -135,10 +137,10 @@ export default function WalletPage() {
         let latestTopup: number | null = null;
 
         const mapped: DisplayTx[] = txList.map((tx) => {
-          const txType = mapTxType(tx.type);
+          const txType = mapTxType(tx.type, tx.amount);
           const { icon, color, bg } = txIcon(txType);
           const { date, time } = formatTxDate(tx.createdAt);
-          const isCredit = tx.type === 'TOPUP' || tx.type === 'P2P_WALLET' || tx.type === 'REFUND';
+          const isCredit = txType !== 'ride' && txType !== 'withdraw' && txType !== 'transfer';
 
           if (tx.type === 'TOPUP') {
             topupTotal += tx.amount;
@@ -201,6 +203,7 @@ export default function WalletPage() {
   const filterButtons: { label: string; value: TxFilter }[] = [
     { label: 'All', value: 'all' },
     { label: 'Top-ups', value: 'topup' },
+    { label: 'Transfers', value: 'transfer' },
     { label: 'Rides', value: 'ride' },
     { label: 'Refunds', value: 'refund' },
     { label: 'Withdrawals', value: 'withdraw' },

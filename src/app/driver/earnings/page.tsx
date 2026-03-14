@@ -150,7 +150,7 @@ export default function EarningsPage() {
         </div>
 
         {/* Period Tabs */}
-        <div className="flex gap-2 bg-white/[0.03] rounded-xl border border-white/[0.06] p-1.5 w-fit">
+        <div className="flex gap-2 bg-white/[0.03] rounded-xl border border-white/[0.06] p-1.5 overflow-x-auto max-w-full">
           {periods.map((p) => (
             <button
               key={p.key}
@@ -252,12 +252,12 @@ export default function EarningsPage() {
                         <span className="text-sm text-white">{tx.time}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-sm">
+                    <td className="px-3 sm:px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm min-w-0">
                         <MapPin size={14} className="text-secondary shrink-0" />
-                        <span className="text-white">{tx.from}</span>
-                        <span className="text-white/40">→</span>
-                        <span className="text-white">{tx.to}</span>
+                        <span className="text-white truncate max-w-[80px] sm:max-w-none">{tx.from}</span>
+                        <span className="text-white/40 shrink-0">→</span>
+                        <span className="text-white truncate max-w-[80px] sm:max-w-none">{tx.to}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">

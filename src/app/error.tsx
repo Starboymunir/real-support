@@ -22,16 +22,16 @@ export default function Error({
         <p className="text-white/40 mb-8 max-w-md mx-auto">
           An unexpected error occurred. Please try again.
         </p>
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-4">
           <button
             onClick={() => reset()}
-            className="inline-flex items-center gap-2 bg-secondary text-dark font-bold px-8 py-3.5 rounded-xl hover:shadow-[0_8px_30px_rgba(0,230,118,0.35)] hover:-translate-y-0.5 transition-all"
+            className="inline-flex items-center gap-2 bg-secondary text-dark font-bold px-6 sm:px-8 py-3.5 rounded-xl hover:shadow-[0_8px_30px_rgba(0,230,118,0.35)] hover:-translate-y-0.5 transition-all"
           >
             Try Again
           </button>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 border border-white/20 text-white font-bold px-8 py-3.5 rounded-xl hover:bg-white/5 transition-all"
+            className="inline-flex items-center gap-2 border border-white/20 text-white font-bold px-6 sm:px-8 py-3.5 rounded-xl hover:bg-white/5 transition-all"
           >
             Go Home
           </Link>

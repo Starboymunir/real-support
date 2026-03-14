@@ -179,7 +179,7 @@ export default function MyRides() {
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
           {/* Tabs */}
-          <div className="flex gap-2 bg-white/[0.03] rounded-xl border border-white/[0.06] p-1.5">
+          <div className="flex gap-2 bg-white/[0.03] rounded-xl border border-white/[0.06] p-1.5 overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab}

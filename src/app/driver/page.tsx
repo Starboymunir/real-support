@@ -217,12 +217,12 @@ export default function DriverRegistrationPage() {
                     }`}>
                       <StepIcon size={20} />
                     </div>
-                    <span className={`text-xs font-semibold whitespace-nowrap ${isActive ? 'text-secondary' : 'text-white/25'}`}>
+                    <span className={`text-xs font-semibold whitespace-nowrap hidden sm:block ${isActive ? 'text-secondary' : 'text-white/25'}`}>
                       {step.label}
                     </span>
                   </div>
                   {i < steps.length - 1 && (
-                    <div className="w-20 sm:w-32 mx-3 mt-[-20px]">
+                    <div className="flex-1 min-w-4 mx-1 sm:mx-3 mt-[-20px]">
                       <div className="h-px bg-white/[0.06]" />
                     </div>
                   )}
@@ -278,20 +278,20 @@ export default function DriverRegistrationPage() {
               )}
 
               {/* Buttons */}
-              <div className="flex items-center justify-between pt-8 border-t border-white/[0.04]">
-                <Link href="/rider/dashboard" className="px-7 py-3.5 rounded-full border border-white/[0.08] text-white/40 font-medium text-sm hover:border-white/15 hover:text-white/60 transition-all">
+              <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-8 border-t border-white/[0.04]">
+                <Link href="/rider/dashboard" className="px-5 sm:px-7 py-3 rounded-full border border-white/[0.08] text-white/40 font-medium text-sm text-center hover:border-white/15 hover:text-white/60 transition-all">
                   Cancel
                 </Link>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <button
                     type="button"
                     disabled={submitting}
                     onClick={() => handleSave(false)}
-                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-white/[0.08] text-white/60 font-medium text-sm hover:border-secondary/30 hover:text-secondary transition-all disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-white/[0.08] text-white/60 font-medium text-sm hover:border-secondary/30 hover:text-secondary transition-all disabled:opacity-50"
                   >
                     {submitting ? 'Saving...' : 'Save Progress'}
                   </button>
-                  <button type="submit" disabled={submitting} className="inline-flex items-center gap-2.5 bg-white text-black font-semibold px-7 py-3.5 rounded-full text-sm hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50">
+                  <button type="submit" disabled={submitting} className="inline-flex items-center justify-center gap-2 bg-white text-black font-semibold px-5 py-3 rounded-full text-sm hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50">
                     {submitting ? 'Saving...' : 'Next: Vehicle Details'} <Car size={16} />
                   </button>
                 </div>

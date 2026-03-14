@@ -177,7 +177,7 @@ export default function CompanyEmployeesPage() {
               required
             />
           </div>
-          <div className="flex gap-3 mt-6">
+          <div className="flex flex-wrap gap-3 mt-6">
             {inviteError && <p className="text-red-400 text-sm self-center">{inviteError}</p>}
             {inviteSuccess && <p className="text-secondary text-sm self-center">Employee invited successfully!</p>}
             <Button variant="green" onClick={handleAddEmployee} disabled={inviting}>
@@ -257,7 +257,7 @@ export default function CompanyEmployeesPage() {
               </div>
 
               {/* 3-stat Info Grid */}
-              <div className="grid grid-cols-3 gap-3 mb-5">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
                 <div className="bg-white/[0.03] rounded-lg p-3 border border-white/[0.04] text-center">
                   <p className="text-xs text-white/40 mb-0.5">Department</p>
                   <p className="text-sm font-semibold text-white">

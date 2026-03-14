@@ -284,7 +284,7 @@ export default function DriverRidesPage() {
                   </div>
 
                   {/* Quick info */}
-                  <div className="flex items-center gap-4 mt-4 pt-3 border-t border-white/[0.04]">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 pt-3 border-t border-white/[0.04]">
                     <div className="flex items-center gap-1.5 text-white/50">
                       <Users size={14} />
                       <span className="text-xs">{booking.riderName}</span>

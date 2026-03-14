@@ -300,7 +300,7 @@ function TopUpContent() {
                 <h2 className="text-xl font-bold text-white mb-1">Choose top-up amount</h2>
                 <p className="text-white/30 text-sm mb-6">Select a preset amount or enter a custom value</p>
 
-                <div className="grid grid-cols-3 gap-3 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                   {presetAmounts.map((a) => (
                     <button
                       key={a}

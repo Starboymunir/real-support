@@ -43,7 +43,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
       }`}
     >
       <span
-        className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-200 ${
+        className={`absolute left-0 top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-200 ${
           checked ? 'translate-x-5' : 'translate-x-0.5'
         }`}
       />

@@ -282,7 +282,7 @@ export default function DocumentsPage() {
                     {isDone ? <Check size={20} /> : <StepIcon size={20} />}
                   </div>
                   <span
-                    className={`text-xs font-semibold whitespace-nowrap ${
+                    className={`text-xs font-semibold whitespace-nowrap hidden sm:block ${
                       isActive ? 'text-secondary' : isDone ? 'text-secondary' : 'text-white/40'
                     }`}
                   >
@@ -461,7 +461,7 @@ export default function DocumentsPage() {
           </div>
 
           {/* Buttons */}
-          <div className="flex items-center justify-between pt-6 mt-6 border-t border-white/[0.06]">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-6 mt-6 border-t border-white/[0.06]">
             <Button variant="outline" href="/driver/vehicle">
               <ArrowLeft size={18} />
               Back

@@ -207,7 +207,7 @@ export default function VehiclePage() {
                     {isDone ? <Check size={20} /> : <StepIcon size={20} />}
                   </div>
                   <span
-                    className={`text-xs font-semibold whitespace-nowrap ${
+                    className={`text-xs font-semibold whitespace-nowrap hidden sm:block ${
                       isActive ? 'text-secondary' : isDone ? 'text-secondary' : 'text-white/25'
                     }`}
                   >
@@ -429,17 +429,17 @@ export default function VehiclePage() {
             )}
 
             {/* Buttons */}
-            <div className="flex items-center justify-between pt-6 border-t border-white/[0.06]">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-6 border-t border-white/[0.06]">
               <Button variant="outline" href="/driver">
                 <ArrowLeft size={18} />
                 Back
               </Button>
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={handleSaveProgress} disabled={savingProgress || submitting} className="inline-flex items-center gap-2 border border-white/10 text-white/70 font-semibold px-5 py-3 rounded-xl text-sm hover:border-secondary/50 hover:text-secondary transition-all disabled:opacity-50">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button type="button" onClick={handleSaveProgress} disabled={savingProgress || submitting} className="inline-flex items-center justify-center gap-2 border border-white/10 text-white/70 font-semibold px-5 py-3 rounded-xl text-sm hover:border-secondary/50 hover:text-secondary transition-all disabled:opacity-50">
                   {savingProgress ? 'Saving...' : 'Save Progress'}
                   <Save size={18} />
                 </button>
-                <button type="submit" disabled={submitting || savingProgress} className="inline-flex items-center gap-2 bg-secondary text-dark font-semibold px-6 py-3 rounded-xl text-sm hover:bg-secondary-light transition-all disabled:opacity-50">
+                <button type="submit" disabled={submitting || savingProgress} className="inline-flex items-center justify-center gap-2 bg-secondary text-dark font-semibold px-5 py-3 rounded-xl text-sm hover:bg-secondary-light transition-all disabled:opacity-50">
                   {submitting ? 'Saving...' : 'Next: Documents'}
                   <FileText size={18} />
                 </button>

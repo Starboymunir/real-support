@@ -321,7 +321,7 @@ export default function DriverRequestsPage() {
                   </div>
 
                   {/* Key metrics */}
-                  <div className="flex items-center gap-4 mt-4 pt-3 border-t border-white/[0.04]">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 pt-3 border-t border-white/[0.04]">
                     <div className="flex items-center gap-1.5 text-secondary">
                       <DollarSign size={16} />
                       <span className="text-sm font-bold">£{(request.totalBill || 0).toFixed(2)}</span>

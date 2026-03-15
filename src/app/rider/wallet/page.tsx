@@ -57,7 +57,7 @@ function mapTxType(type: string, amount?: number): TxFilter {
     case 'TOPUP': return 'topup';
     case 'EXPENSE': return 'ride';
     case 'WITHDRAW': return 'withdraw';
-    case 'P2P_WALLET': return amount != null && amount < 0 ? 'transfer' : 'topup';
+    case 'P2P_WALLET': return 'transfer';
     case 'REFUND': return 'refund';
     default: return 'ride';
   }
@@ -76,8 +76,10 @@ function txIcon(filter: TxFilter) {
 
 function txDesc(type: TxFilter, tx: ApiTransaction): string {
   switch (type) {
-    case 'topup': return tx.type === 'P2P_WALLET' ? `Transfer from ${tx.senderInfo?.firstName || 'user'}` : 'Wallet Top-up';
-    case 'transfer': return `Transfer to ${tx.receiverInfo?.firstName || 'user'}`;
+    case 'topup': return 'Wallet Top-up';
+    case 'transfer': return tx.amount < 0
+      ? `Transfer to ${tx.receiverInfo?.firstName || 'user'}`
+      : `Transfer from ${tx.senderInfo?.firstName || 'user'}`;
     case 'ride': return tx.bookingId ? `Ride ${tx.bookingId.slice(-6)}` : 'Ride Payment';
     case 'refund': return tx.bookingId ? `Refund ${tx.bookingId.slice(-6)}` : 'Refund';
     case 'withdraw': return 'Withdrawal';

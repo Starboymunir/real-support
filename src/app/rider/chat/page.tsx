@@ -193,7 +193,8 @@ export default function RiderChatPage() {
   useEffect(() => {
     if (!socket) return;
     const handleNewMessage = (data: ChatMessage) => {
-      if (data.chatId === activeChat?.id) {
+      // Skip adding own messages — already handled via optimistic + API response
+      if (data.senderId !== user?.id && data.chatId === activeChat?.id) {
         setMessages(prev => {
           if (prev.find(m => m.id === data.id)) return prev;
           return [...prev, data];

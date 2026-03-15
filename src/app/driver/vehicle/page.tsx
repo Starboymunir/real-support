@@ -424,8 +424,9 @@ export default function VehiclePage() {
               >
                 {photoPreview ? (
                   <div className="flex flex-col items-center gap-3">
-                    <Image src={photoPreview} alt="Vehicle preview" width={128} height={96} className="w-32 h-24 object-cover rounded-lg" />
-                    <p className="text-sm text-secondary font-medium">{vehiclePhoto?.name}</p>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={photoPreview} alt="Vehicle preview" className="w-32 h-24 object-cover rounded-lg" />
+                    <p className="text-sm text-secondary font-medium">{vehiclePhoto?.name || 'Current photo'}</p>
                     <p className="text-xs text-white/35">Click to change photo</p>
                   </div>
                 ) : (

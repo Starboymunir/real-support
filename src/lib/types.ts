@@ -148,6 +148,33 @@ export interface Car {
   seats?: number;
   status: CarStatus;
   driverId: string;
+  carDocument?: CarDocument;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CarDocument {
+  id: string;
+  motDocument?: {
+    motDoc?: string;
+    motPassDate?: string;
+    details?: DocumentVerification;
+  };
+  insuranceDocument?: {
+    insuranceDoc?: string;
+    insuranceExpiryDate?: string;
+    details?: DocumentVerification;
+  };
+  pCOVehicleLicense?: {
+    pcoVehicleLicenseDoc?: string;
+    pcoVehicleLicenseExpiryDate?: string;
+    details?: DocumentVerification;
+  };
+  vehicleLogBook?: {
+    vehicleLogBookDoc?: string;
+    details?: DocumentVerification;
+  };
+  carId: string;
   createdAt: string;
   updatedAt: string;
 }

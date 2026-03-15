@@ -68,7 +68,7 @@ const sidebarLinks = {
     { label: 'Dashboard', href: '/driver/dashboard', icon: LayoutDashboard },
     { label: 'Ride Requests', href: '/driver/requests', icon: Navigation },
     { label: 'My Rides', href: '/driver/rides', icon: History },
-    { label: 'Profile', href: '/driver', icon: User },
+    { label: 'Profile', href: '/driver/profile', icon: User },
     { label: 'Vehicle', href: '/driver/vehicle', icon: Car },
     { label: 'Documents', href: '/driver/documents', icon: Upload },
     { label: 'Earnings', href: '/driver/earnings', icon: Wallet },

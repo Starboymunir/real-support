@@ -10,7 +10,6 @@ import {
   Star,
   CheckCircle,
   Target,
-  Power,
   Clock,
   Sunrise,
   Award,
@@ -82,7 +81,6 @@ export default function DriverDashboardPage() {
     }
   }, [user, router]);
 
-  const [isOnline, setIsOnline] = useState(false);
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [todayRides, setTodayRides] = useState(0);
   const [weeklyEarnings, setWeeklyEarnings] = useState(0);
@@ -116,7 +114,6 @@ export default function DriverDashboardPage() {
         const d = 'data' in driverData && driverData.data ? driverData.data : driverData as Driver;
         if (d.ratings) setDriverRating(d.ratings);
         if (d.totalJobComplete) setTotalJobComplete(d.totalJobComplete);
-        if (d.isOnline !== undefined) setIsOnline(d.isOnline);
       }
 
       if (bookingsRes.status === 'fulfilled') {
@@ -194,24 +191,9 @@ export default function DriverDashboardPage() {
                   Welcome back, <span className="gradient-text">{displayName.split(' ')[0]}</span>
                 </h1>
                 <p className="text-white/40 mt-1.5 text-sm">
-                  {isOnline ? "You're live and receiving ride requests" : 'Go online to start earning'}
+                  Your driver dashboard overview
                 </p>
               </div>
-              <button
-                onClick={() => setIsOnline(!isOnline)}
-                className={`group relative inline-flex items-center gap-3 px-7 py-3.5 rounded-2xl font-bold text-sm transition-all duration-500 cursor-pointer ${
-                  isOnline
-                    ? 'bg-secondary/[0.08] text-secondary border border-secondary/20 hover:border-secondary/40 hover:bg-secondary/[0.12] shadow-[0_0_30px_rgba(0,230,118,0.08)]'
-                    : 'bg-white/[0.04] text-white/50 border border-white/[0.08] hover:border-white/20 hover:text-white/70'
-                }`}
-              >
-                <span className="relative flex h-3 w-3">
-                  {isOnline && <span className="animate-ping absolute inset-0 rounded-full bg-secondary opacity-60" />}
-                  <span className={`relative inline-flex rounded-full h-3 w-3 ${isOnline ? 'bg-secondary shadow-[0_0_12px_rgba(0,230,118,0.6)]' : 'bg-white/30'}`} />
-                </span>
-                <Power size={18} />
-                {isOnline ? 'Online' : 'Offline'}
-              </button>
             </div>
           </div>
         </motion.div>

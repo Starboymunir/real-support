@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { chatApi } from '@/lib/services/chat';
@@ -85,6 +86,8 @@ function groupMessagesByDate(messages: ChatMessage[]): MessageGroup[] {
 export default function RiderChatPage() {
   const { user } = useRequireAuth();
   const { socket, setUnreadChats } = useSocket();
+  const searchParams = useSearchParams();
+  const chatIdFromUrl = searchParams.get('chatId');
 
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
@@ -117,6 +120,23 @@ export default function RiderChatPage() {
   }, []);
 
   useEffect(() => { fetchChats(); }, [fetchChats]);
+
+  // Auto-open chat when navigated with ?chatId=
+  useEffect(() => {
+    if (!chatIdFromUrl || loading) return;
+    const match = chats.find(c => c.id === chatIdFromUrl);
+    if (match && activeChat?.id !== chatIdFromUrl) {
+      openChat(match);
+    } else if (!match) {
+      chatApi.getById(chatIdFromUrl).then(chat => {
+        if (chat) {
+          setChats(prev => [chat, ...prev]);
+          openChat(chat);
+        }
+      }).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatIdFromUrl, chats, loading]);
 
   // Open a chat and load its messages
   const openChat = useCallback(async (chat: Chat) => {

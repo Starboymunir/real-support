@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { chatApi } from '@/lib/services/chat';
@@ -84,6 +85,8 @@ function groupMessagesByDate(messages: ChatMessage[]): MessageGroup[] {
 export default function DriverChatPage() {
   const { user } = useRequireAuth();
   const { socket, setUnreadChats } = useSocket();
+  const searchParams = useSearchParams();
+  const chatIdFromUrl = searchParams.get('chatId');
 
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
@@ -115,6 +118,24 @@ export default function DriverChatPage() {
   }, []);
 
   useEffect(() => { fetchChats(); }, [fetchChats]);
+
+  // Auto-open chat when navigated with ?chatId=
+  useEffect(() => {
+    if (!chatIdFromUrl || loading) return;
+    const match = chats.find(c => c.id === chatIdFromUrl);
+    if (match && activeChat?.id !== chatIdFromUrl) {
+      openChat(match);
+    } else if (!match) {
+      // Chat not in list yet — fetch it directly
+      chatApi.getById(chatIdFromUrl).then(chat => {
+        if (chat) {
+          setChats(prev => [chat, ...prev]);
+          openChat(chat);
+        }
+      }).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatIdFromUrl, chats, loading]);
 
   const openChat = useCallback(async (chat: Chat) => {
     setActiveChat(chat);

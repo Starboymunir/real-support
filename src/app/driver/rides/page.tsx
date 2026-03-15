@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useSocket } from '@/lib/socket-context';
 import { bookingsApi } from '@/lib/services/bookings';
+import { chatApi } from '@/lib/services/chat';
 import { toast } from '@/lib/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -27,6 +28,7 @@ import {
 import type { Booking, BookingStatus } from '@/lib/types';
 import Button from '@/components/ui/button';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -74,9 +76,11 @@ type FilterTab = 'active' | 'completed' | 'cancelled';
 export default function DriverRidesPage() {
   const { user } = useRequireAuth();
   const { socket } = useSocket();
+  const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [chatLoading, setChatLoading] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [tab, setTab] = useState<FilterTab>('active');
   const [error, setError] = useState('');
@@ -136,6 +140,25 @@ export default function DriverRidesPage() {
       toast.error('Update failed', msg);
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleOpenChat = async (e: React.MouseEvent, bookingId: string) => {
+    e.stopPropagation();
+    setChatLoading(bookingId);
+    try {
+      const result = await chatApi.getBookingChat(bookingId);
+      const chat = (result as any)?.data || result;
+      if (chat?.id) {
+        router.push(`/driver/chat?chatId=${chat.id}`);
+      } else {
+        toast.error('Chat error', 'Could not open chat for this booking');
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to open chat';
+      toast.error('Chat error', msg);
+    } finally {
+      setChatLoading(null);
     }
   };
 
@@ -274,11 +297,11 @@ export default function DriverRidesPage() {
                     <div className="flex-1 space-y-3">
                       <div>
                         <p className="text-xs text-white/40 mb-0.5">Pickup</p>
-                        <p className="text-sm font-medium text-white truncate">{booking.startFrom?.name || 'Unknown'}</p>
+                        <p className="text-sm font-medium text-white truncate">{booking.startFrom?.name || booking.startFrom?.city || booking.startFrom?.postCode || 'Unknown'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-white/40 mb-0.5">Drop-off</p>
-                        <p className="text-sm font-medium text-white truncate">{booking.destination?.name || 'Unknown'}</p>
+                        <p className="text-sm font-medium text-white truncate">{booking.destination?.name || booking.destination?.city || booking.destination?.postCode || 'Unknown'}</p>
                       </div>
                     </div>
                   </div>
@@ -413,13 +436,17 @@ export default function DriverRidesPage() {
                               {nextStatusLabels[nextStatus] || nextStatus}
                             </Button>
                           )}
-                          <Link
-                            href="/driver/chat"
-                            onClick={(e) => e.stopPropagation()}
-                            className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-white/40 hover:text-secondary hover:border-secondary/30 transition-all"
+                          <button
+                            onClick={(e) => handleOpenChat(e, booking.id)}
+                            disabled={chatLoading === booking.id}
+                            className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-white/40 hover:text-secondary hover:border-secondary/30 transition-all disabled:opacity-50"
                           >
-                            <MessageSquare size={18} />
-                          </Link>
+                            {chatLoading === booking.id ? (
+                              <Loader2 size={18} className="animate-spin" />
+                            ) : (
+                              <MessageSquare size={18} />
+                            )}
+                          </button>
                           {booking.riderPhone && (
                             <a
                               href={`tel:${booking.riderPhone}`}

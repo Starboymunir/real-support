@@ -311,11 +311,11 @@ export default function DriverRequestsPage() {
                     <div className="flex-1 space-y-3">
                       <div>
                         <p className="text-xs text-white/40 mb-0.5">Pickup</p>
-                        <p className="text-sm font-medium text-white truncate">{request.startFrom?.name || 'Unknown'}</p>
+                        <p className="text-sm font-medium text-white truncate">{request.startFrom?.name || request.startFrom?.city || request.startFrom?.postCode || 'Unknown'}</p>
                       </div>
                       <div>
                         <p className="text-xs text-white/40 mb-0.5">Drop-off</p>
-                        <p className="text-sm font-medium text-white truncate">{request.destination?.name || 'Unknown'}</p>
+                        <p className="text-sm font-medium text-white truncate">{request.destination?.name || request.destination?.city || request.destination?.postCode || 'Unknown'}</p>
                       </div>
                     </div>
                   </div>

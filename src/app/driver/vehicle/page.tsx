@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -9,6 +9,7 @@ import Input from '@/components/ui/input';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useAuth } from '@/lib/auth-context';
 import { driverCarsApi, documentsApi } from '@/lib/services';
+import { resolveImageUrl } from '@/lib/api';
 import { toast } from '@/lib/toast';
 import {
   User,
@@ -59,6 +60,26 @@ export default function VehiclePage() {
   });
   const [wheelchairAccessible, setWheelchairAccessible] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
+
+  // Pre-fill from existing car data
+  const existingCar = user?.driver?.car;
+  useEffect(() => {
+    if (existingCar) {
+      setFormData(prev => ({
+        ...prev,
+        make: existingCar.make || '',
+        model: existingCar.model || '',
+        year: existingCar.year || '',
+        color: existingCar.color || '',
+        regNumber: existingCar.numberPlate || '',
+        vehicleType: existingCar.engine || '',
+        seats: existingCar.seats?.toString() || '',
+      }));
+      if (existingCar.carImage) {
+        setPhotoPreview(resolveImageUrl(existingCar.carImage));
+      }
+    }
+  }, [existingCar]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

@@ -87,6 +87,9 @@ export interface Driver {
   currentLocation?: Location;
   bio?: string;
   hobby?: string;
+  address?: string;
+  city?: string;
+  postcode?: string;
   driverUserId?: string;
   userInfo?: User;
   depositPaid: boolean;
@@ -142,6 +145,7 @@ export interface Car {
   model: string;
   year: string;
   numberPlate: string;
+  seats?: number;
   status: CarStatus;
   driverId: string;
   createdAt: string;

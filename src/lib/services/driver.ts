@@ -13,6 +13,9 @@ export interface CreateDriverDto {
   dateOfBirth?: string;
   bio?: string;
   hobby?: string;
+  address?: string;
+  city?: string;
+  postcode?: string;
 }
 
 export const driverApi = {

@@ -114,9 +114,11 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       setConnected(false);
     });
 
-    // Increment unread counts on real-time events
-    newSocket.on(SOCKET_EVENTS.MESSAGE_RECEIVED_EVENT, () => {
-      setUnreadChats((prev) => prev + 1);
+    // Increment unread counts on real-time events (skip own messages)
+    newSocket.on(SOCKET_EVENTS.MESSAGE_RECEIVED_EVENT, (data: any) => {
+      if (data?.senderId !== user?.id) {
+        setUnreadChats((prev) => prev + 1);
+      }
     });
 
     newSocket.on(SOCKET_EVENTS.NEW_CHAT_EVENT, () => {

@@ -192,11 +192,11 @@ export default function RiderChatPage() {
   // Socket.IO real-time messages
   useEffect(() => {
     if (!socket) return;
-    const handleNewMessage = (data: { chatId?: string; message?: ChatMessage }) => {
-      if (data.chatId === activeChat?.id && data.message) {
+    const handleNewMessage = (data: ChatMessage) => {
+      if (data.chatId === activeChat?.id) {
         setMessages(prev => {
-          if (prev.find(m => m.id === data.message!.id)) return prev;
-          return [...prev, data.message!];
+          if (prev.find(m => m.id === data.id)) return prev;
+          return [...prev, data];
         });
         setTimeout(scrollToBottom, 50);
         // Mark as read since we're viewing it

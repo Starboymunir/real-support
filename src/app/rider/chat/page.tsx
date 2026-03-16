@@ -273,8 +273,8 @@ export default function RiderChatPage() {
                 // Check if there are unread messages
                 const myParticipant = chat.participants.find(p => p.userId === user?.id);
                 const lastMessage = chat.messages?.length > 0 ? chat.messages[chat.messages.length - 1] : null;
-                const hasUnread = myParticipant?.lastReadAt && lastMessage
-                  ? lastMessage.senderId !== user?.id && new Date(lastMessage.createdAt) > new Date(myParticipant.lastReadAt)
+                const hasUnread = lastMessage && lastMessage.senderId !== user?.id
+                  ? (!myParticipant?.lastReadAt || new Date(lastMessage.createdAt) > new Date(myParticipant.lastReadAt))
                   : false;
 
                 return (

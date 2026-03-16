@@ -127,9 +127,10 @@ export default function DriverProfilePage() {
   }
 
   const userInfo = driver.userInfo || user;
-  const car = driver.car;
+  const cars = driver.cars || [];
+  const activeCar = cars.find(c => c.status === 'ACTIVE');
   const doc = driver.document;
-  const carDoc = car?.carDocument;
+  const carDoc = activeCar?.carDocument;
 
   const personalDocs = [
     { name: 'Driving License', details: doc?.drivingLicense?.details, hasDoc: !!doc?.drivingLicense?.licenseDocFront },
@@ -273,8 +274,10 @@ export default function DriverProfilePage() {
               <h2 className="text-lg font-bold text-white">Vehicle Information</h2>
             </div>
           </div>
-          {car && car.status === 'ACTIVE' ? (
-            <div className="flex flex-col md:flex-row gap-6">
+          {cars.length > 0 ? (
+            <div className="space-y-4">
+              {cars.map((car) => (
+              <div key={car.id} className="flex flex-col md:flex-row gap-6 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
               {car.carImage && (
                 <div className="w-full md:w-48 h-36 rounded-xl overflow-hidden bg-white/[0.04] shrink-0">
                   <img src={resolveImageUrl(car.carImage) ?? undefined} alt="Vehicle" className="w-full h-full object-cover" />
@@ -297,6 +300,8 @@ export default function DriverProfilePage() {
                   </div>
                 </div>
               </div>
+              </div>
+              ))}
             </div>
           ) : (
             <div className="text-center py-8">
@@ -355,7 +360,7 @@ export default function DriverProfilePage() {
                     </div>
                     <h2 className="text-lg font-bold text-white">Vehicle Documents</h2>
                   </div>
-                  {car && approvedVehicle.length > 0 ? (
+                  {activeCar && approvedVehicle.length > 0 ? (
                     <div className="space-y-3">
                       {approvedVehicle.map((d) => (
                         <div key={d.name} className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
@@ -371,7 +376,7 @@ export default function DriverProfilePage() {
                     </div>
                   ) : (
                     <p className="text-white/30 text-sm text-center py-6">
-                      {car ? 'No approved vehicle documents yet' : 'Register a vehicle first'}
+                      {activeCar ? 'No approved vehicle documents yet' : 'Register a vehicle first'}
                     </p>
                   )}
                 </div>
@@ -390,7 +395,7 @@ export default function DriverProfilePage() {
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {!car && (
+                    {cars.length === 0 && (
                       <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-white/[0.02]">
                         <XCircle size={14} className="text-red-400 shrink-0" />
                         <span className="text-white/60 text-sm">Vehicle registration required</span>
@@ -411,7 +416,7 @@ export default function DriverProfilePage() {
                         </span>
                       </div>
                     ))}
-                    {car && missingVehicle.map((d) => (
+                    {activeCar && missingVehicle.map((d) => (
                       <div key={d.name} className="flex items-center gap-2 py-2 px-3 rounded-lg bg-white/[0.02]">
                         {d.details?.isSubmitted ? (
                           <Clock size={14} className="text-amber-400 shrink-0" />

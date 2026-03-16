@@ -36,7 +36,7 @@ interface Driver {
   subscription: Subscription;
   isDeleted: boolean;
   document?: Document | null;
-  car?: Car | null;
+  cars?: Car[] | null;
 }
 
 interface Document {

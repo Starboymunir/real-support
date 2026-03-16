@@ -22,6 +22,6 @@ interface Driver {
   isDeleted: boolean;
   totalJobs: Booking[];
   document?: Document | null;
-  car?: Car | null;
+  cars?: Car[] | null;
   Bidplace?: Bidplace[];
 }

@@ -253,8 +253,9 @@ export default function DriverChatPage() {
                 const lastTime = getLastMessageTime(chat);
                 const isActive = activeChat?.id === chat.id;
                 const myParticipant = chat.participants.find(p => p.userId === user?.id);
-                const hasUnread = myParticipant?.lastReadAt && chat.messages?.length > 0
-                  ? new Date(chat.messages[chat.messages.length - 1].createdAt) > new Date(myParticipant.lastReadAt)
+                const lastMessage = chat.messages?.length > 0 ? chat.messages[chat.messages.length - 1] : null;
+                const hasUnread = myParticipant?.lastReadAt && lastMessage
+                  ? lastMessage.senderId !== user?.id && new Date(lastMessage.createdAt) > new Date(myParticipant.lastReadAt)
                   : false;
 
                 return (

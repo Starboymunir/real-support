@@ -99,7 +99,7 @@ export interface Driver {
   status: UserStatus;
   isDeleted: boolean;
   isOnline: boolean;
-  car?: Car;
+  cars?: Car[];
   document?: Document;
   packageIDs: string[];
   createdAt: string;

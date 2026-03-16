@@ -435,7 +435,8 @@ const ChatProvider = ({ children }: any) => {
     setUnreadChatCount(count);
   }
 
-  function handleGlobalSocketEventNewMessageReceive() {
+  function handleGlobalSocketEventNewMessageReceive(data?: any) {
+    if (data?.senderId === userId) return;
     console.log("handleGlobalSocketEventNewMessageReceive");
     loadUnreadChatCount(true);
   }

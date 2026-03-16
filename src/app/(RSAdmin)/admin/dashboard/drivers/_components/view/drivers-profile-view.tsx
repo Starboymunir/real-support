@@ -123,7 +123,7 @@ export default function DriverProfileView({ id }: { id: string }) {
 
             {currentTab === "cars" && (
               <DriverCars
-                cars={driver?.car}
+                cars={driver?.cars}
                 searchCars={searchCars}
                 onSearchCars={handleSearchCars}
               />

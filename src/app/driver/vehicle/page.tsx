@@ -80,7 +80,7 @@ export default function VehiclePage() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   // Existing cars from the driver profile
-  const existingCar: CarType | undefined = user?.driver?.car;
+  const existingCars: CarType[] = user?.driver?.cars || [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -218,42 +218,45 @@ export default function VehiclePage() {
           })}
         </div>
 
-        {/* ═══ EXISTING CAR ═══ */}
-        {existingCar && (
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+        {/* ═══ EXISTING CARS ═══ */}
+        {existingCars.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-white">Your Vehicles ({existingCars.length})</h3>
+            {existingCars.map((ec) => (
+            <div key={ec.id} className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center">
                   <Car size={18} className="text-indigo-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Submitted Vehicle</h3>
-                  <p className="text-white/30 text-xs">This car data has been sent for admin approval</p>
+                  <h3 className="text-lg font-bold text-white">{ec.make} {ec.model}</h3>
+                  <p className="text-white/30 text-xs">{ec.numberPlate} · {ec.year}</p>
                 </div>
               </div>
-              <StatusBadge status={existingCar.status} />
+              <StatusBadge status={ec.status} />
             </div>
 
             <div className="flex flex-col md:flex-row gap-5">
-              {existingCar.carImage && (
+              {ec.carImage && (
                 <div className="w-full md:w-40 h-28 rounded-xl overflow-hidden bg-white/[0.04] shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={resolveImageUrl(existingCar.carImage) ?? undefined} alt="Vehicle" className="w-full h-full object-cover" />
+                  <img src={resolveImageUrl(ec.carImage) ?? undefined} alt="Vehicle" className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
-                <div><p className="text-[11px] text-white/30 uppercase">Make</p><p className="text-sm text-white/80">{existingCar.make || '—'}</p></div>
-                <div><p className="text-[11px] text-white/30 uppercase">Model</p><p className="text-sm text-white/80">{existingCar.model || '—'}</p></div>
-                <div><p className="text-[11px] text-white/30 uppercase">Year</p><p className="text-sm text-white/80">{existingCar.year || '—'}</p></div>
-                <div><p className="text-[11px] text-white/30 uppercase">Color</p><p className="text-sm text-white/80">{existingCar.color || '—'}</p></div>
-                <div><p className="text-[11px] text-white/30 uppercase">Reg Plate</p><p className="text-sm text-white/80">{existingCar.numberPlate || '—'}</p></div>
-                <div><p className="text-[11px] text-white/30 uppercase">Seats</p><p className="text-sm text-white/80">{existingCar.seats || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Make</p><p className="text-sm text-white/80">{ec.make || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Model</p><p className="text-sm text-white/80">{ec.model || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Year</p><p className="text-sm text-white/80">{ec.year || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Color</p><p className="text-sm text-white/80">{ec.color || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Reg Plate</p><p className="text-sm text-white/80">{ec.numberPlate || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Seats</p><p className="text-sm text-white/80">{ec.seats || '—'}</p></div>
               </div>
             </div>
 
             {/* Delete button */}
             <div className="mt-4 pt-4 border-t border-white/[0.06]">
-              {confirmDelete === existingCar.id ? (
+              {confirmDelete === ec.id ? (
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/[0.06] border border-red-500/20">
                   <AlertTriangle size={16} className="text-red-400 shrink-0" />
                   <span className="text-red-400 text-sm">Are you sure? This cannot be undone.</span>
@@ -266,7 +269,7 @@ export default function VehiclePage() {
                       Cancel
                     </button>
                     <button
-                      onClick={() => handleDeleteCar(existingCar.id)}
+                      onClick={() => handleDeleteCar(ec.id)}
                       disabled={deleting}
                       className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all disabled:opacity-50"
                     >
@@ -276,7 +279,7 @@ export default function VehiclePage() {
                 </div>
               ) : (
                 <button
-                  onClick={() => setConfirmDelete(existingCar.id)}
+                  onClick={() => setConfirmDelete(ec.id)}
                   className="inline-flex items-center gap-2 text-red-400/60 text-sm font-medium hover:text-red-400 transition-colors"
                 >
                   <Trash2 size={14} /> Delete this vehicle
@@ -284,16 +287,18 @@ export default function VehiclePage() {
               )}
             </div>
           </div>
+            ))}
+          </div>
         )}
 
         {/* ═══ NEW CAR FORM ═══ */}
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
           <div className="mb-10">
             <h2 className="text-3xl font-bold text-white tracking-[-0.01em]">
-              {existingCar ? 'Register a New Vehicle' : 'Vehicle Information'}
+              {existingCars.length > 0 ? 'Register a New Vehicle' : 'Vehicle Information'}
             </h2>
             <p className="text-white/35 mt-2">
-              {existingCar
+              {existingCars.length > 0
                 ? 'Submit a new vehicle for admin approval'
                 : 'Provide details about the vehicle you\'ll be driving'}
             </p>
@@ -498,7 +503,7 @@ export default function VehiclePage() {
                 Back
               </Button>
               <button type="submit" disabled={submitting} className="inline-flex items-center justify-center gap-2 bg-secondary text-dark font-semibold px-5 py-3 rounded-xl text-sm hover:bg-secondary-light transition-all disabled:opacity-50">
-                {submitting ? 'Saving...' : existingCar ? 'Register New Vehicle' : 'Next: Documents'}
+                {submitting ? 'Saving...' : existingCars.length > 0 ? 'Register New Vehicle' : 'Next: Documents'}
                 <FileText size={18} />
               </button>
             </div>

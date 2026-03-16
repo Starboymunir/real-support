@@ -103,7 +103,8 @@ export default function DocumentsPage() {
     return localStorage.getItem('rs_driver_id') || '';
   };
   const getCarId = (): string => {
-    if (user?.driver?.car?.id) return user.driver.car.id;
+    const cars = user?.driver?.cars;
+    if (cars?.length) return cars[cars.length - 1].id;
     return localStorage.getItem('rs_car_id') || '';
   };
 

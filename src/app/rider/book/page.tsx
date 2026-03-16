@@ -234,6 +234,11 @@ export default function BookRide() {
       return;
     }
 
+    if (!fareEstimate || fareEstimate <= 0) {
+      toast.error('Fare not ready', 'Please wait for the fare to be calculated before booking.');
+      return;
+    }
+
     // Wallet balance check
     if (paymentMethod === 'wallet') {
       const needed = fareEstimate ?? 0;
@@ -281,7 +286,7 @@ export default function BookRide() {
         paymentType: paymentTypeMap[paymentMethod],
         totalDistance: routeInfo ? Math.round(routeInfo.distance) : 0,
         totalDuration: routeInfo ? Math.round(routeInfo.duration) : 0,
-        totalBill: fareEstimate ? Math.round(fareEstimate) : 0,
+        totalBill: parseFloat(fareEstimate.toFixed(2)),
         totalPersons: passengers,
         totalLuggage: 0,
         notes: note || undefined,
@@ -724,7 +729,7 @@ export default function BookRide() {
                   className="w-full"
                   size="lg"
                   onClick={handleConfirmBooking}
-                  disabled={submitting || !pickupPlace || !dropoffPlace || !selectedPackageId}
+                  disabled={submitting || !pickupPlace || !dropoffPlace || !selectedPackageId || loadingRoute || !fareEstimate}
                 >
                   {submitting ? (
                     <><Loader2 size={16} className="animate-spin" /> Booking...</>

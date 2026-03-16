@@ -12,7 +12,6 @@ import {
   TrendingDown,
   Eye,
   EyeOff,
-  ChevronRight,
   Shield,
   CreditCard,
   Clock,
@@ -59,6 +58,11 @@ function mapTxType(type: string, amount?: number): TxFilter {
     case 'WITHDRAW': return 'withdraw';
     case 'P2P_WALLET': return 'transfer';
     case 'REFUND': return 'refund';
+    case 'BOOKING_INCOME': return 'income';
+    case 'COMMISSION': return 'fee';
+    case 'CANCELLATION_FEE': return 'fee';
+    case 'ADMIN_CHARGE': return 'fee';
+    case 'ADMIN_FUND': return 'topup';
     default: return 'ride';
   }
 }
@@ -67,8 +71,10 @@ function txIcon(filter: TxFilter, amount?: number) {
   switch (filter) {
     case 'topup': return { icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' };
     case 'ride': return { icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' };
+    case 'income': return { icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' };
     case 'refund': return { icon: RefreshCw, color: 'text-purple-400', bg: 'bg-purple-500/10' };
     case 'withdraw': return { icon: Send, color: 'text-orange-400', bg: 'bg-orange-500/10' };
+    case 'fee': return { icon: ArrowUpRight, color: 'text-red-400', bg: 'bg-red-500/10' };
     case 'transfer': return amount !== undefined && amount > 0
       ? { icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' }
       : { icon: ArrowUpRight, color: 'text-blue-400', bg: 'bg-blue-500/10' };
@@ -76,15 +82,20 @@ function txIcon(filter: TxFilter, amount?: number) {
   }
 }
 
-function txDesc(type: TxFilter, tx: ApiTransaction): string {
+function txDesc(type: string, tx: ApiTransaction): string {
   switch (type) {
-    case 'topup': return 'Wallet Top-up';
-    case 'transfer': return tx.amount < 0
+    case 'TOPUP': return 'Wallet Top-up';
+    case 'P2P_WALLET': return tx.amount < 0
       ? `Transfer to ${tx.receiverInfo?.firstName || 'user'}`
       : `Transfer from ${tx.senderInfo?.firstName || 'user'}`;
-    case 'ride': return tx.bookingId ? `Ride ${tx.bookingId.slice(-6)}` : 'Ride Payment';
-    case 'refund': return tx.bookingId ? `Refund ${tx.bookingId.slice(-6)}` : 'Refund';
-    case 'withdraw': return 'Withdrawal';
+    case 'EXPENSE': return tx.narration || (tx.bookingId ? `Ride Payment` : 'Ride Payment');
+    case 'BOOKING_INCOME': return tx.narration || 'Booking Earnings';
+    case 'COMMISSION': return tx.narration || 'Commission Deduction';
+    case 'CANCELLATION_FEE': return tx.narration || 'Cancellation Fee';
+    case 'ADMIN_CHARGE': return tx.narration || 'Service Charge';
+    case 'ADMIN_FUND': return tx.narration || 'Account Credit';
+    case 'REFUND': return tx.narration || 'Refund';
+    case 'WITHDRAW': return 'Withdrawal';
     default: return tx.narration || 'Transaction';
   }
 }
@@ -99,7 +110,7 @@ function formatTxDate(iso: string): { date: string; time: string } {
 
 const quickAmounts = [10, 20, 50, 100];
 
-type TxFilter = 'all' | 'topup' | 'ride' | 'refund' | 'withdraw' | 'transfer';
+type TxFilter = 'all' | 'topup' | 'ride' | 'refund' | 'withdraw' | 'transfer' | 'income' | 'fee';
 type DisplayTx = { id: string; type: TxFilter; desc: string; amount: string; date: string; time: string; method: string; icon: typeof ArrowUpRight; color: string; bg: string };
 
 export default function WalletPage() {
@@ -146,7 +157,7 @@ export default function WalletPage() {
           const { date, time } = formatTxDate(tx.createdAt);
           const isCredit = tx.amount > 0;
 
-          if (tx.type === 'TOPUP') {
+          if (tx.type === 'TOPUP' || tx.type === 'ADMIN_FUND') {
             topupTotal += tx.amount;
             if (latestTopup === null) latestTopup = tx.amount;
           }
@@ -158,7 +169,7 @@ export default function WalletPage() {
           return {
             id: tx.id,
             type: txType,
-            desc: txDesc(txType, tx),
+            desc: txDesc(tx.type, tx),
             amount: `${isCredit ? '+' : '-'}£${Math.abs(tx.amount).toFixed(2)}`,
             date,
             time,
@@ -200,15 +211,20 @@ export default function WalletPage() {
 
   const maxSpend = Math.max(...monthlySpend.map((m) => m.amount), 1);
 
-  const filtered = filter === 'all'
-    ? transactions
-    : transactions.filter((t) => t.type === filter);
+  const filtered = (() => {
+    const list = filter === 'all'
+      ? transactions
+      : transactions.filter((t) => t.type === filter);
+    return list.slice(0, 10);
+  })();
 
   const filterButtons: { label: string; value: TxFilter }[] = [
     { label: 'All', value: 'all' },
     { label: 'Top-ups', value: 'topup' },
+    { label: 'Earnings', value: 'income' },
     { label: 'Transfers', value: 'transfer' },
     { label: 'Rides', value: 'ride' },
+    { label: 'Fees', value: 'fee' },
     { label: 'Refunds', value: 'refund' },
     { label: 'Withdrawals', value: 'withdraw' },
   ];
@@ -422,50 +438,61 @@ export default function WalletPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="overflow-x-auto">
                 {filtered.length === 0 ? (
                   <div className="text-center py-12">
                     <Wallet size={32} className="text-white/10 mx-auto mb-3" />
                     <p className="text-white/30 text-sm">No transactions found</p>
                   </div>
                 ) : (
-                  filtered.map((tx) => {
-                    const Icon = tx.icon;
-                    return (
-                      <div
-                        key={tx.id}
-                        className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className={`w-10 h-10 rounded-xl ${tx.bg} flex items-center justify-center shrink-0`}>
-                            <Icon size={18} className={tx.color} />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-white">{tx.desc}</p>
-                            <p className="text-xs text-white/30 truncate mt-0.5">{tx.method}</p>
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0 ml-3">
-                          <p className={`text-sm font-black tabular-nums ${
-                            tx.amount.startsWith('+') ? 'text-secondary' : 'text-white'
-                          }`}>
-                            {tx.amount}
-                          </p>
-                          <p className="text-[10px] text-white/20 mt-0.5">{tx.date} · {tx.time}</p>
-                        </div>
-                      </div>
-                    );
-                  })
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-white/[0.06]">
+                        <th className="text-left py-3 px-4 text-white/30 font-medium text-xs uppercase tracking-wider">Description</th>
+                        <th className="text-left py-3 px-4 text-white/30 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Date</th>
+                        <th className="text-left py-3 px-4 text-white/30 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Type</th>
+                        <th className="text-right py-3 px-4 text-white/30 font-medium text-xs uppercase tracking-wider">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.04]">
+                      {filtered.map((tx) => {
+                        const Icon = tx.icon;
+                        return (
+                          <tr key={tx.id} className="hover:bg-white/[0.03] transition-colors">
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className={`w-8 h-8 rounded-lg ${tx.bg} flex items-center justify-center shrink-0`}>
+                                  <Icon size={14} className={tx.color} />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-semibold text-white truncate">{tx.desc}</p>
+                                  <p className="text-xs text-white/30 sm:hidden mt-0.5">{tx.date}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4 hidden sm:table-cell">
+                              <p className="text-sm text-white/60">{tx.date}</p>
+                              <p className="text-[10px] text-white/25 mt-0.5">{tx.time}</p>
+                            </td>
+                            <td className="py-3.5 px-4 hidden sm:table-cell">
+                              <span className={`text-xs font-semibold px-2 py-1 rounded-md ${tx.bg} ${tx.color}`}>
+                                {tx.type === 'topup' ? 'Top-up' : tx.type === 'ride' ? 'Ride' : tx.type === 'income' ? 'Earning' : tx.type === 'fee' ? 'Fee' : tx.type === 'transfer' ? 'Transfer' : tx.type === 'refund' ? 'Refund' : tx.type === 'withdraw' ? 'Withdrawal' : tx.type}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <p className={`text-sm font-bold tabular-nums ${
+                                tx.amount.startsWith('+') ? 'text-secondary' : 'text-white'
+                              }`}>
+                                {tx.amount}
+                              </p>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 )}
               </div>
-
-              {filtered.length > 0 && (
-                <div className="mt-4 text-center">
-                  <Button variant="ghost" size="sm">
-                    Load More <ChevronRight size={14} />
-                  </Button>
-                </div>
-              )}
             </div>
           </motion.div>
         </div>

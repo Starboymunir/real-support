@@ -152,12 +152,17 @@ export default function DocumentsPage() {
         const details = sub.details;
         const status = details?.status || (details?.isSubmitted ? 'Pending' : null);
         if (!status) return doc;
-        return {
-          ...doc,
+        const update: Partial<Document> = {
           status: mapDocStatus(status),
           expiry: mapping.expiryKey ? sub[mapping.expiryKey] : doc.expiry,
           rejectionMessage: details?.rejectionReason || doc.rejectionMessage,
         };
+        // For driving license, track which sides are uploaded
+        if (doc.id === 'driving-license') {
+          if (sub.licenseDocFront) update.frontFileName = 'Front uploaded';
+          if (sub.licenseDocBack) update.backFileName = 'Back uploaded';
+        }
+        return { ...doc, ...update };
       }));
     } catch { /* keep initial */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -236,12 +241,17 @@ export default function DocumentsPage() {
       // Update local state to show pending with file name
       setDocuments(prev => prev.map(d => {
         if (d.id !== docId) return d;
-        const update: Partial<Document> = { status: 'pending' as DocStatus };
+        const update: Partial<Document> = {};
         if (d.hasFrontBack && side) {
           if (side === 'front') update.frontFileName = file.name;
           else update.backFileName = file.name;
+          // Only mark as pending when both sides are uploaded
+          const hasFront = side === 'front' ? true : !!d.frontFileName;
+          const hasBack = side === 'back' ? true : !!d.backFileName;
+          if (hasFront && hasBack) update.status = 'pending' as DocStatus;
         } else {
           update.fileName = file.name;
+          update.status = 'pending' as DocStatus;
         }
         return { ...d, ...update };
       }));

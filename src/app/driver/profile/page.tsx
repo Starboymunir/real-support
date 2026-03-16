@@ -316,16 +316,14 @@ export default function DriverProfilePage() {
 
         {/* ═══ APPROVED DOCUMENTS ═══ */}
         {(() => {
-          const approvedPersonal = personalDocs.filter((d) => d.details?.isVerified);
-          const approvedVehicle = vehicleDocs.filter((d) => d.details?.isVerified);
-          const missingPersonal = personalDocs.filter((d) => !d.details?.isVerified);
-          const missingVehicle = vehicleDocs.filter((d) => !d.details?.isVerified);
+          const missingPersonal = personalDocs.filter((d) => !d.hasDoc);
+          const missingVehicle = vehicleDocs.filter((d) => !d.hasDoc);
           const hasMissing = missingPersonal.length > 0 || missingVehicle.length > 0;
 
           return (
             <>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Approved Personal Documents */}
+                {/* Personal Documents */}
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
@@ -333,26 +331,24 @@ export default function DriverProfilePage() {
                     </div>
                     <h2 className="text-lg font-bold text-white">Personal Documents</h2>
                   </div>
-                  {approvedPersonal.length > 0 ? (
+                  {personalDocs.some(d => d.hasDoc) ? (
                     <div className="space-y-3">
-                      {approvedPersonal.map((d) => (
+                      {personalDocs.filter(d => d.hasDoc).map((d) => (
                         <div key={d.name} className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                           <div className="flex items-center gap-3">
                             <FileText size={16} className="text-white/40" />
                             <span className="text-sm font-medium text-white/70">{d.name}</span>
                           </div>
-                          <span className="inline-flex items-center gap-1 text-emerald-400 text-xs font-semibold">
-                            <CheckCircle size={14} /> Approved
-                          </span>
+                          <DocBadge details={d.details} />
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-white/30 text-sm text-center py-6">No approved documents yet</p>
+                    <p className="text-white/30 text-sm text-center py-6">No documents uploaded yet</p>
                   )}
                 </div>
 
-                {/* Approved Vehicle Documents */}
+                {/* Vehicle Documents */}
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center">
@@ -360,23 +356,21 @@ export default function DriverProfilePage() {
                     </div>
                     <h2 className="text-lg font-bold text-white">Vehicle Documents</h2>
                   </div>
-                  {activeCar && approvedVehicle.length > 0 ? (
+                  {activeCar && vehicleDocs.some(d => d.hasDoc) ? (
                     <div className="space-y-3">
-                      {approvedVehicle.map((d) => (
+                      {vehicleDocs.filter(d => d.hasDoc).map((d) => (
                         <div key={d.name} className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                           <div className="flex items-center gap-3">
                             <FileText size={16} className="text-white/40" />
                             <span className="text-sm font-medium text-white/70">{d.name}</span>
                           </div>
-                          <span className="inline-flex items-center gap-1 text-emerald-400 text-xs font-semibold">
-                            <CheckCircle size={14} /> Approved
-                          </span>
+                          <DocBadge details={d.details} />
                         </div>
                       ))}
                     </div>
                   ) : (
                     <p className="text-white/30 text-sm text-center py-6">
-                      {activeCar ? 'No approved vehicle documents yet' : 'Register a vehicle first'}
+                      {activeCar ? 'No vehicle documents uploaded yet' : 'Register a vehicle first'}
                     </p>
                   )}
                 </div>

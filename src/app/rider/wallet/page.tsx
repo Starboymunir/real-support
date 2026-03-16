@@ -63,13 +63,15 @@ function mapTxType(type: string, amount?: number): TxFilter {
   }
 }
 
-function txIcon(filter: TxFilter) {
+function txIcon(filter: TxFilter, amount?: number) {
   switch (filter) {
     case 'topup': return { icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' };
     case 'ride': return { icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' };
     case 'refund': return { icon: RefreshCw, color: 'text-purple-400', bg: 'bg-purple-500/10' };
     case 'withdraw': return { icon: Send, color: 'text-orange-400', bg: 'bg-orange-500/10' };
-    case 'transfer': return { icon: ArrowUpRight, color: 'text-blue-400', bg: 'bg-blue-500/10' };
+    case 'transfer': return amount !== undefined && amount > 0
+      ? { icon: ArrowDownLeft, color: 'text-secondary', bg: 'bg-secondary/10' }
+      : { icon: ArrowUpRight, color: 'text-blue-400', bg: 'bg-blue-500/10' };
     default: return { icon: ArrowUpRight, color: 'text-accent', bg: 'bg-accent/10' };
   }
 }
@@ -140,9 +142,9 @@ export default function WalletPage() {
 
         const mapped: DisplayTx[] = txList.map((tx) => {
           const txType = mapTxType(tx.type, tx.amount);
-          const { icon, color, bg } = txIcon(txType);
+          const { icon, color, bg } = txIcon(txType, tx.amount);
           const { date, time } = formatTxDate(tx.createdAt);
-          const isCredit = txType !== 'ride' && txType !== 'withdraw' && txType !== 'transfer';
+          const isCredit = tx.amount > 0;
 
           if (tx.type === 'TOPUP') {
             topupTotal += tx.amount;

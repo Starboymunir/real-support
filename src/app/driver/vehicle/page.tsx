@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { useAuth } from '@/lib/auth-context';
 import { driverCarsApi, documentsApi } from '@/lib/services';
 import { resolveImageUrl } from '@/lib/api';
 import { toast } from '@/lib/toast';
+import type { Car as CarType } from '@/lib/types';
 import {
   User,
   Car,
@@ -22,7 +22,8 @@ import {
   Users,
   ChevronDown,
   ArrowLeft,
-  Save,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 
 const steps = [
@@ -39,6 +40,22 @@ const carMakes = [
 const vehicleTypes = ['Sedan', 'SUV', 'Van', 'Luxury'];
 
 const years = Array.from({ length: 20 }, (_, i) => 2026 - i);
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { bg: string; text: string; label: string }> = {
+    ACTIVE: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', label: 'Active' },
+    PENDING: { bg: 'bg-amber-500/10', text: 'text-amber-400', label: 'Pending Approval' },
+    ONHOLD: { bg: 'bg-orange-500/10', text: 'text-orange-400', label: 'On Hold' },
+    SUSPEND: { bg: 'bg-red-500/10', text: 'text-red-400', label: 'Suspended' },
+    INACTIVE: { bg: 'bg-white/5', text: 'text-white/40', label: 'Inactive' },
+  };
+  const s = map[status] || map.PENDING;
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${s.bg} ${s.text}`}>
+      {s.label}
+    </span>
+  );
+}
 
 export default function VehiclePage() {
   const { user } = useRequireAuth();
@@ -59,27 +76,11 @@ export default function VehiclePage() {
     seats: '',
   });
   const [wheelchairAccessible, setWheelchairAccessible] = useState(false);
-  const [savingProgress, setSavingProgress] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  // Pre-fill from existing car data
-  const existingCar = user?.driver?.car;
-  useEffect(() => {
-    if (existingCar) {
-      setFormData(prev => ({
-        ...prev,
-        make: existingCar.make || '',
-        model: existingCar.model || '',
-        year: existingCar.year || '',
-        color: existingCar.color || '',
-        regNumber: existingCar.numberPlate || '',
-        vehicleType: existingCar.engine || '',
-        seats: existingCar.seats?.toString() || '',
-      }));
-      if (existingCar.carImage) {
-        setPhotoPreview(resolveImageUrl(existingCar.carImage));
-      }
-    }
-  }, [existingCar]);
+  // Existing cars from the driver profile
+  const existingCar: CarType | undefined = user?.driver?.car;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -96,51 +97,23 @@ export default function VehiclePage() {
     setPhotoPreview(URL.createObjectURL(file));
   };
 
-  // Get driverId: prefer user.driver.id from auth context, fall back to localStorage
   const getDriverId = (): string => {
     if (user?.driver?.id) return user.driver.id;
     return localStorage.getItem('rs_driver_id') || '';
   };
 
-  const handleSaveProgress = async () => {
-    setError('');
-    const driverId = getDriverId();
-    if (!driverId) {
-      setError('Driver profile not found. Please complete Step 1 first.');
-      return;
-    }
-    setSavingProgress(true);
+  const handleDeleteCar = async (carId: string) => {
+    setDeleting(true);
     try {
-      let carImageUrl: string | undefined;
-      if (vehiclePhoto) {
-        const uploaded = await documentsApi.uploadFile(vehiclePhoto);
-        carImageUrl = (uploaded as { fileUrl?: string; url?: string })?.fileUrl
-          || (uploaded as { url?: string })?.url;
-      }
-      const createData = {
-        make: formData.make,
-        model: formData.model,
-        year: formData.year,
-        color: formData.color,
-        numberPlate: formData.regNumber,
-        engine: formData.vehicleType || 'Petrol',
-        seats: formData.seats ? parseInt(formData.seats, 10) : 4,
-        driverId,
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result: any = await driverCarsApi.create(carImageUrl ? { ...createData, carImage: carImageUrl } as any : createData);
-      if (result?.id) {
-        localStorage.setItem('rs_car_id', result.id);
-      }
+      await driverCarsApi.remove(carId);
       await refreshUser();
-      setError('');
-      toast.success('Progress saved!', 'Vehicle details have been saved. You can continue later.');
+      setConfirmDelete(null);
+      toast.success('Vehicle removed', 'The vehicle has been deleted.');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to save vehicle progress.';
-      setError(msg);
-      toast.error('Save failed', msg);
+      const msg = err instanceof Error ? err.message : 'Failed to delete vehicle.';
+      toast.error('Delete failed', msg);
     } finally {
-      setSavingProgress(false);
+      setDeleting(false);
     }
   };
 
@@ -156,11 +129,9 @@ export default function VehiclePage() {
 
     setSubmitting(true);
     try {
-      // Upload vehicle photo if selected
       let carImageUrl: string | undefined;
       if (vehiclePhoto) {
         const uploaded = await documentsApi.uploadFile(vehiclePhoto);
-        // Backend returns { fileUrl: "..." } after envelope unwrap
         carImageUrl = (uploaded as { fileUrl?: string; url?: string })?.fileUrl
           || (uploaded as { url?: string })?.url;
       }
@@ -178,11 +149,9 @@ export default function VehiclePage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result: any = await driverCarsApi.create(carImageUrl ? { ...createData, carImage: carImageUrl } as any : createData);
 
-      // Store car ID for document uploads
       if (result?.id) {
         localStorage.setItem('rs_car_id', result.id);
       }
-      // Refresh user context so user.driver.car is populated
       await refreshUser();
       toast.success('Vehicle registered!', 'Proceeding to document uploads...');
       router.push('/driver/documents');
@@ -249,12 +218,84 @@ export default function VehiclePage() {
           })}
         </div>
 
-        {/* Form Card */}
+        {/* ═══ EXISTING CAR ═══ */}
+        {existingCar && (
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                  <Car size={18} className="text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Submitted Vehicle</h3>
+                  <p className="text-white/30 text-xs">This car data has been sent for admin approval</p>
+                </div>
+              </div>
+              <StatusBadge status={existingCar.status} />
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-5">
+              {existingCar.carImage && (
+                <div className="w-full md:w-40 h-28 rounded-xl overflow-hidden bg-white/[0.04] shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={resolveImageUrl(existingCar.carImage) ?? undefined} alt="Vehicle" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
+                <div><p className="text-[11px] text-white/30 uppercase">Make</p><p className="text-sm text-white/80">{existingCar.make || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Model</p><p className="text-sm text-white/80">{existingCar.model || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Year</p><p className="text-sm text-white/80">{existingCar.year || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Color</p><p className="text-sm text-white/80">{existingCar.color || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Reg Plate</p><p className="text-sm text-white/80">{existingCar.numberPlate || '—'}</p></div>
+                <div><p className="text-[11px] text-white/30 uppercase">Seats</p><p className="text-sm text-white/80">{existingCar.seats || '—'}</p></div>
+              </div>
+            </div>
+
+            {/* Delete button */}
+            <div className="mt-4 pt-4 border-t border-white/[0.06]">
+              {confirmDelete === existingCar.id ? (
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/[0.06] border border-red-500/20">
+                  <AlertTriangle size={16} className="text-red-400 shrink-0" />
+                  <span className="text-red-400 text-sm">Are you sure? This cannot be undone.</span>
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      onClick={() => setConfirmDelete(null)}
+                      disabled={deleting}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.06] text-white/60 hover:bg-white/[0.1] transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCar(existingCar.id)}
+                      disabled={deleting}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all disabled:opacity-50"
+                    >
+                      {deleting ? 'Deleting...' : 'Confirm Delete'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDelete(existingCar.id)}
+                  className="inline-flex items-center gap-2 text-red-400/60 text-sm font-medium hover:text-red-400 transition-colors"
+                >
+                  <Trash2 size={14} /> Delete this vehicle
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ NEW CAR FORM ═══ */}
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
           <div className="mb-10">
-            <h2 className="text-3xl font-bold text-white tracking-[-0.01em]">Vehicle Information</h2>
+            <h2 className="text-3xl font-bold text-white tracking-[-0.01em]">
+              {existingCar ? 'Register a New Vehicle' : 'Vehicle Information'}
+            </h2>
             <p className="text-white/35 mt-2">
-              Provide details about the vehicle you&apos;ll be driving
+              {existingCar
+                ? 'Submit a new vehicle for admin approval'
+                : 'Provide details about the vehicle you\'ll be driving'}
             </p>
           </div>
 
@@ -456,16 +497,10 @@ export default function VehiclePage() {
                 <ArrowLeft size={18} />
                 Back
               </Button>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <button type="button" onClick={handleSaveProgress} disabled={savingProgress || submitting} className="inline-flex items-center justify-center gap-2 border border-white/10 text-white/70 font-semibold px-5 py-3 rounded-xl text-sm hover:border-secondary/50 hover:text-secondary transition-all disabled:opacity-50">
-                  {savingProgress ? 'Saving...' : 'Save Progress'}
-                  <Save size={18} />
-                </button>
-                <button type="submit" disabled={submitting || savingProgress} className="inline-flex items-center justify-center gap-2 bg-secondary text-dark font-semibold px-5 py-3 rounded-xl text-sm hover:bg-secondary-light transition-all disabled:opacity-50">
-                  {submitting ? 'Saving...' : 'Next: Documents'}
-                  <FileText size={18} />
-                </button>
-              </div>
+              <button type="submit" disabled={submitting} className="inline-flex items-center justify-center gap-2 bg-secondary text-dark font-semibold px-5 py-3 rounded-xl text-sm hover:bg-secondary-light transition-all disabled:opacity-50">
+                {submitting ? 'Saving...' : existingCar ? 'Register New Vehicle' : 'Next: Documents'}
+                <FileText size={18} />
+              </button>
             </div>
           </form>
         </div>

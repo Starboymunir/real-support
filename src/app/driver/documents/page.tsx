@@ -304,12 +304,47 @@ export default function DocumentsPage() {
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-white">Required Documents</h2>
             <p className="text-white/60 mt-1">
-              Upload all required documents to complete your application
+              Upload missing or rejected documents to complete your application
             </p>
           </div>
 
-          <div className="space-y-6">
-            {documents.map((doc) => {
+          {/* Filter: only show docs that need action (not_uploaded or rejected) */}
+          {(() => {
+            const actionDocs = documents.filter(d => d.status === 'not_uploaded' || d.status === 'rejected');
+            const completedDocs = documents.filter(d => d.status === 'approved' || d.status === 'pending');
+
+            return (
+              <>
+                {/* Completed summary */}
+                {completedDocs.length > 0 && (
+                  <div className="mb-6 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                    <p className="text-white/40 text-xs uppercase tracking-wider font-semibold mb-3">Already submitted</p>
+                    <div className="flex flex-wrap gap-2">
+                      {completedDocs.map(d => {
+                        const sc = statusConfig[d.status];
+                        const SIcon = sc.icon;
+                        return (
+                          <span key={d.id} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${sc.bgColor} ${sc.color}`}>
+                            <SIcon size={13} /> {d.label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {actionDocs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Check size={48} className="text-secondary mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-white mb-2">All Documents Submitted!</h3>
+                    <p className="text-white/40 text-sm mb-6">All your documents have been submitted. Check your profile for approval status.</p>
+                    <Button href="/driver/profile" variant="green" size="md">
+                      View Profile
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {actionDocs.map((doc) => {
               const DocIcon = doc.icon;
               const status = statusConfig[doc.status];
               const StatusIcon = status.icon;
@@ -443,7 +478,11 @@ export default function DocumentsPage() {
                 </div>
               );
             })}
-          </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Upload Error */}
           {uploadError && (

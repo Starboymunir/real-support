@@ -221,6 +221,14 @@ export default function BookRide() {
 
   const handleConfirmBooking = useCallback(async () => {
     if (!user) return;
+
+    // Redirect to profile if phone number is missing
+    if (!user.phone_number) {
+      toast.error('Phone number required', 'Please add your phone number before booking a ride.');
+      router.push('/rider/profile');
+      return;
+    }
+
     if (!pickupPlace || !dropoffPlace) {
       toast.error('Missing locations', 'Please select pickup and drop-off locations.');
       return;

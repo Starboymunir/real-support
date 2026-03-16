@@ -24,7 +24,6 @@ import {
   XCircle,
   Clock,
   AlertCircle,
-  Pencil,
   CreditCard,
   Palette,
   Users,
@@ -158,7 +157,7 @@ export default function DriverProfilePage() {
             {/* Avatar */}
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center shrink-0 overflow-hidden">
               {userInfo?.profileImageUrl ? (
-                <img src={resolveImageUrl(userInfo.profileImageUrl)} alt="Profile" className="w-full h-full object-cover" />
+                <img src={resolveImageUrl(userInfo.profileImageUrl) ?? undefined} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <User size={32} className="text-white/30" />
               )}
@@ -182,9 +181,7 @@ export default function DriverProfilePage() {
                 <span className="text-white/40 text-sm capitalize">{driver.subscription?.toLowerCase()} plan</span>
               </div>
             </div>
-            <Link href="/driver" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.08] text-white/60 text-sm font-medium hover:border-secondary/30 hover:text-secondary transition-all shrink-0">
-              <Pencil size={14} /> Edit Profile
-            </Link>
+
           </div>
         </div>
 
@@ -275,17 +272,12 @@ export default function DriverProfilePage() {
               </div>
               <h2 className="text-lg font-bold text-white">Vehicle Information</h2>
             </div>
-            {car && (
-              <Link href="/driver/vehicle" className="text-white/40 text-xs font-medium hover:text-secondary transition-colors flex items-center gap-1">
-                <Pencil size={12} /> Edit
-              </Link>
-            )}
           </div>
-          {car ? (
+          {car && car.status === 'ACTIVE' ? (
             <div className="flex flex-col md:flex-row gap-6">
               {car.carImage && (
                 <div className="w-full md:w-48 h-36 rounded-xl overflow-hidden bg-white/[0.04] shrink-0">
-                  <img src={resolveImageUrl(car.carImage)} alt="Vehicle" className="w-full h-full object-cover" />
+                  <img src={resolveImageUrl(car.carImage) ?? undefined} alt="Vehicle" className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -311,75 +303,140 @@ export default function DriverProfilePage() {
               <CarIcon size={32} className="text-white/10 mx-auto mb-3" />
               <p className="text-white/30 text-sm mb-4">No vehicle registered yet</p>
               <Link href="/driver/vehicle" className="text-secondary text-sm font-semibold hover:underline">
-                Add Vehicle →
+                Register Vehicle →
               </Link>
             </div>
           )}
         </div>
 
-        {/* ═══ DOCUMENTS ═══ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Personal Documents */}
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                  <FileText size={18} className="text-amber-400" />
-                </div>
-                <h2 className="text-lg font-bold text-white">Personal Documents</h2>
-              </div>
-              <Link href="/driver/documents" className="text-white/40 text-xs font-medium hover:text-secondary transition-colors flex items-center gap-1">
-                <Pencil size={12} /> Manage
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {personalDocs.map((d) => (
-                <div key={d.name} className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="flex items-center gap-3">
-                    <FileText size={16} className={d.hasDoc ? 'text-white/40' : 'text-white/15'} />
-                    <span className={`text-sm font-medium ${d.hasDoc ? 'text-white/70' : 'text-white/30'}`}>{d.name}</span>
-                  </div>
-                  <DocBadge details={d.details} />
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* ═══ APPROVED DOCUMENTS ═══ */}
+        {(() => {
+          const approvedPersonal = personalDocs.filter((d) => d.details?.isVerified);
+          const approvedVehicle = vehicleDocs.filter((d) => d.details?.isVerified);
+          const missingPersonal = personalDocs.filter((d) => !d.details?.isVerified);
+          const missingVehicle = vehicleDocs.filter((d) => !d.details?.isVerified);
+          const hasMissing = missingPersonal.length > 0 || missingVehicle.length > 0;
 
-          {/* Vehicle Documents */}
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                  <FileText size={18} className="text-indigo-400" />
-                </div>
-                <h2 className="text-lg font-bold text-white">Vehicle Documents</h2>
-              </div>
-              {car && (
-                <Link href="/driver/documents" className="text-white/40 text-xs font-medium hover:text-secondary transition-colors flex items-center gap-1">
-                  <Pencil size={12} /> Manage
-                </Link>
-              )}
-            </div>
-            {car ? (
-              <div className="space-y-3">
-                {vehicleDocs.map((d) => (
-                  <div key={d.name} className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                    <div className="flex items-center gap-3">
-                      <FileText size={16} className={d.hasDoc ? 'text-white/40' : 'text-white/15'} />
-                      <span className={`text-sm font-medium ${d.hasDoc ? 'text-white/70' : 'text-white/30'}`}>{d.name}</span>
+          return (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Approved Personal Documents */}
+                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                      <FileText size={18} className="text-amber-400" />
                     </div>
-                    <DocBadge details={d.details} />
+                    <h2 className="text-lg font-bold text-white">Personal Documents</h2>
                   </div>
-                ))}
+                  {approvedPersonal.length > 0 ? (
+                    <div className="space-y-3">
+                      {approvedPersonal.map((d) => (
+                        <div key={d.name} className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                          <div className="flex items-center gap-3">
+                            <FileText size={16} className="text-white/40" />
+                            <span className="text-sm font-medium text-white/70">{d.name}</span>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-emerald-400 text-xs font-semibold">
+                            <CheckCircle size={14} /> Approved
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-white/30 text-sm text-center py-6">No approved documents yet</p>
+                  )}
+                </div>
+
+                {/* Approved Vehicle Documents */}
+                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                      <FileText size={18} className="text-indigo-400" />
+                    </div>
+                    <h2 className="text-lg font-bold text-white">Vehicle Documents</h2>
+                  </div>
+                  {car && approvedVehicle.length > 0 ? (
+                    <div className="space-y-3">
+                      {approvedVehicle.map((d) => (
+                        <div key={d.name} className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                          <div className="flex items-center gap-3">
+                            <FileText size={16} className="text-white/40" />
+                            <span className="text-sm font-medium text-white/70">{d.name}</span>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-emerald-400 text-xs font-semibold">
+                            <CheckCircle size={14} /> Approved
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-white/30 text-sm text-center py-6">
+                      {car ? 'No approved vehicle documents yet' : 'Register a vehicle first'}
+                    </p>
+                  )}
+                </div>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <FileText size={32} className="text-white/10 mx-auto mb-3" />
-                <p className="text-white/30 text-sm">Register a vehicle first to manage vehicle documents</p>
-              </div>
-            )}
-          </div>
-        </div>
+
+              {/* ═══ MISSING / PENDING ITEMS ═══ */}
+              {hasMissing && driver.status !== 'ACTIVE' && (
+                <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                      <AlertCircle size={18} className="text-amber-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-white">Pending Approval</h2>
+                      <p className="text-white/40 text-xs">These items need to be submitted or approved before your account is activated</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {!car && (
+                      <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-white/[0.02]">
+                        <XCircle size={14} className="text-red-400 shrink-0" />
+                        <span className="text-white/60 text-sm">Vehicle registration required</span>
+                      </div>
+                    )}
+                    {missingPersonal.map((d) => (
+                      <div key={d.name} className="flex items-center gap-2 py-2 px-3 rounded-lg bg-white/[0.02]">
+                        {d.details?.isSubmitted ? (
+                          <Clock size={14} className="text-amber-400 shrink-0" />
+                        ) : d.details?.isReturned || d.details?.status === 'Rejected' ? (
+                          <XCircle size={14} className="text-red-400 shrink-0" />
+                        ) : (
+                          <AlertCircle size={14} className="text-white/30 shrink-0" />
+                        )}
+                        <span className="text-white/60 text-sm">{d.name}</span>
+                        <span className="ml-auto text-xs text-white/30">
+                          {d.details?.isSubmitted ? 'Pending review' : d.details?.isReturned || d.details?.status === 'Rejected' ? 'Rejected' : 'Not submitted'}
+                        </span>
+                      </div>
+                    ))}
+                    {car && missingVehicle.map((d) => (
+                      <div key={d.name} className="flex items-center gap-2 py-2 px-3 rounded-lg bg-white/[0.02]">
+                        {d.details?.isSubmitted ? (
+                          <Clock size={14} className="text-amber-400 shrink-0" />
+                        ) : d.details?.isReturned || d.details?.status === 'Rejected' ? (
+                          <XCircle size={14} className="text-red-400 shrink-0" />
+                        ) : (
+                          <AlertCircle size={14} className="text-white/30 shrink-0" />
+                        )}
+                        <span className="text-white/60 text-sm">{d.name}</span>
+                        <span className="ml-auto text-xs text-white/30">
+                          {d.details?.isSubmitted ? 'Pending review' : d.details?.isReturned || d.details?.status === 'Rejected' ? 'Rejected' : 'Not submitted'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 text-center">
+                    <Link href="/driver/documents" className="text-secondary text-sm font-semibold hover:underline">
+                      Upload Missing Documents →
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
     </DashboardLayout>
   );

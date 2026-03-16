@@ -117,7 +117,7 @@ export default function DocumentsPage() {
       const tasks: Promise<unknown>[] = [documentsApi.getDriverDocuments(driverId)];
       if (carId) tasks.push(documentsApi.getCarDocuments(carId));
 
-      const [driverDocs, carDocs] = await Promise.allSettled(tasks);
+      const results = await Promise.allSettled(tasks);
 
       const mapDocStatus = (status?: string): DocStatus => {
         if (!status) return 'not_uploaded';
@@ -129,34 +129,36 @@ export default function DocumentsPage() {
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const allDocs: any[] = [];
-      if (driverDocs.status === 'fulfilled' && driverDocs.value) {
-        const dd = Array.isArray(driverDocs.value) ? driverDocs.value : (driverDocs.value as { data?: unknown[] }).data || [];
-        allDocs.push(...dd);
-      }
-      if (carDocs.status === 'fulfilled' && carDocs.value) {
-        const cd = Array.isArray(carDocs.value) ? carDocs.value : (carDocs.value as { data?: unknown[] }).data || [];
-        allDocs.push(...cd);
-      }
+      const driverDoc: any = results[0].status === 'fulfilled' ? results[0].value : null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const carDoc: any = results[1]?.status === 'fulfilled' ? results[1].value : null;
 
-      if (allDocs.length > 0) {
-        setDocuments(prev => prev.map(doc => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const match = allDocs.find((d: any) => {
-            const docType = (d.type || d.documentType || '').toLowerCase().replace(/[_\s]/g, '-');
-            return docType.includes(doc.id.replace('-', '')) || doc.id.includes(docType);
-          });
-          if (match) {
-            return {
-              ...doc,
-              status: mapDocStatus(match.status),
-              expiry: match.expiryDate || match.expiry || doc.expiry,
-              rejectionMessage: match.rejectionReason || match.rejectionMessage,
-            };
-          }
-          return doc;
-        }));
-      }
+      // Map frontend doc IDs to backend response fields
+      const fieldMap: Record<string, { src: 'driver' | 'car'; field: string; expiryKey?: string }> = {
+        'driving-license': { src: 'driver', field: 'drivingLicense', expiryKey: 'licenseExpiryDate' },
+        'vehicle-insurance': { src: 'car', field: 'insuranceDocument', expiryKey: 'insuranceExpiryDate' },
+        'mot-certificate': { src: 'car', field: 'motDocument' },
+        'phv-license': { src: 'driver', field: 'pcoDocuments', expiryKey: 'pcoBadgeExpiryDate' },
+        'dbs-certificate': { src: 'driver', field: 'passport', expiryKey: 'passportExpiryDate' },
+      };
+
+      setDocuments(prev => prev.map(doc => {
+        const mapping = fieldMap[doc.id];
+        if (!mapping) return doc;
+        const source = mapping.src === 'driver' ? driverDoc : carDoc;
+        if (!source) return doc;
+        const sub = source[mapping.field];
+        if (!sub) return doc;
+        const details = sub.details;
+        const status = details?.status || (details?.isSubmitted ? 'Pending' : null);
+        if (!status) return doc;
+        return {
+          ...doc,
+          status: mapDocStatus(status),
+          expiry: mapping.expiryKey ? sub[mapping.expiryKey] : doc.expiry,
+          rejectionMessage: details?.rejectionReason || doc.rejectionMessage,
+        };
+      }));
     } catch { /* keep initial */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);

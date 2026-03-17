@@ -141,7 +141,7 @@ export function EditPersonalDetailsForm({
           <div className="md:p-2 flex justify-center">
             <label
               htmlFor="profileImage"
-              className="block text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-900"
+              className="block text-sm font-medium text-white/70 cursor-pointer hover:text-white"
             >
               <div className="relative ">
                 <Image
@@ -168,7 +168,7 @@ export function EditPersonalDetailsForm({
           <div className="md:p-2 flex justifify-center">
             <label
               htmlFor="profileImage"
-              className="block text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-900"
+              className="block text-sm font-medium text-white/70 cursor-pointer hover:text-white"
             >
               <div className="relative ">
                 <AwsImageRender

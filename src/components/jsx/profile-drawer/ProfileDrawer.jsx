@@ -28,7 +28,7 @@ const ProfileDrawer = ({
       >
         <button
           onClick={toggleSidebar}
-          className="absolute top-2 left-2 hover:text-gray-800"
+          className="absolute top-2 left-2 text-white/70 hover:text-white"
         >
           {isOpen ? <Icon icon="ion:close" fontSize={36} /> : "Open"}
         </button>

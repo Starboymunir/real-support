@@ -20,7 +20,7 @@ const Modal: React.FC<ModalProps> = ({
         className={`container  fixed inset-0 flex justify-center items-center z-40 ${isOpen ? '' : 'hidden'}`}
       >
         <div
-          className="bg-background opacity-50 absolute inset-0"
+          className="bg-black opacity-50 absolute inset-0"
           onClick={onClose}
         />
         <div
@@ -28,7 +28,7 @@ const Modal: React.FC<ModalProps> = ({
         >
           <button
             onClick={onClose}
-            className="absolute top-2 left-2 hover:text-gray-800"
+            className="absolute top-2 left-2 text-white/70 hover:text-white"
           >
             {isOpen ? <Icon icon="ion:close" fontSize={36} /> : 'Open'}
           </button>

@@ -10,19 +10,19 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        default: "bg-primary text-white hover:bg-primary/80",
         primary:
           "bg-gradient-to-br from-primary to-primary-light text-white hover:shadow-lg hover:-translate-y-0.5",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/80",
+          "bg-red-600 text-white hover:bg-red-700",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-white/20 bg-white/[0.04] text-white hover:bg-white/[0.10] hover:border-white/30",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/70",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        blue: "bg-blue text-destructive-foreground hover:bg-destructive/80",
-        danger: "bg-red-500 text-primary underline-offset-4 hover:bg-red-300",
+          "bg-secondary text-white hover:bg-secondary/70",
+        ghost: "text-white/70 hover:bg-white/[0.08] hover:text-white",
+        link: "text-secondary underline-offset-4 hover:underline",
+        blue: "bg-blue text-white hover:bg-blue/80",
+        danger: "bg-red-500 text-white underline-offset-4 hover:bg-red-300",
         custom:
           "dark:bg-white dark:text-black bg-black text-white hover:bg-slate-500 dark:hover:bg-slate-300",
         green:

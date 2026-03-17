@@ -53,7 +53,7 @@ function ChatMessage({ message, userId }: any) {
 
       <div
         className={`flex flex-col gap-1 max-w-xs px-4 py-2 rounded-lg ${
-          sendByMe ? "bg-blue text-white" : "bg-indigo-500 text-gray-900"
+          sendByMe ? "bg-blue text-white" : "bg-indigo-500 text-white"
         }`}
       >
         {!sendByMe && (
@@ -249,7 +249,7 @@ export default function UserChatWindow() {
               ref={fileInputRef}
             />
             <button
-              className="mr-4 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
+              className="mr-4 bg-white/10 text-white/70 hover:bg-white/20 px-4 py-2 rounded-lg"
               onClick={handleUploadClearImageButtonClick}
             >
               {!!selectedImageUrl ? "Clear" : "Upload"}

@@ -74,7 +74,7 @@ const DriverInfoUpdateForm = ({ id, closeModal, data }) => {
       </h1>
       <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
         <div className=" w-full space-y-1">
-          <label className="text-black font-semibold">Date of birth</label>
+          <label className="text-white font-semibold">Date of birth</label>
           <RHFTextField
             type="date"
             name="dateOfBirth"
@@ -85,7 +85,7 @@ const DriverInfoUpdateForm = ({ id, closeModal, data }) => {
           />
         </div>
         <div className=" w-full space-y-1">
-          <label className="text-black font-semibold">
+          <label className="text-white font-semibold">
             Self Assessment Tax ID
           </label>
           <RHFTextField
@@ -98,7 +98,7 @@ const DriverInfoUpdateForm = ({ id, closeModal, data }) => {
           />
         </div>
         <div className=" w-full space-y-1">
-          <label className="text-black font-semibold">
+          <label className="text-white font-semibold">
             National Insurance Number
           </label>
           <RHFTextField
@@ -111,7 +111,7 @@ const DriverInfoUpdateForm = ({ id, closeModal, data }) => {
           />
         </div>
         <div className=" w-full space-y-1">
-          <label className="text-black font-semibold">
+          <label className="text-white font-semibold">
             Driver Recognition Number
           </label>
           <RHFTextField

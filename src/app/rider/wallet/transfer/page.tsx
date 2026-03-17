@@ -39,7 +39,7 @@ type RecipientInfo = {
   lastName: string;
   emailAddress: string;
   phone_number: string;
-  profileImage: string;
+  profileImageUrl: string;
 };
 
 export default function TransferPage() {
@@ -224,9 +224,9 @@ export default function TransferPage() {
               <div className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-6">
                 <p className="text-xs text-white/30 uppercase tracking-wider font-semibold mb-3">Sending to</p>
                 <div className="flex items-center gap-4">
-                  {recipient.profileImage ? (
+                  {recipient.profileImageUrl ? (
                     <Image
-                      src={recipient.profileImage}
+                      src={recipient.profileImageUrl}
                       alt={recipient.firstName}
                       width={56}
                       height={56}
@@ -371,9 +371,9 @@ export default function TransferPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-3 p-4 rounded-xl bg-secondary/[0.06] border border-secondary/20"
                   >
-                    {recipient.profileImage ? (
+                    {recipient.profileImageUrl ? (
                       <Image
-                        src={recipient.profileImage}
+                        src={recipient.profileImageUrl}
                         alt={recipient.firstName}
                         width={40}
                         height={40}
@@ -386,7 +386,16 @@ export default function TransferPage() {
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="text-white font-semibold text-sm">{recipient.firstName} {recipient.lastName}</p>
-                      <p className="text-white/40 text-xs truncate">{recipient.emailAddress}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Mail size={11} className="text-white/30" />
+                        <span className="text-white/40 text-xs truncate">{recipient.emailAddress}</span>
+                      </div>
+                      {recipient.phone_number && (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <Phone size={11} className="text-white/30" />
+                          <span className="text-white/40 text-xs">{recipient.phone_number}</span>
+                        </div>
+                      )}
                     </div>
                     <Check size={16} className="text-secondary shrink-0" />
                   </motion.div>

@@ -143,7 +143,7 @@ export default function EarningsPage() {
             <h1 className="text-2xl font-bold text-white">Earnings Overview</h1>
             <p className="text-white/60 mt-1">Track your income and payment history</p>
           </div>
-          <Button variant="green">
+          <Button href="/driver/withdraw" variant="green">
             <Banknote size={18} />
             Request Payout
           </Button>

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { driverApi } from '@/lib/services';
+import type { CreateDriverDto } from '@/lib/services/driver';
 import { authApi } from '@/lib/services/auth';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from '@/lib/toast';
@@ -109,17 +110,19 @@ export default function DriverRegistrationPage() {
     setSuccessMsg('');
     setSubmitting(true);
     try {
-      const dto: Record<string, string> = { userId: user!.id };
-      if (formData.niNumber) dto.nationalInsuranceNumber = formData.niNumber;
-      if (formData.taxId) dto.selfAssessmentTaxId = formData.taxId;
-      if (formData.dob) dto.dateOfBirth = formData.dob;
-      if (formData.bio) dto.bio = formData.bio;
-      if (formData.hobby) dto.hobby = formData.hobby;
-      if (formData.address) dto.address = formData.address;
-      if (formData.city) dto.city = formData.city;
-      if (formData.postcode) dto.postcode = formData.postcode;
+      const dto: CreateDriverDto = {
+        userId: user!.id,
+        ...(formData.niNumber && { nationalInsuranceNumber: formData.niNumber }),
+        ...(formData.taxId && { selfAssessmentTaxId: formData.taxId }),
+        ...(formData.dob && { dateOfBirth: formData.dob }),
+        ...(formData.bio && { bio: formData.bio }),
+        ...(formData.hobby && { hobby: formData.hobby }),
+        ...(formData.address && { address: formData.address }),
+        ...(formData.city && { city: formData.city }),
+        ...(formData.postcode && { postcode: formData.postcode }),
+      };
 
-      const result = await driverApi.register(dto as Parameters<typeof driverApi.register>[0]) as unknown as Driver;
+      const result = await driverApi.register(dto) as Driver;
       if (result?.id) {
         localStorage.setItem('rs_driver_id', result.id);
       }

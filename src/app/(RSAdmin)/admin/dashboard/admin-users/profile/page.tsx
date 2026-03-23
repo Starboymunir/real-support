@@ -25,10 +25,10 @@ import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 
 const ProfileSchema = Yup.object().shape({
-  profileImage: Yup.mixed(),
-  filePreview: Yup.mixed(),
+  profileImage: Yup.mixed().optional(),
+  filePreview: Yup.mixed().optional(),
   firstName: Yup.string().required("First name is required"),
-  lastName: Yup.string(),
+  lastName: Yup.string().optional(),
   email: Yup.string().email("Invalid email").required("Email is required"),
   phone_number: Yup.string().required("Phone number is required"),
 });
@@ -132,7 +132,7 @@ export default function AdminProfilePage() {
 
       <FormProvider methods={methods} onSubmit={onSubmit}>
         <Grid container spacing={3} justifyContent="center">
-          <Grid item xs={12} md={4}>
+          <Grid xs={12} md={4}>
             <Card sx={{ pt: 5, pb: 5, px: 3, textAlign: "center" }}>
               <RHFUploadAvatar
                 name="filePreview"
@@ -167,7 +167,7 @@ export default function AdminProfilePage() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={8}>
+          <Grid xs={12} md={8}>
             <Card sx={{ p: 3 }}>
               <Box
                 rowGap={3}

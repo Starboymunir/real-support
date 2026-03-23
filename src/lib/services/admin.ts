@@ -101,6 +101,9 @@ export const adminDriversApi = {
   create: (data: Partial<Driver>) =>
     api.post<Driver>('/admin/drivers', data),
 
+  update: (id: string, data: Partial<Driver>) =>
+    api.put<Driver>(`/admin/drivers/${id}`, data),
+
   delete: (id: string) =>
     api.del<void>(`/admin/drivers/${id}`),
 };

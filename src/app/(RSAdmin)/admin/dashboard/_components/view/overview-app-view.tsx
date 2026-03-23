@@ -3,22 +3,25 @@
 import { useTheme } from "@mui/material/styles";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
-import {
-  _appFeatured,
-  _appAuthors,
-  _appInstalled,
-  _appRelated,
-  _appInvoices,
-} from "@/_mock";
 import AppWidgetSummary from "../app-widget-summary";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import GoogleMap from "../google-map";
 import Card from "@mui/material/Card";
+import { adminStatsApi, type DashboardStats } from "@/lib/services/admin";
 
 const OverviewAppView = () => {
   const theme = useTheme();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+
+  useEffect(() => {
+    adminStatsApi
+      .getDashboardStats()
+      .then((data) => setStats(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <>
@@ -36,7 +39,7 @@ const OverviewAppView = () => {
               <AppWidgetSummary
                 title="Total No Riders"
                 percent={2.6}
-                total={0}
+                total={stats?.totalPassengers ?? 0}
                 chart={{
                   colors: [theme.palette.info.light, theme.palette.info.main],
                   series: [5, 18, 12, 51, 68, 11, 39, 37, 27, 20],
@@ -48,7 +51,7 @@ const OverviewAppView = () => {
               <AppWidgetSummary
                 title="Total No Drivers"
                 percent={0.2}
-                total={0}
+                total={stats?.totalDrivers ?? 0}
                 chart={{
                   colors: [theme.palette.info.light, theme.palette.info.main],
                   series: [20, 41, 63, 33, 28, 35, 50, 46, 11, 26],
@@ -60,7 +63,7 @@ const OverviewAppView = () => {
               <AppWidgetSummary
                 title="Total No Bookings"
                 percent={-0.1}
-                total={0}
+                total={stats?.totalBookings ?? 0}
                 chart={{
                   colors: [
                     theme.palette.warning.light,

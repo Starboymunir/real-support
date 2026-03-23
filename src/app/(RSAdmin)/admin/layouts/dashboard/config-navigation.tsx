@@ -80,123 +80,165 @@ export function useNavData() {
               icon: ICONS.user,
               children: [
                 { title: "list", path: paths.dashboard.user.list },
-                { title: "create", path: paths.dashboard.user.new },
+                ...(isSuperAdmin
+                  ? [{ title: "create", path: paths.dashboard.user.new }]
+                  : []),
               ],
             },
           ]
         : []),
-      {
-        title: "Users",
-        path: paths.dashboard.passengers.root,
-        icon: ICONS.user,
-        children: [{ title: "list", path: paths.dashboard.passengers.list }],
-      },
+      // Users (passengers): SUPER_ADMIN and ADMIN only
+      ...(isSuperAdmin || isAdmin
+        ? [
+            {
+              title: "Users",
+              path: paths.dashboard.passengers.root,
+              icon: ICONS.user,
+              children: [{ title: "list", path: paths.dashboard.passengers.list }],
+            },
+          ]
+        : []),
+      // Drivers: all roles (CompanyAdmin sees own company drivers)
       {
         title: "Drivers",
         path: paths.dashboard.drivers.root,
         icon: ICONS.label,
         children: [{ title: "list", path: paths.dashboard.drivers.list }],
       },
-      {
-        title: "booking-requests",
-        path: paths.dashboard.requests.root,
-        icon: ICONS.job,
-        children: [
-          { title: "list", path: paths.dashboard.requests.list },
-          { title: "create", path: paths.dashboard.requests.new },
-        ],
-      },
+      // Booking requests: SUPER_ADMIN and ADMIN only
+      ...(isSuperAdmin || isAdmin
+        ? [
+            {
+              title: "booking-requests",
+              path: paths.dashboard.requests.root,
+              icon: ICONS.job,
+              children: [
+                { title: "list", path: paths.dashboard.requests.list },
+                { title: "create", path: paths.dashboard.requests.new },
+              ],
+            },
+          ]
+        : []),
+      // Bookings: all roles can view
       {
         title: "bookings",
         path: paths.dashboard.bookings.root,
         icon: ICONS.job,
         children: [{ title: "list", path: paths.dashboard.bookings.list }],
       },
+      // Invoices: all roles
       {
         title: "invoices",
         path: paths.dashboard.invoices.root,
         icon: ICONS.file,
         children: [{ title: "list", path: paths.dashboard.invoices.list }],
       },
-      {
-        title: "packages",
-        path: paths.dashboard.packages.root,
-        icon: ICONS.ecommerce,
-        children: [
-          { title: "list", path: paths.dashboard.packages.list },
-          { title: "create", path: paths.dashboard.packages.new },
-        ],
-      },
-      {
-        title: "Static Content Management",
-        path: paths.dashboard.staticContent.about,
-        icon: ICONS.content,
-        children: [
-          { title: "About Us", path: paths.dashboard.staticContent.about },
-          {
-            title: "Terms and Conditions",
-            path: paths.dashboard.staticContent.termsAndConditions,
-          },
-          {
-            title: "Privacy Policy",
-            path: paths.dashboard.staticContent.privacyPolicy,
-          },
-        ],
-      },
-      {
-        title: "coupons",
-        path: paths.dashboard.discountCoupons.root,
-        icon: ICONS.invoice,
-        children: [
-          { title: "list", path: paths.dashboard.discountCoupons.list },
-          { title: "create", path: paths.dashboard.discountCoupons.new },
-        ],
-      },
-      {
-        title: "wallet",
-        path: paths.dashboard.wallet.root,
-        icon: ICONS.banking,
-        children: [
-          {
-            title: "With Drawl Requests",
-            path: paths.dashboard.wallet.withDrawalRequests.list,
-          },
-          {
-            title: "User Transactions",
-            path: paths.dashboard.wallet.userTransaction.list,
-          },
-          {
-            title: "Transactions",
-            path: paths.dashboard.wallet.adminTransaction.list,
-            children: [
-              {
-                title: "Create",
-                path: paths.dashboard.wallet.adminTransaction.create,
-              },
-              {
-                title: "List",
-                path: paths.dashboard.wallet.adminTransaction.list,
-              },
-            ],
-          },
-        ],
-      },
+      // Packages: SUPER_ADMIN and ADMIN only
+      ...(isSuperAdmin || isAdmin
+        ? [
+            {
+              title: "packages",
+              path: paths.dashboard.packages.root,
+              icon: ICONS.ecommerce,
+              children: [
+                { title: "list", path: paths.dashboard.packages.list },
+                { title: "create", path: paths.dashboard.packages.new },
+              ],
+            },
+          ]
+        : []),
+      // Static Content: SUPER_ADMIN and ADMIN only
+      ...(isSuperAdmin || isAdmin
+        ? [
+            {
+              title: "Static Content Management",
+              path: paths.dashboard.staticContent.about,
+              icon: ICONS.content,
+              children: [
+                { title: "About Us", path: paths.dashboard.staticContent.about },
+                {
+                  title: "Terms and Conditions",
+                  path: paths.dashboard.staticContent.termsAndConditions,
+                },
+                {
+                  title: "Privacy Policy",
+                  path: paths.dashboard.staticContent.privacyPolicy,
+                },
+              ],
+            },
+          ]
+        : []),
+      // Coupons: SUPER_ADMIN and ADMIN only
+      ...(isSuperAdmin || isAdmin
+        ? [
+            {
+              title: "coupons",
+              path: paths.dashboard.discountCoupons.root,
+              icon: ICONS.invoice,
+              children: [
+                { title: "list", path: paths.dashboard.discountCoupons.list },
+                { title: "create", path: paths.dashboard.discountCoupons.new },
+              ],
+            },
+          ]
+        : []),
+      // Wallet: SUPER_ADMIN and ADMIN only
+      ...(isSuperAdmin || isAdmin
+        ? [
+            {
+              title: "wallet",
+              path: paths.dashboard.wallet.root,
+              icon: ICONS.banking,
+              children: [
+                {
+                  title: "With Drawl Requests",
+                  path: paths.dashboard.wallet.withDrawalRequests.list,
+                },
+                {
+                  title: "User Transactions",
+                  path: paths.dashboard.wallet.userTransaction.list,
+                },
+                {
+                  title: "Transactions",
+                  path: paths.dashboard.wallet.adminTransaction.list,
+                  children: [
+                    {
+                      title: "Create",
+                      path: paths.dashboard.wallet.adminTransaction.create,
+                    },
+                    {
+                      title: "List",
+                      path: paths.dashboard.wallet.adminTransaction.list,
+                    },
+                  ],
+                },
+              ],
+            },
+          ]
+        : []),
+      // Chat: all roles
       {
         title: "chat",
         path: paths.dashboard.chat.root,
         icon: ICONS.chat,
       },
+      // Work Summary: all roles (CompanyAdmin sees own company drivers)
       {
         title: "work-summary",
         path: paths.dashboard.workSummary.root,
         icon: ICONS.menuItem,
       },
-      {
-        title: "User Feedbacks",
-        path: paths.dashboard.userFeedbacks.root,
-        icon: ICONS.mail,
-        children: [{ title: "list", path: paths.dashboard.userFeedbacks.list }],
-      },
+      // User Feedbacks: SUPER_ADMIN and ADMIN only
+      ...(isSuperAdmin || isAdmin
+        ? [
+            {
+              title: "User Feedbacks",
+              path: paths.dashboard.userFeedbacks.root,
+              icon: ICONS.mail,
+              children: [{ title: "list", path: paths.dashboard.userFeedbacks.list }],
+            },
+          ]
+        : []),
     ];
 
     return [

@@ -20,6 +20,12 @@ export interface LoginResponse {
   userData: User;
 }
 
+/** Shape returned by admin login step 1 — OTP sent */
+export interface AdminLoginOtpResponse {
+  otpRequired: true;
+  email: string;
+}
+
 export const authApi = {
   register: (dto: RegisterDto) =>
     api.post<User>('/auth/register', dto),
@@ -37,7 +43,13 @@ export const authApi = {
     api.post<LoginResponse>('/auth/company-login', dto),
 
   adminLogin: (dto: LoginDto) =>
-    api.post<LoginResponse>('/admin/adminUsers/login', dto),
+    api.post<AdminLoginOtpResponse>('/admin/adminUsers/login', dto),
+
+  verifyAdminOtp: (dto: ConfirmOtpDto) =>
+    api.post<LoginResponse>('/admin/adminUsers/verify-login-otp', {
+      email: dto.emailAddress,
+      otp: dto.otp,
+    }),
 
   getCurrentUser: () =>
     api.get<User>('/auth/current-user'),

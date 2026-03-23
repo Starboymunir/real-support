@@ -3,8 +3,8 @@ import { m } from 'framer-motion';
 // @mui
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-// hooks
-import { useMockedUser } from '@/app/(RSAdmin)/admin/hooks//use-mocked-user';
+// auth
+import { useAuth } from '@/lib/auth-context';
 // assets
 import { ForbiddenIllustration } from '@/config/illustrations';
 // components
@@ -13,11 +13,9 @@ import { MotionContainer, varBounce } from '@/app/(RSAdmin)/admin/common/animate
 // ----------------------------------------------------------------------
 
 export default function RoleBasedGuard({ hasContent, roles, children, sx }) {
-  // Logic here to get current user role
-  const { user } = useMockedUser();
+  const { user } = useAuth();
 
-  // const currentRole = 'user';
-  const currentRole = user?.role; // admin;
+  const currentRole = user?.Admin?.role;
 
   if (typeof roles !== 'undefined' && !roles.includes(currentRole)) {
     return hasContent ? (

@@ -20,12 +20,12 @@ import { NAV } from "../config-layout";
 import { useNavData } from "./config-navigation";
 import { NavToggleButton } from "../_common";
 import { useTheme } from "next-themes";
-import { useAuthContext } from "@/providers/auth-providers";
+import { useAuth } from "@/lib/auth-context";
 
 // ----------------------------------------------------------------------
 
 export default function NavVertical({ openNav, onCloseNav }) {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
 
   const pathname = usePathname();
 

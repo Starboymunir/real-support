@@ -19,7 +19,7 @@ import { fData } from "@/lib/utils/format-number";
 import { getUrl } from "aws-amplify/storage";
 import { updatePassengerById } from "@/server/Passenger";
 import { uploadImageFile } from "@/helpers/imageUpload";
-import { useAuthContext } from "@/providers/auth-providers";
+import { useRouter } from "next/navigation";
 
 // --------------------
 // Form types
@@ -35,7 +35,7 @@ export interface PassengerFormValues {
 
 export default function PassengerNewEditForm({ currentPassenger }: { currentPassenger: any }) {
   const { enqueueSnackbar } = useSnackbar();
-  const { reload, setReload } = useAuthContext();
+  const router = useRouter();
 
   const NewPassengerSchema = Yup.object().shape({
     firstName: Yup.string().required("First Name is required"),
@@ -93,7 +93,7 @@ export default function PassengerNewEditForm({ currentPassenger }: { currentPass
       enqueueSnackbar(error.message, { variant: "error" });
       console.error(error);
     } finally {
-      setReload(!reload);
+      router.refresh();
     }
   });
 

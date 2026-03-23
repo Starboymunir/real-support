@@ -22,7 +22,7 @@ import { useAsyncMemo } from "use-async-memo";
 import IconButton from "@mui/material/IconButton";
 import { DeleteIcon } from "lucide-react";
 import Image from "next/image";
-import { useAuthContext } from "@/providers/auth-providers";
+import { useAuth } from "@/lib/auth-context";
 
 const RootContainer = styled(Box)({
   display: "flex",
@@ -215,7 +215,8 @@ function ChatList({
 
 function ChatWindow() {
   const { socket } = useSocket();
-  const { userId } = useAuthContext();
+  const { user } = useAuth();
+  const userId = user?.id;
   const {
     chatList,
     activeChat,

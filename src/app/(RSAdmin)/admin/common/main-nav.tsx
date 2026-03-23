@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useAuthContext } from "@/providers/auth-providers";
+import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 
@@ -11,7 +11,7 @@ const MainNav = ({ className, ...props }: {
 }) => {
   const pathname = usePathname();
   const params = useParams();
-const { user } = useAuthContext();
+const { user } = useAuth();
   console.log("user2wqwq",user)
   const routes = [
     {

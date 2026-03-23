@@ -38,7 +38,7 @@ import {
 } from "@/server/Wallet";
 import { alpha, Tab, Tabs } from "@mui/material";
 import Label from "@/app/(RSAdmin)/admin/common/label";
-import { useAuthContext } from "@/providers/auth-providers";
+import { useAuth } from "@/lib/auth-context";
 import { useSocket } from "@/providers/SocketProvider";
 import { useWithdrawalRequestsQuery } from "@/hooks/Transaction";
 import { IWithdrawals } from "@/types/type";
@@ -77,7 +77,7 @@ export default function WithDrawalListView() {
   const table = useTable();
 
   const settings = useSettingsContext();
-  const { user } = useAuthContext();
+  const { user } = useAuth();
 
   const router = useRouter();
 

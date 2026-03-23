@@ -20,7 +20,7 @@ export interface AdminRegisterDto {
   lastName: string;
   emailAddress: string;
   password: string;
-  role: 'ADMIN' | 'STAFF';
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'COMPANY_ADMIN';
   secretNumber: string;
 }
 
@@ -49,9 +49,9 @@ export const adminAuthApi = {
     api.post<void>('/admin/adminUsers/confirm-signup', dto),
 
   forgotPassword: (email: string) =>
-    api.post('/admin/adminUsers/forgot-password', { emailAddress: email }),
+    api.post('/admin/adminUsers/forgot-password', { email }),
 
-  resetPassword: (dto: { emailAddress: string; otp: string; newPassword: string }) =>
+  resetPassword: (dto: { email: string; otp: string; newPassword: string }) =>
     api.post('/admin/adminUsers/reset-password', dto),
 
   changePassword: (dto: { oldPassword: string; newPassword: string }) =>

@@ -13,7 +13,7 @@ import {
   type ReactNode,
 } from 'react';
 import { setToken, getToken } from './api';
-import { authApi, type LoginResponse } from './services/auth';
+import { authApi, type LoginResponse, type AdminLoginOtpResponse } from './services/auth';
 import type {
   User,
   RegisterDto,
@@ -35,7 +35,8 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   login: (dto: LoginDto) => Promise<void>;
   companyLogin: (dto: LoginDto) => Promise<void>;
-  adminLogin: (dto: LoginDto) => Promise<void>;
+  adminLogin: (dto: LoginDto) => Promise<AdminLoginOtpResponse>;
+  verifyAdminOtp: (dto: ConfirmOtpDto) => Promise<void>;
   register: (dto: RegisterDto) => Promise<void>;
   confirmEmail: (dto: ConfirmOtpDto) => Promise<void>;
   resendOtp: (email: string) => Promise<void>;
@@ -125,7 +126,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const adminLogin = useCallback(
-    async (dto: LoginDto) => handleAuth(authApi.adminLogin(dto)),
+    async (dto: LoginDto): Promise<AdminLoginOtpResponse> => {
+      setState((s) => ({ ...s, loading: true, error: null }));
+      try {
+        const res = await authApi.adminLogin(dto);
+        setState((s) => ({ ...s, loading: false }));
+        return res;
+      } catch (err) {
+        const message =
+          err instanceof ApiError ? err.message : 'Something went wrong';
+        setState((s) => ({ ...s, loading: false, error: message }));
+        throw err;
+      }
+    },
+    [],
+  );
+
+  const verifyAdminOtp = useCallback(
+    async (dto: ConfirmOtpDto) => {
+      await handleAuth(authApi.verifyAdminOtp(dto));
+    },
     [handleAuth],
   );
 
@@ -208,6 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         companyLogin,
         adminLogin,
+        verifyAdminOtp,
         register,
         confirmEmail,
         resendOtp,

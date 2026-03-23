@@ -2,20 +2,16 @@
 
 import { ReactNodeLike } from "prop-types";
 import DashboardLayout from "@/app/(RSAdmin)/admin/layouts/dashboard";
-import { useAuthContext } from "@/providers/auth-providers";
+import { useAuth } from "@/lib/auth-context";
 import { redirect } from "next/navigation";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 
 export default function Layout({ children }: { children: ReactNodeLike }) {
-  const { user, loading} = useAuthContext();
+  const { user, loading } = useAuth();
 
   if (loading) return <LoadingScreen sx={{}} />;
 
-  // if (!user || !company) return redirect("/login");
-  // console.log("user from context:", user);
-  // console.log("user.Admin:", user?.Admin);
-
-  if (!user?.Admin) return redirect("/");
+  if (!user?.Admin) return redirect("/admin/login");
 
   return <DashboardLayout>{children}</DashboardLayout>;
 }

@@ -15,7 +15,7 @@ import AwsImageAvatar from "../../../common/aws-image-avatar/Avatar";
 import Label from "../../../common/label";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
-import { useAuthContext } from "@/providers/auth-providers";
+import { useAuth } from "@/lib/auth-context";
 import { IUser } from "@/types/type";
 
 export default function PassengersTableRow({
@@ -49,7 +49,8 @@ export default function PassengersTableRow({
 
   const router = useRouter();
 
-  const { userId } = useAuthContext();
+  const { user } = useAuth();
+  const userId = user?.id;
 
   const showChatButton = useMemo(() => userId !== row.id, [row, userId]);
 

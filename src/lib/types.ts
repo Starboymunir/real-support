@@ -23,10 +23,10 @@ export type TransactionType =
   | 'CANCELLATION_FEE' | 'BOOKING_INCOME' | 'ADMIN_COMMISSION'
   | 'ADMIN_CHARGE' | 'ADMIN_FUND';
 export type AdminTransactionType = 'INCOME' | 'EXPENSE' | 'COMMISSION';
-export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'STAFF' | 'ACCOUNTANT';
+export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'COMPANY_ADMIN';
 export type PaymentOption = 'CASH_BALANCE' | 'BANK_TRANSFER' | 'CARD' | 'OTHER_OPTION';
 export type CompanyStatus = 'ACTIVE' | 'SUSPEND' | 'PENDING' | 'ONHOLD';
-export type AdminRole = 'ADMIN' | 'STAFF';
+export type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'COMPANY_ADMIN';
 export type DriverRequestStatus = 'ACTIVE' | 'SUSPEND' | 'PENDING' | 'ONHOLD' | 'DECLINE';
 export type RequestStatus = 'REJECTED' | 'PENDING' | 'PROCESSED';
 export type AccountStatus = 'REJECTED' | 'PENDING' | 'ACTIVE';

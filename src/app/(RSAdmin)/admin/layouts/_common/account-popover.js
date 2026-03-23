@@ -19,7 +19,7 @@ import CustomPopover, {
   usePopover,
 } from "@/app/(RSAdmin)/admin/common/custom-popover";
 import AwsImageAvatar from "../../common/aws-image-avatar/Avatar";
-import { useAuthContext } from "@/providers/auth-providers";
+import { useAuth } from "@/lib/auth-context";
 
 // ----------------------------------------------------------------------
 
@@ -28,10 +28,10 @@ const OPTIONS = [
     label: "Home",
     linkTo: "/",
   },
-  // {
-  //   label: "Account",
-  //   linkTo: paths.dashboard.user.account,
-  // },
+  {
+    label: "Profile",
+    linkTo: paths.dashboard.user.profile,
+  },
 ];
 
 // ----------------------------------------------------------------------
@@ -39,16 +39,16 @@ const OPTIONS = [
 export default function AccountPopover() {
   const router = useRouter();
 
-  const { logoutUser, user } = useAuthContext();
+  const { logout, user } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
 
   const popover = usePopover();
 
   const handleLogout = async () => {
     try {
-      await logoutUser();
+      await logout();
       popover.onClose();
-      router.replace("/");
+      router.replace("/admin/login");
     } catch (error) {
       enqueueSnackbar("Unable to logout!", { variant: "error" });
     }

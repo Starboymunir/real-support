@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import SvgColor from "@/app/(RSAdmin)/admin/common/svg-color";
-import { useAuthContext } from "@/providers/auth-providers";
+import { useAuth } from "@/lib/auth-context";
 
 // ----------------------------------------------------------------------
 
@@ -43,17 +43,22 @@ const ICONS = {
 // ----------------------------------------------------------------------
 
 export function useNavData() {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
+  const role = user?.Admin?.role;
 
   const data = useMemo(() => {
+    const isSuperAdmin = role === "SUPER_ADMIN";
+    const isAdmin = role === "ADMIN";
+    const isCompanyAdmin = role === "COMPANY_ADMIN";
+
     const items: any[] = [
       {
         title: "app",
         path: paths.dashboard.root,
         icon: ICONS.dashboard,
       },
-      // ✅ only show if user.Admin.role === 'SUPER_ADMIN'
-      ...(user?.Admin?.role === "SUPER_ADMIN"
+      // Companies: SUPER_ADMIN and ADMIN only
+      ...(isSuperAdmin || isAdmin
         ? [
             {
               title: "companies",
@@ -66,15 +71,20 @@ export function useNavData() {
             },
           ]
         : []),
-      {
-        title: "admins",
-        path: paths.dashboard.user.root,
-        icon: ICONS.user,
-        children: [
-          { title: "list", path: paths.dashboard.user.list },
-          { title: "create", path: paths.dashboard.user.new },
-        ],
-      },
+      // Admin users: SUPER_ADMIN and ADMIN only
+      ...(isSuperAdmin || isAdmin
+        ? [
+            {
+              title: "admins",
+              path: paths.dashboard.user.root,
+              icon: ICONS.user,
+              children: [
+                { title: "list", path: paths.dashboard.user.list },
+                { title: "create", path: paths.dashboard.user.new },
+              ],
+            },
+          ]
+        : []),
       {
         title: "Users",
         path: paths.dashboard.passengers.root,
@@ -195,7 +205,7 @@ export function useNavData() {
         items,
       },
     ];
-  }, [user]);
+  }, [role]);
 
   return data;
 }

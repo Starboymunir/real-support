@@ -21,7 +21,7 @@ import { getUrl } from "aws-amplify/storage";
 import { fData } from "@/lib/utils/format-number";
 import { IAdmin } from "@/types/type";
 
-const roles = ["ADMIN", "STAFF", "ACCOUNTANT"];
+const roles = ["SUPER_ADMIN", "ADMIN", "COMPANY_ADMIN"];
 
 export default function UserNewEditForm({
   currentUser,

@@ -7,14 +7,17 @@ import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, Loader2, Shield, KeyRound } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
+type LoginMode = 'password' | 'otp';
+
 export default function AdminLoginPage() {
+  const [mode, setMode] = useState<LoginMode>('password');
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [otpStep, setOtpStep] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { adminLogin, verifyAdminOtp, loading, error, clearError, user } = useAuth();
+  const { adminLogin, requestAdminLoginOtp, verifyAdminOtp, loading, error, clearError, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -23,16 +26,39 @@ export default function AdminLoginPage() {
     }
   }, [user, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Password login
+  const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
     try {
-      const res = await adminLogin({ emailAddress: email, password });
-      if (res.otpRequired) {
-        setOtpStep(true);
-      }
+      await adminLogin({ emailAddress: email, password });
     } catch {
-      // error is set in context
+      // error set in context
+    }
+  };
+
+  // OTP login step 1: request OTP
+  const handleRequestOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+    try {
+      await requestAdminLoginOtp(email);
+      setOtpSent(true);
+    } catch {
+      // error set in context
+    }
+  };
+
+  // OTP login step 2: verify
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+    const otpString = otp.join('');
+    if (otpString.length !== 6) return;
+    try {
+      await verifyAdminOtp({ emailAddress: email, otp: otpString });
+    } catch {
+      // error set in context
     }
   };
 
@@ -61,16 +87,12 @@ export default function AdminLoginPage() {
     }
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const switchMode = (newMode: LoginMode) => {
+    setMode(newMode);
+    setOtpSent(false);
+    setOtp(['', '', '', '', '', '']);
+    setPassword('');
     clearError();
-    const otpString = otp.join('');
-    if (otpString.length !== 6) return;
-    try {
-      await verifyAdminOtp({ emailAddress: email, otp: otpString });
-    } catch {
-      // error is set in context
-    }
   };
 
   return (
@@ -90,86 +112,141 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          {!otpStep ? (
-            <>
-              <h2 className="text-3xl font-bold text-white text-center mb-2">Admin Login</h2>
-              <p className="text-white/35 text-center mb-8">Sign in to the management dashboard</p>
+          <h2 className="text-3xl font-bold text-white text-center mb-2">Admin Login</h2>
+          <p className="text-white/35 text-center mb-6">Sign in to the management dashboard</p>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {error && (
-                  <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm">
-                    {error}
-                  </div>
-                )}
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
-                  <input
-                    type="email"
-                    placeholder="Admin email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="input-dark pl-12"
-                    required
-                  />
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="input-dark pl-12 pr-12"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/50 transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
+          {/* Mode tabs */}
+          <div className="flex mb-6 rounded-xl bg-white/[0.04] p-1">
+            <button
+              type="button"
+              onClick={() => switchMode('password')}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                mode === 'password'
+                  ? 'bg-white text-black shadow-sm'
+                  : 'text-white/40 hover:text-white/60'
+              }`}
+            >
+              <Lock className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+              Password
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode('otp')}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                mode === 'otp'
+                  ? 'bg-white text-black shadow-sm'
+                  : 'text-white/40 hover:text-white/60'
+              }`}
+            >
+              <KeyRound className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+              Login with OTP
+            </button>
+          </div>
 
+          {error && (
+            <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm mb-5">
+              {error}
+            </div>
+          )}
+
+          {/* PASSWORD MODE */}
+          {mode === 'password' && (
+            <form onSubmit={handlePasswordLogin} className="space-y-5">
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
+                <input
+                  type="email"
+                  placeholder="Admin email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="input-dark pl-12"
+                  required
+                />
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-dark pl-12 pr-12"
+                  required
+                />
                 <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/50 transition-colors"
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" /> Signing in...
-                    </>
-                  ) : (
-                    'Sign In'
-                  )}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
+              </div>
 
-                <div className="text-right">
-                  <Link
-                    href="/admin/auth/jwt/forgot-password"
-                    className="text-white/35 text-sm hover:text-white/50 transition-colors"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-              </form>
-            </>
-          ) : (
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </button>
+
+              <div className="text-right">
+                <Link
+                  href="/admin/auth/jwt/forgot-password"
+                  className="text-white/35 text-sm hover:text-white/50 transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            </form>
+          )}
+
+          {/* OTP MODE — Step 1: Enter email */}
+          {mode === 'otp' && !otpSent && (
+            <form onSubmit={handleRequestOtp} className="space-y-5">
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25" />
+                <input
+                  type="email"
+                  placeholder="Admin email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="input-dark pl-12"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-white text-black font-bold rounded-xl text-lg hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Sending code...
+                  </>
+                ) : (
+                  'Send Login Code'
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* OTP MODE — Step 2: Enter OTP */}
+          {mode === 'otp' && otpSent && (
             <>
-              <h2 className="text-3xl font-bold text-white text-center mb-2">Verify OTP</h2>
-              <p className="text-white/35 text-center mb-8">
+              <p className="text-white/35 text-center mb-6">
                 Enter the 6-digit code sent to<br />
                 <span className="text-white/60">{email}</span>
               </p>
 
               <form onSubmit={handleVerifyOtp} className="space-y-6">
-                {error && (
-                  <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm">
-                    {error}
-                  </div>
-                )}
-
                 <div className="flex justify-center gap-3">
                   {otp.map((digit, i) => (
                     <input
@@ -205,10 +282,10 @@ export default function AdminLoginPage() {
 
                 <button
                   type="button"
-                  onClick={() => { setOtpStep(false); setOtp(['', '', '', '', '', '']); clearError(); }}
+                  onClick={() => { setOtpSent(false); setOtp(['', '', '', '', '', '']); clearError(); }}
                   className="w-full text-white/35 text-sm hover:text-white/50 transition-colors"
                 >
-                  &larr; Back to login
+                  &larr; Change email
                 </button>
               </form>
             </>

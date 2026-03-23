@@ -13,7 +13,7 @@ import {
   type ReactNode,
 } from 'react';
 import { setToken, getToken } from './api';
-import { authApi, type LoginResponse, type AdminLoginOtpResponse } from './services/auth';
+import { authApi, type LoginResponse, type AdminOtpSentResponse } from './services/auth';
 import type {
   User,
   RegisterDto,
@@ -35,7 +35,8 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   login: (dto: LoginDto) => Promise<void>;
   companyLogin: (dto: LoginDto) => Promise<void>;
-  adminLogin: (dto: LoginDto) => Promise<AdminLoginOtpResponse>;
+  adminLogin: (dto: LoginDto) => Promise<void>;
+  requestAdminLoginOtp: (email: string) => Promise<AdminOtpSentResponse>;
   verifyAdminOtp: (dto: ConfirmOtpDto) => Promise<void>;
   register: (dto: RegisterDto) => Promise<void>;
   confirmEmail: (dto: ConfirmOtpDto) => Promise<void>;
@@ -126,10 +127,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const adminLogin = useCallback(
-    async (dto: LoginDto): Promise<AdminLoginOtpResponse> => {
+    async (dto: LoginDto) => {
+      await handleAuth(authApi.adminLogin(dto));
+    },
+    [handleAuth],
+  );
+
+  const requestAdminLoginOtp = useCallback(
+    async (email: string): Promise<AdminOtpSentResponse> => {
       setState((s) => ({ ...s, loading: true, error: null }));
       try {
-        const res = await authApi.adminLogin(dto);
+        const res = await authApi.requestAdminLoginOtp(email);
         setState((s) => ({ ...s, loading: false }));
         return res;
       } catch (err) {
@@ -228,6 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         companyLogin,
         adminLogin,
+        requestAdminLoginOtp,
         verifyAdminOtp,
         register,
         confirmEmail,

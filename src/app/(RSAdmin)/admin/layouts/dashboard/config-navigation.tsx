@@ -86,7 +86,12 @@ export function useNavData() {
         title: "Drivers",
         path: paths.dashboard.drivers.root,
         icon: ICONS.label,
-        children: [{ title: "list", path: paths.dashboard.drivers.list }],
+        children: [
+          { title: "list", path: paths.dashboard.drivers.list },
+          ...(isSuperAdmin || isAdmin
+            ? [{ title: "create", path: paths.dashboard.drivers.new }]
+            : []),
+        ],
       },
       // Booking requests: SUPER_ADMIN and ADMIN only
       ...(isSuperAdmin || isAdmin
@@ -107,14 +112,24 @@ export function useNavData() {
         title: "bookings",
         path: paths.dashboard.bookings.root,
         icon: ICONS.job,
-        children: [{ title: "list", path: paths.dashboard.bookings.list }],
+        children: [
+          { title: "list", path: paths.dashboard.bookings.list },
+          ...(isSuperAdmin || isAdmin
+            ? [{ title: "create", path: paths.dashboard.bookings.new }]
+            : []),
+        ],
       },
       // Invoices: all roles
       {
         title: "invoices",
         path: paths.dashboard.invoices.root,
         icon: ICONS.file,
-        children: [{ title: "list", path: paths.dashboard.invoices.list }],
+        children: [
+          { title: "list", path: paths.dashboard.invoices.list },
+          ...(isSuperAdmin || isAdmin
+            ? [{ title: "create", path: paths.dashboard.invoices.new }]
+            : []),
+        ],
       },
       // Packages: SUPER_ADMIN and ADMIN only
       ...(isSuperAdmin || isAdmin

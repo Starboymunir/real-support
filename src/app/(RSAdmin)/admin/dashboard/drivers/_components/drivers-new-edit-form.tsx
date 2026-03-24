@@ -22,6 +22,7 @@ import { MenuItem } from "@mui/material";
 import { getUrl } from "aws-amplify/storage";
 import axiosInstance from "@/lib/admin-axios";
 import { IDriver } from "@/types/type";
+import { useQueryClient } from "@tanstack/react-query";
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +32,7 @@ export default function DriversNewEditForm({
   currentDriver: IDriver;
 }) {
   const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
 
   const NewUserSchema = Yup.object().shape({
     driverRecognitionNumber: Yup.string().required(
@@ -112,6 +114,8 @@ export default function DriversNewEditForm({
       );
 
       if (data.success === true) {
+        queryClient.invalidateQueries({ queryKey: ["All-Drivers"] });
+        queryClient.invalidateQueries({ queryKey: ["Driver", currentDriver.id] });
         enqueueSnackbar("Update success!");
       }
     } catch (error: any) {

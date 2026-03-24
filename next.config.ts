@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['framer-motion', 'lucide-react'],
   },
-  transpilePackages: ['aws-amplify', '@aws-amplify/storage', '@aws-amplify/core'],
+  transpilePackages: ['aws-amplify', '@aws-amplify/storage', '@aws-amplify/core', '@react-pdf/renderer'],
 };
 
 export default nextConfig;

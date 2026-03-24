@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Package } from "@prisma/client";
 import axiosInstance from "@/lib/admin-axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 // ----------------------------------------------------------------------
 type PackageFormValues = {
@@ -38,6 +39,7 @@ export default function PackagesNewEditForm({
 }) {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
 
   // ------------------- Zod Schema -------------------
   const NewPackageSchema = z.object({
@@ -107,6 +109,7 @@ export default function PackagesNewEditForm({
         );
 
         if (data.success) {
+          queryClient.invalidateQueries({ queryKey: ["all-packages"] });
           enqueueSnackbar(data.message);
           reset();
           router.push(paths.dashboard.packages.list);
@@ -114,6 +117,7 @@ export default function PackagesNewEditForm({
       } else {
         const { data } = await axiosInstance.post(`/packages`, payload);
         if (data.success) {
+          queryClient.invalidateQueries({ queryKey: ["all-packages"] });
           enqueueSnackbar("Created successfully!");
           reset();
           router.push(paths.dashboard.packages.list);

@@ -24,6 +24,8 @@ import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import axiosInstance from "@/lib/admin-axios";
 import { useAdminUsersQuery } from "@/hooks/Admin";
 import { IAdmin, ICompany } from "@/types/type";
+import { useQueryClient } from "@tanstack/react-query";
+import { uploadImageFile } from "@/helpers/imageUpload";
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +36,7 @@ export default function CompanyNewEditForm({
 }) {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
   const { data: adminUsers = [] } = useAdminUsersQuery();
 
   const NewCompanySchema = Yup.object().shape({
@@ -76,22 +79,35 @@ export default function CompanyNewEditForm({
         ? formattedPhone
         : `+${formattedPhone}`;
 
+      let coverImage = (payload as any).coverImage ?? undefined;
+      if (coverImage instanceof File) {
+        coverImage = await uploadImageFile(coverImage);
+      }
+      delete (payload as any).filePreview;
+
       if (!currentCompany) {
         const { data } = await axiosInstance.post("/company/create-company", {
           ...payload,
           phone_number: phone,
+          ...(coverImage !== undefined && { coverImage }),
         });
 
         if (data.success === true) {
+          queryClient.invalidateQueries({ queryKey: ["all_companies"] });
           enqueueSnackbar("Company Created Successfully");
           router.push(paths.dashboard.companies.list);
         }
       } else {
         const { data } = await axiosInstance.patch(
           `/company/updateById/${currentCompany.id}`,
-          payload
+          {
+            ...payload,
+            ...(coverImage !== undefined && { coverImage }),
+          }
         );
         if (data.success === true) {
+          queryClient.invalidateQueries({ queryKey: ["all_companies"] });
+          queryClient.invalidateQueries({ queryKey: ["company", currentCompany.id] });
           enqueueSnackbar("Company Updated Successfully");
           router.push(paths.dashboard.companies.list);
         }
@@ -111,8 +127,8 @@ export default function CompanyNewEditForm({
       });
 
       if (file) {
-        // setValue("coverImage", file);
-        // setValue("filePreview", newFile, { shouldValidate: true });
+        setValue("coverImage" as any, file);
+        setValue("filePreview" as any, newFile, { shouldValidate: true });
       }
     },
     [setValue]

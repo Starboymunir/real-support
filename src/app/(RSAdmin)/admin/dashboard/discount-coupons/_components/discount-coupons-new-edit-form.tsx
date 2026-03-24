@@ -19,6 +19,7 @@ import { DiscountCoupons } from "@prisma/client";
 import axiosInstance from "@/lib/admin-axios";
 import { useRouter } from "../../../routes/hook";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DiscountCouponsNewEditForm({
   currentCoupon,
@@ -27,6 +28,7 @@ export default function DiscountCouponsNewEditForm({
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const DiscountCouponSchema = Yup.object().shape({
     coupon: Yup.string().required("Coupon code is required"),
@@ -64,6 +66,7 @@ export default function DiscountCouponsNewEditForm({
           data
         );
         if (response.data.success) {
+          queryClient.invalidateQueries({ queryKey: ["discountCoupons"] });
           enqueueSnackbar(response.data.message);
           router.push(paths.dashboard.discountCoupons.root);
         }
@@ -73,6 +76,7 @@ export default function DiscountCouponsNewEditForm({
         if (statusCode !== 200) {
           enqueueSnackbar(message, { variant: "error" });
         }
+        queryClient.invalidateQueries({ queryKey: ["discountCoupons"] });
         enqueueSnackbar("Coupon created successfully");
       }
     } catch (error) {

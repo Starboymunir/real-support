@@ -15,11 +15,12 @@ import FormProvider, {
   RHFTextField,
   RHFUploadAvatar,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
-import axiosInstance, { endpoints } from "@/lib/utils/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { Grid, Typography } from "@mui/material";
 import { getUrl } from "aws-amplify/storage";
 import { fData } from "@/lib/utils/format-number";
 import { IAdmin } from "@/types/type";
+import { useQueryClient } from "@tanstack/react-query";
 
 const roles = ["SUPER_ADMIN", "ADMIN", "COMPANY_ADMIN"];
 
@@ -30,6 +31,7 @@ export default function UserNewEditForm({
 }) {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
 
   const NewUserSchema = Yup.object().shape({
     profileImage: Yup.mixed(),
@@ -86,10 +88,11 @@ export default function UserNewEditForm({
     if (currentUser) {
       formData.delete("password");
     }
+    formData.delete("filePreview");
     try {
       const url = currentUser
-        ? `${endpoints.admin.getAll}/${currentUser.id}`
-        : endpoints.admin.register;
+        ? `/admin/adminUsers/${currentUser.id}`
+        : `/admin/adminUsers/register`;
 
       const method = currentUser ? "put" : "post";
 
@@ -97,6 +100,7 @@ export default function UserNewEditForm({
 
       const successStatus = currentUser ? 200 : 201;
       if (response.status === successStatus) {
+        queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
         enqueueSnackbar(
           currentUser ? "Updated successfully!" : "Created successfully!"
         );

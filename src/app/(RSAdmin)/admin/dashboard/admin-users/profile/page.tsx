@@ -20,7 +20,7 @@ import FormProvider, {
 import { fData } from "@/lib/utils/format-number";
 import { getUrl } from "aws-amplify/storage";
 import { useAuth } from "@/lib/auth-context";
-import axiosInstance, { endpoints } from "@/lib/utils/axios";
+import axiosInstance from "@/lib/admin-axios";
 import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 
@@ -74,7 +74,7 @@ export default function AdminProfilePage() {
 
     try {
       await axiosInstance.put(
-        `${endpoints.admin.getAll}/${user.Admin.id}`,
+        `/admin/adminUsers/${user.Admin.id}`,
         formData
       );
       enqueueSnackbar("Profile updated successfully!");

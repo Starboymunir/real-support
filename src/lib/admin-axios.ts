@@ -9,9 +9,6 @@ const baseURL = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
 const adminAxios = axios.create({
   baseURL,
   timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 adminAxios.interceptors.request.use((config) => {

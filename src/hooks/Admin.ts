@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { IAdmin } from "@/types/type";
 
 export const useAdminUsersQuery = () => {

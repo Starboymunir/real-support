@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/ApiClient";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { getUserPendingRequest } from "@/server/Requests";
 import { IRequestType } from "@/types/type";
 import { useQuery } from "@tanstack/react-query";

@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/ApiClient";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { fetchDriverBookings } from "@/server/bookingActions";
 // import { getDrivers } from "@/server/Drivers";
 import { IBookingType, IDriver } from "@/types/type";
@@ -45,11 +45,11 @@ export const useOnlineDriversQuery = (packageId?: string) => {
 };
 
 const getDriverById = async (id: string) => {
-  const { data } = await axiosInstance.get(`/drivers/${id}`);
+  const { data } = await axiosInstance.get(`/admin/drivers/${id}`);
   return data.data;
 };
 
 const getDrivers = async () => {
-  const { data } = await axiosInstance.get(`/drivers`);
+  const { data } = await axiosInstance.get(`/admin/drivers`);
   return data.data || [];
 };

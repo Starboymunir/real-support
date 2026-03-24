@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/ApiClient";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { ITransaction, IAdminTransaction, IWithdrawals } from "@/types/type";
 import { useQuery } from "@tanstack/react-query";
 

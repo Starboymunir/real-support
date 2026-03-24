@@ -19,7 +19,7 @@ import { NavSectionVertical } from "@/app/(RSAdmin)/admin/common/nav-section";
 import { NAV } from "../config-layout";
 import { useNavData } from "./config-navigation";
 import { NavToggleButton } from "../_common";
-import { useTheme } from "next-themes";
+import { useTheme } from "@mui/material/styles";
 import { useAuth } from "@/lib/auth-context";
 
 // ----------------------------------------------------------------------
@@ -83,7 +83,8 @@ export default function NavVertical({ openNav, onCloseNav }) {
             height: 1,
             position: "fixed",
             width: NAV.W_VERTICAL,
-            borderRight: (theme) => `dashed 1px ${theme.palette.divider}`,
+            borderRight: (theme) => `solid 1px ${theme.palette.divider}`,
+            backgroundColor: (theme) => theme.palette.background.paper,
           }}
         >
           {renderContent}

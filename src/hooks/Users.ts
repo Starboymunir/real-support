@@ -1,6 +1,6 @@
 "use client";
 
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { SocialLink, User } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 

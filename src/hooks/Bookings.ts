@@ -1,4 +1,4 @@
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { IBookingType } from "@/types/type";
 import { useQuery } from "@tanstack/react-query";
 

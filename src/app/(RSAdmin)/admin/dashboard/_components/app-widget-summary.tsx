@@ -1,5 +1,5 @@
 // @mui
-import { useTheme } from "@mui/material/styles";
+import { useTheme, alpha } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -36,13 +36,13 @@ export default function AppWidgetSummary({
   } = chart;
 
   const chartOptions = {
-    colors: colors.map((color: any) => color[1]),
+    colors: [colors[1]],
     fill: {
       type: "gradient",
       gradient: {
         colorStops: [
-          { offset: 0, color: colors[0] },
-          { offset: 100, color: colors[1] },
+          { offset: 0, color: colors[0], opacity: 1 },
+          { offset: 100, color: colors[1], opacity: 1 },
         ],
       },
     },
@@ -72,22 +72,35 @@ export default function AppWidgetSummary({
 
   return (
     <Card
-      sx={{ display: "flex", alignItems: "center", p: 3, ...sx }}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        p: 3,
+        background: `linear-gradient(135deg, ${alpha(colors[1], 0.12)} 0%, ${alpha(colors[0], 0.04)} 100%)`,
+        border: `1px solid ${alpha(colors[1], 0.16)}`,
+        boxShadow: 'none',
+        ...sx,
+      }}
       {...other}
     >
       <Box sx={{ flexGrow: 1 }}>
-        <Typography variant="subtitle2">{title}</Typography>
+        <Typography variant="subtitle2" sx={{ color: 'text.secondary', mb: 1 }}>
+          {title}
+        </Typography>
 
-        <Stack direction="row" alignItems="center" sx={{ mt: 2, mb: 1 }}>
+        <Typography variant="h3" sx={{ mb: 1 }}>
+          {fNumber(total)}
+        </Typography>
+
+        <Stack direction="row" alignItems="center" spacing={0.5}>
           <Iconify
-            width={24}
+            width={20}
             icon={
               percent < 0
                 ? "solar:double-alt-arrow-down-bold-duotone"
                 : "solar:double-alt-arrow-up-bold-duotone"
             }
             sx={{
-              mr: 1,
               color: "success.main",
               ...(percent < 0 && {
                 color: "error.main",
@@ -95,22 +108,25 @@ export default function AppWidgetSummary({
             }}
           />
 
-          <Typography component="div" variant="subtitle2">
+          <Typography
+            component="div"
+            variant="subtitle2"
+            sx={{
+              color: percent < 0 ? "error.main" : "success.main",
+            }}
+          >
             {percent > 0 && "+"}
-
             {fPercent(percent)}
           </Typography>
         </Stack>
-
-        <Typography variant="h3">{fNumber(total)}</Typography>
       </Box>
 
       <Chart
         type="bar"
         series={[{ data: series }]}
         options={chartOptions}
-        width={60}
-        height={36}
+        width={80}
+        height={64}
       />
     </Card>
   );

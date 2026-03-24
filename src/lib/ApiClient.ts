@@ -1,5 +1,5 @@
 import { ApiResponse } from "@/types/type";
-import axiosInstance from "./axios";
+import axiosInstance from "./admin-axios";
 
 
 export const apiClient = {

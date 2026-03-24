@@ -2,14 +2,16 @@
 
 import { AuthProvider } from '@/lib/auth-context';
 import { SocketProvider } from '@/lib/socket-context';
+import QueryProvider from '@/providers/QueryProvider';
 import { Toaster } from 'sonner';
 import type { ReactNode } from 'react';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <AuthProvider>
-      <SocketProvider>
-        {children}
+    <QueryProvider>
+      <AuthProvider>
+        <SocketProvider>
+          {children}
         <Toaster
           position="top-right"
           theme="dark"
@@ -26,5 +28,6 @@ export function Providers({ children }: { children: ReactNode }) {
         />
       </SocketProvider>
     </AuthProvider>
+  </QueryProvider>
   );
 }

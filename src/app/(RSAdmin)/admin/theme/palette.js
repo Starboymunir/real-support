@@ -6,68 +6,68 @@ import { alpha } from '@mui/material/styles';
 
 const GREY = {
   0: '#FFFFFF',
-  100: '#F9FAFB',
-  200: '#F4F6F8',
-  300: '#DFE3E8',
-  400: '#C4CDD5',
-  500: '#919EAB',
-  600: '#637381',
-  700: '#454F5B',
-  800: '#212B36',
-  900: '#161C24',
+  100: '#F0F4F8',
+  200: '#E2E8F0',
+  300: '#CBD5E1',
+  400: '#94A3B8',
+  500: '#64748B',
+  600: '#475569',
+  700: '#334155',
+  800: '#1E293B',
+  900: '#0F172A',
 };
 
 const PRIMARY = {
-  lighter: '#C8FAD6',
-  light: '#5BE49B',
-  main: '#00A76F',
-  dark: '#007867',
-  darker: '#004B50',
+  lighter: '#1A3A5C',
+  light: '#1A3A5C',
+  main: '#0D2137',
+  dark: '#060F1A',
+  darker: '#030810',
   contrastText: '#FFFFFF',
 };
 
 const SECONDARY = {
-  lighter: '#EFD6FF',
-  light: '#C684FF',
-  main: '#8E33FF',
-  dark: '#5119B7',
-  darker: '#27097A',
-  contrastText: '#FFFFFF',
+  lighter: '#B9F6CA',
+  light: '#69F0AE',
+  main: '#00E676',
+  dark: '#00C853',
+  darker: '#00A844',
+  contrastText: '#0D2137',
 };
 
 const INFO = {
-  lighter: '#CAFDF5',
-  light: '#61F3F3',
-  main: '#00B8D9',
-  dark: '#006C9C',
-  darker: '#003768',
+  lighter: '#E0F7FA',
+  light: '#40C4FF',
+  main: '#00B0FF',
+  dark: '#0091EA',
+  darker: '#01579B',
   contrastText: '#FFFFFF',
 };
 
 const SUCCESS = {
-  lighter: '#D3FCD2',
-  light: '#77ED8B',
-  main: '#22C55E',
-  dark: '#118D57',
-  darker: '#065E49',
-  contrastText: '#ffffff',
+  lighter: '#B9F6CA',
+  light: '#69F0AE',
+  main: '#00E676',
+  dark: '#00C853',
+  darker: '#00A844',
+  contrastText: '#0D2137',
 };
 
 const WARNING = {
-  lighter: '#FFF5CC',
-  light: '#FFD666',
-  main: '#FFAB00',
-  dark: '#B76E00',
-  darker: '#7A4100',
+  lighter: '#FFF9C4',
+  light: '#FFF176',
+  main: '#FFD600',
+  dark: '#F9A825',
+  darker: '#F57F17',
   contrastText: GREY[800],
 };
 
 const ERROR = {
-  lighter: '#FFE9D5',
-  light: '#FFAC82',
-  main: '#FF5630',
-  dark: '#B71D18',
-  darker: '#7A0916',
+  lighter: '#FFCDD2',
+  light: '#FF5252',
+  main: '#FF1744',
+  dark: '#D50000',
+  darker: '#B71C1C',
   contrastText: '#FFFFFF',
 };
 
@@ -119,18 +119,18 @@ export function palette(mode) {
     ...COMMON,
     mode: 'dark',
     text: {
-      primary: '#FFFFFF',
-      secondary: GREY[500],
-      disabled: GREY[600],
+      primary: '#F0F4F8',
+      secondary: '#94A3B8',
+      disabled: '#475569',
     },
     background: {
-      paper: GREY[800],
-      default: GREY[900],
+      paper: '#0F1F35',
+      default: '#060B14',
       neutral: alpha(GREY[500], 0.12),
     },
     action: {
       ...COMMON.action,
-      active: GREY[500],
+      active: GREY[400],
     },
   };
 

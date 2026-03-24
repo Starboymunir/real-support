@@ -18,6 +18,7 @@ import "react-lazy-load-image-component/src/effects/blur.css";
 import MotionLazy from "@/app/(RSAdmin)/admin/common/animate/motion-lazy";
 import { SettingsProvider } from "@/app/(RSAdmin)/admin/common/settings";
 import { LocalizationProvider } from "./admin/locales";
+import SnackbarProvider from "@/app/(RSAdmin)/admin/common/snackbar/snackbar-provider";
 
 // Layout Component
 export default function Layout({ children }: { children: ReactNode }) {
@@ -25,18 +26,20 @@ export default function Layout({ children }: { children: ReactNode }) {
     <LocalizationProvider>
       <SettingsProvider
         defaultSettings={{
-          themeMode: "light",
+          themeMode: "dark",
           themeDirection: "ltr",
           themeContrast: "default",
           themeLayout: "vertical",
-          themeColorPresets: "blue",
+          themeColorPresets: "default",
           themeStretch: false,
         }}
       >
         <ThemeProvider>
-          <MotionLazy>
-            <div className="mx-auto px-4">{children}</div>
-          </MotionLazy>
+          <SnackbarProvider>
+            <MotionLazy>
+              {children}
+            </MotionLazy>
+          </SnackbarProvider>
         </ThemeProvider>
       </SettingsProvider>
     </LocalizationProvider>

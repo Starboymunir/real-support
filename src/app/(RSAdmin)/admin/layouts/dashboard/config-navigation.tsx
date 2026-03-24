@@ -1,43 +1,26 @@
 import { useMemo } from "react";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
-import SvgColor from "@/app/(RSAdmin)/admin/common/svg-color";
+import Iconify from "@/components/iconify/iconify";
 import { useAuth } from "@/lib/auth-context";
 
 // ----------------------------------------------------------------------
 
-const icon = (name: string) => (
-  <SvgColor
-    src={`/assets/icons/navbar/${name}.svg`}
-    sx={{ width: 1, height: 1 }}
-  />
-);
+const icon = (name: string) => <Iconify icon={name} width={24} />;
 
 const ICONS = {
-  job: icon("ic_job"),
-  blog: icon("ic_blog"),
-  chat: icon("ic_chat"),
-  mail: icon("ic_mail"),
-  user: icon("ic_user"),
-  file: icon("ic_file"),
-  lock: icon("ic_lock"),
-  tour: icon("ic_tour"),
-  order: icon("ic_order"),
-  label: icon("ic_label"),
-  blank: icon("ic_blank"),
-  kanban: icon("ic_kanban"),
-  folder: icon("ic_folder"),
-  banking: icon("ic_banking"),
-  booking: icon("ic_booking"),
-  invoice: icon("ic_invoice"),
-  product: icon("ic_product"),
-  calendar: icon("ic_calendar"),
-  disabled: icon("ic_disabled"),
-  external: icon("ic_external"),
-  menuItem: icon("ic_menu_item"),
-  ecommerce: icon("ic_ecommerce"),
-  analytics: icon("ic_analytics"),
-  dashboard: icon("ic_dashboard"),
-  content: icon("ic_content"),
+  dashboard: icon("solar:widget-bold-duotone"),
+  user: icon("solar:users-group-rounded-bold-duotone"),
+  folder: icon("solar:folder-bold-duotone"),
+  label: icon("solar:tag-bold-duotone"),
+  job: icon("solar:clipboard-text-bold-duotone"),
+  file: icon("solar:file-text-bold-duotone"),
+  ecommerce: icon("solar:bag-bold-duotone"),
+  content: icon("solar:document-text-bold-duotone"),
+  invoice: icon("solar:bill-list-bold-duotone"),
+  banking: icon("solar:card-bold-duotone"),
+  chat: icon("solar:chat-round-dots-bold-duotone"),
+  menuItem: icon("solar:checklist-minimalistic-bold-duotone"),
+  mail: icon("solar:letter-bold-duotone"),
 };
 
 // ----------------------------------------------------------------------

@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import { StackProps } from "@mui/material";
+import Iconify from "@/components/iconify/iconify";
 
 interface EmptyContentProps extends StackProps {
   title?: string;
@@ -39,12 +40,20 @@ export default function EmptyContent({
       }}
       {...other}
     >
-      <Box
-        component="img"
-        alt="empty content"
-        src={imgUrl || "/assets/icons/empty/ic_content.svg"}
-        sx={{ width: 1, maxWidth: 160 }}
-      />
+      {imgUrl ? (
+        <Box
+          component="img"
+          alt="empty content"
+          src={imgUrl}
+          sx={{ width: 1, maxWidth: 160 }}
+        />
+      ) : (
+        <Iconify
+          icon="solar:inbox-line-duotone"
+          width={120}
+          sx={{ color: "text.disabled", opacity: 0.48 }}
+        />
+      )}
 
       {title && (
         <Typography

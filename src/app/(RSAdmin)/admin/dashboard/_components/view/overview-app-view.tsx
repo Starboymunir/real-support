@@ -30,24 +30,19 @@ const OverviewAppView = () => {
       ) : (
         <Container maxWidth="xl">
           <Grid container spacing={3}>
-            <Grid xs={12} md={12} lg={12}>
-              <Card sx={{ display: "flex", alignItems: "center", p: 0 }}>
-                <GoogleMap />
-              </Card>
-            </Grid>
-            <Grid xs={12} md={4}>
+            <Grid item xs={12} md={4}>
               <AppWidgetSummary
                 title="Total No Riders"
                 percent={2.6}
                 total={stats?.totalPassengers ?? 0}
                 chart={{
-                  colors: [theme.palette.info.light, theme.palette.info.main],
+                  colors: [theme.palette.secondary.light, theme.palette.secondary.main],
                   series: [5, 18, 12, 51, 68, 11, 39, 37, 27, 20],
                 }}
               />
             </Grid>
 
-            <Grid xs={12} md={4}>
+            <Grid item xs={12} md={4}>
               <AppWidgetSummary
                 title="Total No Drivers"
                 percent={0.2}
@@ -59,7 +54,7 @@ const OverviewAppView = () => {
               />
             </Grid>
 
-            <Grid xs={12} md={4}>
+            <Grid item xs={12} md={4}>
               <AppWidgetSummary
                 title="Total No Bookings"
                 percent={-0.1}
@@ -72,6 +67,12 @@ const OverviewAppView = () => {
                   series: [8, 9, 31, 8, 16, 37, 8, 33, 46, 31],
                 }}
               />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Card sx={{ display: "flex", alignItems: "center", p: 0, minHeight: 400 }}>
+                <GoogleMap />
+              </Card>
             </Grid>
           </Grid>
         </Container>

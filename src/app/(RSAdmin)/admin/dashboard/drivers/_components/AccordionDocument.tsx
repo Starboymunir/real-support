@@ -15,7 +15,7 @@ import DocumentRenderer from "./document-renderer";
 import { enqueueSnackbar } from "notistack";
 import Iconify from "@/components/iconify/iconify";
 import Label from "@/app/(RSAdmin)/admin/common/label";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { AxiosError } from "axios";
 
 interface AccordionDocumentProps {

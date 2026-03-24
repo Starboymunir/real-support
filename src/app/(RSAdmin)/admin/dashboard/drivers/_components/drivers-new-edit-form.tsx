@@ -20,7 +20,7 @@ import FormProvider, {
 import { DRIVER_SUBSCRIPTION_OPTIONS, DRIVER_STATUS_OPTIONS } from "@/_mock/_drivers";
 import { MenuItem } from "@mui/material";
 import { getUrl } from "aws-amplify/storage";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { IDriver } from "@/types/type";
 
 // ----------------------------------------------------------------------

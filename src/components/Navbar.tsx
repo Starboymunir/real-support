@@ -37,8 +37,9 @@ export default function Navbar() {
   const [switchingMode, setSwitchingMode] = useState(false);
 
   const displayName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '';
+  const isAdmin = !!user?.Admin;
   const userRole = user?.mode?.toLowerCase() || 'passenger';
-  const dashboardHref = userRole === 'driver' ? '/driver/dashboard' : '/rider/dashboard';
+  const dashboardHref = isAdmin ? '/admin/dashboard' : userRole === 'driver' ? '/driver/dashboard' : '/rider/dashboard';
   const hasDriver = !!user?.driver;
   const isDriverMode = userRole === 'driver';
   const otherDashLabel = isDriverMode ? 'Rider Dashboard' : 'Driver Dashboard';
@@ -170,7 +171,7 @@ export default function Navbar() {
                           <User size={16} />
                           Profile
                         </Link>
-                        {hasDriver && (
+                        {hasDriver && !isAdmin && (
                           <button
                             onClick={() => { setProfileOpen(false); handleSwitchMode(); }}
                             disabled={switchingMode}
@@ -295,7 +296,7 @@ export default function Navbar() {
                 Book a Ride
                 <ArrowRight size={18} />
               </Link>
-              {hasDriver && (
+              {hasDriver && !isAdmin && (
                 <button
                   onClick={() => { setMobileOpen(false); handleSwitchMode(); }}
                   disabled={switchingMode}

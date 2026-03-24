@@ -483,7 +483,7 @@ export default function DashboardLayout({
                       <LayoutDashboard size={16} />
                       Dashboard
                     </Link>
-                    {hasDriver && (
+                    {hasDriver && role !== 'admin' && (
                       <button
                         onClick={() => { setProfileOpen(false); handleSwitchMode(); }}
                         disabled={switchingMode}

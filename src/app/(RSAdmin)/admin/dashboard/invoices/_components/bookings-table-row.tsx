@@ -8,7 +8,11 @@ import Iconify from "@/components/iconify/iconify";
 import CustomPopover, {
   usePopover,
 } from "@/app/(RSAdmin)/admin/common/custom-popover";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import dynamic from "next/dynamic";
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  { ssr: false, loading: () => <CircularProgress size={24} /> }
+) as any;
 import InvoicePDF from "@/components/booking/BookingInvoicePdf";
 import { CircularProgress } from "@mui/material";
 

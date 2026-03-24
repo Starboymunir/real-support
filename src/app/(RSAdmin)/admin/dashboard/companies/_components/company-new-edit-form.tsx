@@ -21,7 +21,7 @@ import { fData } from "@/lib/utils/format-number";
 import { MenuItem, Typography } from "@mui/material";
 import { useRouter } from "@/app/(RSAdmin)/admin/routes/hook";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { useAdminUsersQuery } from "@/hooks/Admin";
 import { IAdmin, ICompany } from "@/types/type";
 
@@ -97,7 +97,8 @@ export default function CompanyNewEditForm({
         }
       }
     } catch (error: any) {
-      enqueueSnackbar(error.message, { variant: "error" });
+      const msg = typeof error === 'string' ? error : error?.message || 'Something went wrong';
+      enqueueSnackbar(msg, { variant: "error" });
       console.log("error===", error);
     }
   });

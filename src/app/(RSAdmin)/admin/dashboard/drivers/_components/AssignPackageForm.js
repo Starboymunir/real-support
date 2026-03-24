@@ -27,7 +27,7 @@ import {
 } from "@/server/Driver";
 import { useSocket } from "@/providers/SocketProvider";
 import AwsImageRender from "../../../common/aws-image-avatar/ImageRender";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 
 // ----------------------------------------------------------------------
 

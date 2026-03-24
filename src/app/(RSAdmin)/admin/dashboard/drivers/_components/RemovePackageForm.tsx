@@ -17,7 +17,7 @@ import { endpoints } from "@/lib/utils/axios";
 import axios from "axios";
 import { ListItemText } from "@mui/material";
 import AwsImageRender from "../../../common/aws-image-avatar/ImageRender";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { IDriver } from "@/types/type";
 
 // ----------------------------------------------------------------------

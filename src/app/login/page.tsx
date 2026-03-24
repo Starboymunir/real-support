@@ -33,7 +33,7 @@ function LoginContent() {
     clearError();
     try {
       await login({ emailAddress: email, password });
-      router.replace('/rider/dashboard');
+      // Redirect is handled by the useEffect watching `user`
     } catch (err: unknown) {
       // If user is not confirmed, show OTP step
       const msg = err instanceof Error ? err.message : String(err);
@@ -49,7 +49,7 @@ function LoginContent() {
     try {
       await confirmEmail({ emailAddress: email, otp });
       await login({ emailAddress: email, password });
-      router.push('/rider/dashboard');
+      // Redirect is handled by the useEffect watching `user`
     } catch {
       // error set in context
     }

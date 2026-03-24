@@ -11,9 +11,9 @@ export const useAdminUsersQuery = () => {
   });
 };
 
-const getAllAdminUsers = async () => {
+const getAllAdminUsers = async (): Promise<IAdmin[]> => {
   const { data } = await axiosInstance.get("/admin/adminUsers");
-  return data.data; // Matches Companies.ts; assumes data.data is an array
+  return data.data ?? [];
 };
 
 export const useAdminUserQuery = (id: string) => {

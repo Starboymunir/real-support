@@ -16,7 +16,7 @@ import {
   updateDiscountCoupon,
 } from "@/server/DiscountCoupons";
 import { DiscountCoupons } from "@prisma/client";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { useRouter } from "../../../routes/hook";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 

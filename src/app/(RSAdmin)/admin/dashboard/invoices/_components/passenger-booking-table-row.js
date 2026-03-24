@@ -10,7 +10,11 @@ import CustomPopover, {
   usePopover,
 } from "@/app/(RSAdmin)/admin/common/custom-popover";
 import AwsImageAvatar from "../../../common/aws-image-avatar/Avatar";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import dynamic from "next/dynamic";
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+);
 import InvoicePDF from "@/components/booking/BookingInvoicePdf";
 import { CircularProgress } from "@mui/material";
 import Label from "../../../common/label";

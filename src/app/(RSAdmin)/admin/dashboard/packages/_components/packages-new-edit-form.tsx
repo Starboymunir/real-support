@@ -22,7 +22,7 @@ import { uploadImageFile } from "@/helpers/imageUpload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Package } from "@prisma/client";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 
 // ----------------------------------------------------------------------
 type PackageFormValues = {

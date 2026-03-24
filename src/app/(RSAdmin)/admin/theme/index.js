@@ -10,7 +10,7 @@ import {
   ThemeProvider as MuiThemeProvider,
 } from "@mui/material/styles";
 // locales
-import { useLocales } from "@/app/(RSAdmin)/admin/locales";
+import { defaultLang } from "@/app/(RSAdmin)/admin/locales/config-lang";
 // components
 import { useSettingsContext } from "@/app/(RSAdmin)/admin/common/settings";
 // system
@@ -32,7 +32,7 @@ import { presets } from './options/presets';
 // ----------------------------------------------------------------------
 
 export default function ThemeProvider({ children }) {
-  const { currentLang } = useLocales();
+  const currentLang = defaultLang;
 
   const settings = useSettingsContext();
   const darkModeOption = darkMode(settings.themeMode);

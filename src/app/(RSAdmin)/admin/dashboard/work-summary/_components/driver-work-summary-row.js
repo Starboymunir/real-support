@@ -11,7 +11,11 @@ import CustomPopover, {
 } from "@/app/(RSAdmin)/admin/common/custom-popover";
 import { ConfirmDialog } from "@/app/(RSAdmin)/admin/common/custom-dialog";
 import AwsImageAvatar from "@/app/(RSAdmin)/admin/common/aws-image-avatar/Avatar";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import dynamic from "next/dynamic";
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+);
 import InvoicePDF from "@/components/booking/BookingInvoicePdf";
 import { CircularProgress } from "@mui/material";
 import AwsImageRender from "@/app/(RSAdmin)/admin/common/aws-image-avatar/ImageRender";

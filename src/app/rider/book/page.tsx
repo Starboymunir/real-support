@@ -29,7 +29,8 @@ import { othersApi } from '@/lib/services/others';
 import { walletApi } from '@/lib/services/wallet';
 import type { Package } from '@/lib/types';
 import AddressAutocomplete, { type PlaceResult } from '@/components/maps/AddressAutocomplete';
-import MapView from '@/components/maps/MapView';
+import dynamic from 'next/dynamic';
+const MapView = dynamic(() => import('@/components/maps/MapView'), { ssr: false });
 import { getRoute, formatDistance, formatDuration, type RouteInfo } from '@/lib/mapbox';
 import { toast } from '@/lib/toast';
 

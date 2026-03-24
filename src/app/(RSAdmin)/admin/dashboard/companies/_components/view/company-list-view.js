@@ -36,7 +36,7 @@ import PackagesTableFiltersResult from "../company-table-filters-result";
 import CompaniesTableRow from "../company-table-row";
 import { activatePackage } from "@/server/Package";
 import { useCompaniesQuery } from "@/hooks/Company";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 
 // ----------------------------------------------------------------------
 

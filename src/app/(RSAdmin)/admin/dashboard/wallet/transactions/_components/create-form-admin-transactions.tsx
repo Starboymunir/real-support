@@ -17,7 +17,7 @@ import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import { createAdminTransaction } from "@/server/AdminTranasaction";
 import { getAllPassengers } from "@/server/Passenger";
 import { IUser } from "@/types/type";
-import axiosInstance from "@/lib/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { useRouter } from "next/navigation";
 
 const TransactionType = [

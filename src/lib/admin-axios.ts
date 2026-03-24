@@ -24,10 +24,15 @@ adminAxios.interceptors.request.use((config) => {
 
 adminAxios.interceptors.response.use(
   (res) => res,
-  (error) =>
-    Promise.reject(
-      (error.response && error.response.data) || 'Something went wrong',
-    ),
+  (error) => {
+    const data = error.response?.data;
+    const msg = typeof data === 'object' && data?.message
+      ? data.message
+      : typeof data === 'string'
+        ? data
+        : error.message || 'Something went wrong';
+    return Promise.reject(new Error(msg));
+  },
 );
 
 export default adminAxios;

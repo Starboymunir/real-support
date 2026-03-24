@@ -1,4 +1,5 @@
 import React, { forwardRef } from "react";
+import 'react-lazy-load-image-component/src/effects/blur.css';
 import { LazyLoadImage, LazyLoadImageProps } from "react-lazy-load-image-component";
 import { alpha, useTheme } from "@mui/material/styles";
 import Box, { BoxProps } from "@mui/material/Box";

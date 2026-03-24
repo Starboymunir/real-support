@@ -21,7 +21,8 @@ import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bookingsApi, requestsApi } from '@/lib/services/bookings';
 import type { Booking, RideRequest } from '@/lib/types';
-import MapView from '@/components/maps/MapView';
+import dynamic from 'next/dynamic';
+const MapView = dynamic(() => import('@/components/maps/MapView'), { ssr: false });
 import { getRoute, formatDistance, formatDuration, type RouteInfo } from '@/lib/mapbox';
 
 const fadeUp = {

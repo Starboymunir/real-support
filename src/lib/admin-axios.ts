@@ -3,7 +3,8 @@
 import axios from 'axios';
 import { getToken } from './api';
 
-const baseURL = `${process.env.NEXT_PUBLIC_BACKEND_API}/api`;
+const _raw = process.env.NEXT_PUBLIC_BACKEND_API ?? 'http://localhost:8000/api';
+const baseURL = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
 
 const adminAxios = axios.create({
   baseURL,

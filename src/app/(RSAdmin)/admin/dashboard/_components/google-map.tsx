@@ -217,13 +217,35 @@ export default function GoogleMapComponent() {
     };
   }, [socket, enqueueSnackbar, driverFetch, requestFetch]);
 
+  if (!process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY) {
+    return (
+      <Stack
+        alignItems="center"
+        justifyContent="center"
+        sx={{ height: "100%", minHeight: 400, width: "100%" }}
+      >
+        <Iconify
+          icon="solar:map-bold-duotone"
+          width={64}
+          sx={{ color: "text.disabled", opacity: 0.4, mb: 2 }}
+        />
+        <Typography variant="body2" sx={{ color: "text.disabled" }}>
+          Map requires a Google Maps API key
+        </Typography>
+        <Typography variant="caption" sx={{ color: "text.disabled", opacity: 0.6 }}>
+          Set NEXT_PUBLIC_GOOGLE_PLACES_API_KEY in .env.local
+        </Typography>
+      </Stack>
+    );
+  }
+
   return (
-    <div style={{ height: "100vh", width: "100%" }}>
+    <div style={{ height: "100%", width: "100%", minHeight: 400 }}>
       <GoogleMap
         apiKey={process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY!}
         defaultCenter={currentLocation}
         defaultZoom={10}
-        mapMinHeight="100vh"
+        mapMinHeight="400px"
         onGoogleApiLoaded={onGoogleApiLoaded}
       >
         <UserMarker lat={currentLocation.lat} lng={currentLocation.lng} />

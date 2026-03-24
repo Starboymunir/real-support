@@ -6,9 +6,11 @@ import Grid from "@mui/material/Grid";
 import AppWidgetSummary from "../app-widget-summary";
 import { useState, useEffect } from "react";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
-import GoogleMap from "../google-map";
+import dynamic from "next/dynamic";
 import Card from "@mui/material/Card";
 import { adminStatsApi, type DashboardStats } from "@/lib/services/admin";
+
+const GoogleMap = dynamic(() => import("../google-map"), { ssr: false });
 
 const OverviewAppView = () => {
   const theme = useTheme();

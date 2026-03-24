@@ -83,7 +83,7 @@ export default function UserNewEditForm({
       }
     });
 
-    if (!currentUser) {
+    if (currentUser) {
       formData.delete("password");
     }
     try {

@@ -14,8 +14,7 @@ import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import FormProvider, {
   RHFTextField,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
-import axios from "axios";
-import { endpoints } from "@/lib/utils/axios";
+import axiosInstance, { endpoints } from "@/lib/utils/axios";
 
 // ----------------------------------------------------------------------
 
@@ -45,7 +44,7 @@ export default function PassengersQuickEditForm({
     () => ({
       firstName: currentUser?.userInfo?.firstName || "",
       lastName: currentUser?.userInfo?.lastName || "",
-      email: currentUser?.userInfo?.email || "",
+      email: currentUser?.userInfo?.emailAddress || "",
       phone_number: currentUser?.userInfo?.phone_number || "",
     }),
     [currentUser]
@@ -71,7 +70,7 @@ export default function PassengersQuickEditForm({
     }
 
     try {
-      const response = await axios.put(
+      const response = await axiosInstance.put(
         endpoints.passengers.update(currentUser?.id),
         formData
       );

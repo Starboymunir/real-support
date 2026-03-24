@@ -13,10 +13,11 @@ import Iconify from "@/components/iconify/iconify";
 import FormProvider, {
   RHFTextField,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
-import { useAuthContext } from "@/app/(RSAdmin)/admin/_auth/hooks";
+import { useAuth } from "@/lib/auth-context";
+import { adminAuthApi } from "@/lib/services/admin";
 
 export default function JwtNewPassword() {
-  const { changePassword, user } = useAuthContext();
+  const { user } = useAuth();
   const password = useBoolean();
   const newPassword = useBoolean();
   const confirmPassword = useBoolean();
@@ -48,7 +49,11 @@ export default function JwtNewPassword() {
     formState: { isSubmitting },
   } = methods;
   const onSubmit = handleSubmit(async (data) => {
-    await changePassword?.(user.email, data.password, data.newPassword);
+    await adminAuthApi.changePassword({
+      email: user?.emailAddress,
+      oldPassword: data.password,
+      newPassword: data.newPassword,
+    });
     reset();
   });
   const renderForm = (

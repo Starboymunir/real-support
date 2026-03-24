@@ -18,10 +18,12 @@ import type { LoginResponse } from './auth';
 export interface AdminRegisterDto {
   firstName: string;
   lastName: string;
-  emailAddress: string;
+  email: string;
+  phone_number?: string;
   password: string;
   role: 'SUPER_ADMIN' | 'ADMIN' | 'COMPANY_ADMIN';
   secretNumber: string;
+  profileImageUrl?: string;
 }
 
 export interface DashboardStats {
@@ -40,13 +42,19 @@ export interface DashboardStats {
 
 export const adminAuthApi = {
   login: (dto: LoginDto) =>
-    api.post<LoginResponse>('/admin/adminUsers/login', dto),
+    api.post<LoginResponse>('/admin/adminUsers/login', {
+      email: dto.emailAddress,
+      password: dto.password,
+    }),
 
   register: (dto: AdminRegisterDto) =>
     api.post<User>('/admin/adminUsers/register', dto),
 
   confirmSignup: (dto: ConfirmOtpDto) =>
-    api.post<void>('/admin/adminUsers/confirm-signup', dto),
+    api.post<void>('/admin/adminUsers/confirm-signup', {
+      email: dto.emailAddress,
+      otp: dto.otp,
+    }),
 
   forgotPassword: (email: string) =>
     api.post('/admin/adminUsers/forgot-password', { email }),
@@ -54,7 +62,7 @@ export const adminAuthApi = {
   resetPassword: (dto: { email: string; otp: string; newPassword: string }) =>
     api.post('/admin/adminUsers/reset-password', dto),
 
-  changePassword: (dto: { oldPassword: string; newPassword: string }) =>
+  changePassword: (dto: { email: string; oldPassword: string; newPassword: string }) =>
     api.post('/admin/adminUsers/change-password', dto),
 
   getAllAdmins: () =>

@@ -44,7 +44,10 @@ export const authApi = {
 
   /** Password login — returns tokens directly */
   adminLogin: (dto: LoginDto) =>
-    api.post<LoginResponse>('/admin/adminUsers/login', dto),
+    api.post<LoginResponse>('/admin/adminUsers/login', {
+      email: dto.emailAddress,
+      password: dto.password,
+    }),
 
   /** OTP login step 1 — sends OTP to email */
   requestAdminLoginOtp: (email: string) =>

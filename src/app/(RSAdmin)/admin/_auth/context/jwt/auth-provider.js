@@ -152,7 +152,7 @@ export function AuthProvider({ children }) {
     async (email, oldPassword, confirmPassword) => {
       const data = {
         email,
-        password: oldPassword,
+        oldPassword,
         newPassword: confirmPassword,
       };
       try {

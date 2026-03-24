@@ -106,8 +106,8 @@ export default function DriversNewEditForm({
     delete driverData.filePreview;
     delete driverData.profileImage;
     try {
-      const { data } = await axiosInstance.patch(
-        `/drivers/${currentDriver.id}`,
+      const { data } = await axiosInstance.put(
+        `/admin/drivers/${currentDriver.id}`,
         driverData
       );
 

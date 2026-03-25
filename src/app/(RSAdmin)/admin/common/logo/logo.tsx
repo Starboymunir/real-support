@@ -35,7 +35,7 @@ const Logo = forwardRef<HTMLDivElement, LogoProps>(({ disabledLink = false, sx, 
   }
 
   return (
-    <Link component={RouterLink} href="/" sx={{ display: "contents" }}>
+    <Link component={RouterLink} href="/admin/dashboard" sx={{ display: "contents" }}>
       <Image src={logoImage} height={100} alt="logo" />
     </Link>
   );

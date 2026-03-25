@@ -1,9 +1,13 @@
 "use client";
 import { getUrl } from "aws-amplify/storage";
+import { Amplify } from "aws-amplify";
+import awsconfig from "@/amplifyconfiguration.json";
 import Image, { ImageProps } from "next/image";
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import { useRouter } from "next/navigation";
+
+Amplify.configure(awsconfig);
 
 interface DocumentRendererProps extends ImageProps {
   fileKey: string;
@@ -24,7 +28,7 @@ const DocumentRenderer = ({
     const fetchFile = async (fileKey: string) => {
       setLoadFile(true);
       try {
-        const imageUrl = await getUrl({ key: fileKey });
+        const imageUrl = await getUrl({ key: fileKey, options: { accessLevel: "guest" } });
         setFile(imageUrl?.url?.href);
       } catch (err) {
         console.log(err);

@@ -15,11 +15,10 @@ export const StyledItem = styled(ListItemButton, {
 
   const activeStyles = {
     root: {
-      color:
-        theme.palette.mode === 'light' ? theme.palette.primary.main : theme.palette.primary.light,
-      backgroundColor: alpha(theme.palette.primary.main, 0.08),
+      color: theme.palette.secondary.main,
+      backgroundColor: alpha(theme.palette.secondary.main, 0.08),
       '&:hover': {
-        backgroundColor: alpha(theme.palette.primary.main, 0.16),
+        backgroundColor: alpha(theme.palette.secondary.main, 0.16),
       },
     },
     sub: {
@@ -79,7 +78,7 @@ export const StyledDotIcon = styled('span')(({ active, theme }) => ({
   }),
   ...(active && {
     transform: 'scale(2)',
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: theme.palette.secondary.main,
   }),
 }));
 

@@ -26,7 +26,7 @@ import { useAuth } from "@/lib/auth-context";
 const OPTIONS = [
   {
     label: "Home",
-    linkTo: "/",
+    linkTo: "/admin/dashboard",
   },
   {
     label: "Profile",
@@ -68,12 +68,13 @@ export default function AccountPopover() {
         variants={varHover(1.05)}
         onClick={popover.onOpen}
         sx={{
-          width: 65,
-          height: 65,
+          width: 44,
+          height: 44,
           background: (theme) => alpha(theme.palette.grey[500], 0.08),
+          border: (theme) => `1px solid ${alpha(theme.palette.grey[500], 0.12)}`,
           ...(popover.open && {
             background: (theme) =>
-              `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
+              `linear-gradient(135deg, ${theme.palette.secondary.dark} 0%, ${theme.palette.secondary.main} 100%)`,
           }),
         }}
       >
@@ -81,8 +82,8 @@ export default function AccountPopover() {
           imageKey={user?.coverImage}
           alt={user?.firstName}
           sx={{
-            width: 60,
-            height: 60,
+            width: 36,
+            height: 36,
             border: (theme) => `solid 2px ${theme.palette.background.default}`,
           }}
         />

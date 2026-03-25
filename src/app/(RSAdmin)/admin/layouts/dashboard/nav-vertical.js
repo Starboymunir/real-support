@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Drawer from "@mui/material/Drawer";
+import { alpha } from "@mui/material/styles";
 // hooks
 import { useResponsive } from "@/app/(RSAdmin)/admin/hooks//use-responsive";
 // hooks
@@ -52,9 +53,17 @@ export default function NavVertical({ openNav, onCloseNav }) {
         },
       }}
     >
-      <div className="flex justify-center">
-        <Logo sx={{ mt: 3, ml: 4, mb: 1 }} />
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          py: 3,
+          px: 2,
+          borderBottom: `1px solid ${alpha('#FFFFFF', 0.06)}`,
+        }}
+      >
+        <Logo sx={{ mt: 0, ml: 0, mb: 0 }} />
+      </Box>
 
       <NavSectionVertical
         data={navData}
@@ -67,6 +76,14 @@ export default function NavVertical({ openNav, onCloseNav }) {
     </Scrollbar>
   );
 
+  const sidebarStyles = {
+    height: 1,
+    position: "fixed",
+    width: NAV.W_VERTICAL,
+    background: `linear-gradient(180deg, #0A1628 0%, #060B14 100%)`,
+    borderRight: `1px solid ${alpha('#FFFFFF', 0.06)}`,
+  };
+
   return (
     <Box
       component="nav"
@@ -75,18 +92,8 @@ export default function NavVertical({ openNav, onCloseNav }) {
         width: { lg: NAV.W_VERTICAL },
       }}
     >
-      {/* <NavToggleButton /> */}
-
       {lgUp ? (
-        <Stack
-          sx={{
-            height: 1,
-            position: "fixed",
-            width: NAV.W_VERTICAL,
-            borderRight: (theme) => `solid 1px ${theme.palette.divider}`,
-            backgroundColor: (theme) => theme.palette.background.paper,
-          }}
-        >
+        <Stack sx={sidebarStyles}>
           {renderContent}
         </Stack>
       ) : (
@@ -96,7 +103,8 @@ export default function NavVertical({ openNav, onCloseNav }) {
           PaperProps={{
             sx: {
               width: NAV.W_VERTICAL,
-              backgroundColor: theme?.palette?.background?.default,
+              background: `linear-gradient(180deg, #0A1628 0%, #060B14 100%)`,
+              borderRight: `1px solid ${alpha('#FFFFFF', 0.06)}`,
             },
           }}
         >

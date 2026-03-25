@@ -1,65 +1,47 @@
-// @mui
 import { alpha, styled } from '@mui/material/styles';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListSubheader from '@mui/material/ListSubheader';
 import ListItemButton from '@mui/material/ListItemButton';
 
-// ----------------------------------------------------------------------
-
 export const StyledItem = styled(ListItemButton, {
   shouldForwardProp: (prop) => prop !== 'active',
 })(({ active, depth, config, theme }) => {
   const subItem = depth !== 1;
-
   const deepSubItem = depth > 2;
 
-  const activeStyles = {
-    root: {
-      color: theme.palette.secondary.main,
-      backgroundColor: alpha(theme.palette.secondary.main, 0.08),
-      '&:hover': {
-        backgroundColor: alpha(theme.palette.secondary.main, 0.16),
-      },
-    },
-    sub: {
-      color: theme.palette.text.primary,
-      backgroundColor: 'transparent',
-      '&:hover': {
-        backgroundColor: theme.palette.action.hover,
-      },
-    },
-  };
-
   return {
-    // Root item
     padding: config.itemPadding,
     marginBottom: config.itemGap,
     borderRadius: config.itemRadius,
     minHeight: config.itemRootHeight,
-    color: theme.palette.text.secondary,
-
-    // Active root item
+    color: alpha('#F0F4F8', 0.55),
+    transition: 'all 0.15s ease',
+    '&:hover': {
+      color: '#F0F4F8',
+      backgroundColor: alpha('#FFFFFF', 0.04),
+    },
     ...(active && {
-      ...activeStyles.root,
+      color: '#00E676',
+      backgroundColor: alpha('#00E676', 0.08),
+      '&:hover': {
+        backgroundColor: alpha('#00E676', 0.12),
+      },
     }),
-
-    // Sub item
     ...(subItem && {
       minHeight: config.itemSubHeight,
-      // Active sub item
       ...(active && {
-        ...activeStyles.sub,
+        color: '#F0F4F8',
+        backgroundColor: 'transparent',
+        '&:hover': {
+          backgroundColor: alpha('#FFFFFF', 0.04),
+        },
       }),
     }),
-
-    // Deep sub item
     ...(deepSubItem && {
       paddingLeft: theme.spacing(depth),
     }),
   };
 });
-
-// ----------------------------------------------------------------------
 
 export const StyledIcon = styled(ListItemIcon)(({ size }) => ({
   width: size,
@@ -68,36 +50,32 @@ export const StyledIcon = styled(ListItemIcon)(({ size }) => ({
   justifyContent: 'center',
 }));
 
-export const StyledDotIcon = styled('span')(({ active, theme }) => ({
+export const StyledDotIcon = styled('span')(({ active }) => ({
   width: 4,
   height: 4,
   borderRadius: '50%',
-  backgroundColor: theme.palette.text.disabled,
-  transition: theme.transitions.create(['transform'], {
-    duration: theme.transitions.duration.shorter,
-  }),
+  backgroundColor: alpha('#F0F4F8', 0.25),
+  transition: 'all 0.15s ease',
   ...(active && {
     transform: 'scale(2)',
-    backgroundColor: theme.palette.secondary.main,
+    backgroundColor: '#00E676',
   }),
 }));
 
-// ----------------------------------------------------------------------
-
 export const StyledSubheader = styled(ListSubheader)(({ config, theme }) => ({
   ...theme.typography.overline,
-  fontSize: 11,
+  fontSize: 10,
+  letterSpacing: 1.2,
   cursor: 'pointer',
   display: 'inline-flex',
   padding: config.itemPadding,
-  paddingTop: theme.spacing(2),
-  marginBottom: config.itemGap,
-  paddingBottom: theme.spacing(1),
-  color: theme.palette.text.disabled,
-  transition: theme.transitions.create(['color'], {
-    duration: theme.transitions.duration.shortest,
-  }),
+  paddingTop: theme.spacing(2.5),
+  marginBottom: 2,
+  paddingBottom: theme.spacing(0.75),
+  color: alpha('#F0F4F8', 0.3),
+  backgroundColor: 'transparent',
+  transition: 'color 0.15s ease',
   '&:hover': {
-    color: theme.palette.text.primary,
+    color: alpha('#F0F4F8', 0.5),
   },
 }));

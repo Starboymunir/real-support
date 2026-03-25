@@ -1,27 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
-// @mui
 import Collapse from "@mui/material/Collapse";
-// routes
 import { usePathname } from "@/app/(RSAdmin)/admin/routes/hook";
 import { useActiveLink } from "@/app/(RSAdmin)/admin/routes/hook/use-active-link";
-//
 import NavItem from "./nav-item";
-import { useChatContext } from "@/providers/ChatDataProvider";
-
-// ----------------------------------------------------------------------
 
 interface NavItemData {
   title: string;
   path: string;
   children?: NavItemData[];
-  // add other properties as needed
 }
 
 interface NavListProps {
   data: NavItemData;
   depth: number;
   hasChild: boolean;
-  config?: any; // Replace 'any' with a more specific type if available
+  config?: any;
 }
 
 export default function NavList({
@@ -31,13 +24,10 @@ export default function NavList({
   config,
 }: NavListProps) {
   const pathname = usePathname();
-  const { unreadChatCount } = useChatContext();
 
   const active = useActiveLink(data.path, hasChild);
 
   const externalLink = data.path.includes("http");
-
-  const isChatLink = data.path.includes("/chat");
 
   const [open, setOpen] = useState(active);
 
@@ -66,7 +56,6 @@ export default function NavList({
         externalLink={externalLink}
         onClick={handleToggle}
         config={config}
-        unReadCount={isChatLink ? unreadChatCount : 0}
       />
 
       {hasChild && (

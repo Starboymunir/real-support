@@ -2,44 +2,30 @@
 
 import PropTypes from "prop-types";
 import { useEffect } from "react";
-// @mui
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Drawer from "@mui/material/Drawer";
+import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
-// hooks
 import { useResponsive } from "@/app/(RSAdmin)/admin/hooks//use-responsive";
-// hooks
-import { useMockedUser } from "@/app/(RSAdmin)/admin/hooks//use-mocked-user";
-// components
 import Logo from "@/app/(RSAdmin)/admin/common/logo";
 import Scrollbar from "@/app/(RSAdmin)/admin/common/scrollbar";
 import { usePathname } from "@/app/(RSAdmin)/admin/routes/hook";
 import { NavSectionVertical } from "@/app/(RSAdmin)/admin/common/nav-section";
-//
 import { NAV } from "../config-layout";
 import { useNavData } from "./config-navigation";
-import { NavToggleButton } from "../_common";
-import { useTheme } from "@mui/material/styles";
 import { useAuth } from "@/lib/auth-context";
-
-// ----------------------------------------------------------------------
 
 export default function NavVertical({ openNav, onCloseNav }) {
   const { user } = useAuth();
-
   const pathname = usePathname();
-
   const lgUp = useResponsive("up", "lg");
-  const theme = useTheme();
-
   const navData = useNavData();
 
   useEffect(() => {
     if (openNav) {
       onCloseNav();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   const renderContent = (
@@ -53,16 +39,32 @@ export default function NavVertical({ openNav, onCloseNav }) {
         },
       }}
     >
+      {/* Logo + Brand */}
       <Box
         sx={{
           display: "flex",
-          justifyContent: "center",
-          py: 3,
-          px: 2,
-          borderBottom: `1px solid ${alpha('#FFFFFF', 0.06)}`,
+          alignItems: "center",
+          gap: 1.5,
+          py: 2.5,
+          px: 2.5,
+          borderBottom: `1px solid ${alpha('#FFFFFF', 0.04)}`,
         }}
       >
         <Logo sx={{ mt: 0, ml: 0, mb: 0 }} />
+        <Box>
+          <Typography
+            variant="subtitle2"
+            sx={{ color: '#F0F4F8', fontWeight: 700, lineHeight: 1.2 }}
+          >
+            RS CAB
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{ color: alpha('#F0F4F8', 0.35), fontSize: 10, letterSpacing: 0.5 }}
+          >
+            ADMIN
+          </Typography>
+        </Box>
       </Box>
 
       <NavSectionVertical
@@ -73,16 +75,54 @@ export default function NavVertical({ openNav, onCloseNav }) {
       />
 
       <Box sx={{ flexGrow: 1 }} />
+
+      {/* Bottom user info */}
+      <Box
+        sx={{
+          px: 2.5,
+          py: 2,
+          borderTop: `1px solid ${alpha('#FFFFFF', 0.04)}`,
+        }}
+      >
+        <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              bgcolor: alpha('#00E676', 0.1),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 13,
+              fontWeight: 700,
+              color: '#00E676',
+            }}
+          >
+            {(user?.firstName?.[0] || 'A').toUpperCase()}
+          </Box>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: '#F0F4F8', fontWeight: 600, display: 'block', lineHeight: 1.3 }}
+              noWrap
+            >
+              {user?.firstName || 'Admin'} {user?.lastName || ''}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{ color: alpha('#F0F4F8', 0.35), fontSize: 10 }}
+              noWrap
+            >
+              {user?.Admin?.role?.replace('_', ' ') || 'Admin'}
+            </Typography>
+          </Box>
+        </Stack>
+      </Box>
     </Scrollbar>
   );
 
-  const sidebarStyles = {
-    height: 1,
-    position: "fixed",
-    width: NAV.W_VERTICAL,
-    background: `linear-gradient(180deg, #0A1628 0%, #060B14 100%)`,
-    borderRight: `1px solid ${alpha('#FFFFFF', 0.06)}`,
-  };
+  const sidebarBg = '#070D18';
 
   return (
     <Box
@@ -93,7 +133,15 @@ export default function NavVertical({ openNav, onCloseNav }) {
       }}
     >
       {lgUp ? (
-        <Stack sx={sidebarStyles}>
+        <Stack
+          sx={{
+            height: 1,
+            position: "fixed",
+            width: NAV.W_VERTICAL,
+            backgroundColor: sidebarBg,
+            borderRight: `1px solid ${alpha('#FFFFFF', 0.04)}`,
+          }}
+        >
           {renderContent}
         </Stack>
       ) : (
@@ -103,8 +151,8 @@ export default function NavVertical({ openNav, onCloseNav }) {
           PaperProps={{
             sx: {
               width: NAV.W_VERTICAL,
-              background: `linear-gradient(180deg, #0A1628 0%, #060B14 100%)`,
-              borderRight: `1px solid ${alpha('#FFFFFF', 0.06)}`,
+              backgroundColor: sidebarBg,
+              borderRight: `1px solid ${alpha('#FFFFFF', 0.04)}`,
             },
           }}
         >

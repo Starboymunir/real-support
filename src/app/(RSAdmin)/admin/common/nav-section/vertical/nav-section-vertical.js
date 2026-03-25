@@ -1,20 +1,15 @@
 import PropTypes from 'prop-types';
 import { memo, useState, useCallback } from 'react';
-// @mui
 import List from '@mui/material/List';
 import Stack from '@mui/material/Stack';
 import Collapse from '@mui/material/Collapse';
-//
 import { navVerticalConfig } from '../config';
 import { StyledSubheader } from './styles';
-
 import NavList from './nav-list';
-
-// ----------------------------------------------------------------------
 
 function NavSectionVertical({ data, config, sx, ...other }) {
   return (
-    <Stack sx={sx} {...other}>
+    <Stack sx={{ pt: 1, ...sx }} {...other}>
       {data.map((group, index) => (
         <Group
           key={group.subheader || index}
@@ -35,8 +30,6 @@ NavSectionVertical.propTypes = {
 
 export default memo(NavSectionVertical);
 
-// ----------------------------------------------------------------------
-
 function Group({ subheader, items, config }) {
   const [open, setOpen] = useState(true);
 
@@ -55,13 +48,12 @@ function Group({ subheader, items, config }) {
   ));
 
   return (
-    <List disablePadding sx={{ px: 2 }}>
+    <List disablePadding sx={{ px: 1.5 }}>
       {subheader ? (
         <>
           <StyledSubheader disableGutters disableSticky onClick={handleToggle} config={config}>
             {subheader}
           </StyledSubheader>
-
           <Collapse in={open}>{renderContent}</Collapse>
         </>
       ) : (

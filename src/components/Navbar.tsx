@@ -125,6 +125,7 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-3">
             {user ? (
               <>
+                {!isAdmin && (
                 <Link
                   href="/rider/book"
                   className="group relative inline-flex items-center gap-2 bg-secondary text-dark font-bold text-sm px-6 py-2.5 rounded-full overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,230,118,0.4)] hover:scale-105"
@@ -133,6 +134,7 @@ export default function Navbar() {
                   <ArrowRight size={16} className="relative z-10 transition-transform group-hover:translate-x-1" />
                   <div className="absolute inset-0 bg-gradient-to-r from-secondary via-secondary-light to-secondary bg-[length:200%_100%] animate-gradient opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
+                )}
 
                 {/* Profile dropdown */}
                 <div className="relative" data-profile-menu>
@@ -163,6 +165,7 @@ export default function Navbar() {
                           <LayoutDashboard size={16} />
                           Dashboard
                         </Link>
+                        {!isAdmin && (
                         <Link
                           href="/rider/profile"
                           onClick={() => setProfileOpen(false)}
@@ -171,6 +174,7 @@ export default function Navbar() {
                           <User size={16} />
                           Profile
                         </Link>
+                        )}
                         {hasDriver && !isAdmin && (
                           <button
                             onClick={() => { setProfileOpen(false); handleSwitchMode(); }}
@@ -288,6 +292,8 @@ export default function Navbar() {
                 <LayoutDashboard size={18} />
                 Dashboard
               </Link>
+              {!isAdmin && (
+              <>
               <Link
                 href="/rider/book"
                 onClick={() => setMobileOpen(false)}
@@ -296,7 +302,7 @@ export default function Navbar() {
                 Book a Ride
                 <ArrowRight size={18} />
               </Link>
-              {hasDriver && !isAdmin && (
+              {hasDriver && (
                 <button
                   onClick={() => { setMobileOpen(false); handleSwitchMode(); }}
                   disabled={switchingMode}
@@ -305,6 +311,8 @@ export default function Navbar() {
                   <Repeat size={18} />
                   {switchingMode ? 'Switching...' : otherDashLabel}
                 </button>
+              )}
+              </>
               )}
               <button
                 onClick={handleLogout}

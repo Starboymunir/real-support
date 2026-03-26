@@ -224,6 +224,7 @@ function LoginContent() {
               <Link href="/register" className="text-secondary font-semibold hover:underline underline-offset-4">Create account</Link>
             </p>
 
+            {!user && (
             <div className="mt-6 pt-6 border-t border-white/[0.04] flex justify-center gap-6">
               <Link href="/company/company-login" className="text-white/25 text-sm hover:text-white/50 transition-colors">
                 Company Login <span className="text-secondary">→</span>
@@ -232,6 +233,7 @@ function LoginContent() {
                 Admin Login <span className="text-secondary">→</span>
               </Link>
             </div>
+            )}
             </>
             )}
           </div>

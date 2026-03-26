@@ -1,6 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, Phone, Mail, ArrowUpRight, Zap } from 'lucide-react';
+import { MapPin, Phone, Mail, ArrowUpRight, Zap, ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 const quickLinks = [
   { label: 'Home', href: '/' },
@@ -17,6 +20,8 @@ const driverLinks = [
 ];
 
 export default function Footer() {
+  const { user } = useAuth();
+
   return (
     <footer className="relative bg-dark overflow-hidden">
       {/* Decorative top edge */}
@@ -128,6 +133,18 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              {!user && (
+                <li>
+                  <Link
+                    href="/admin/login"
+                    className="group flex items-center gap-2 text-white/40 hover:text-secondary text-sm transition-colors duration-300"
+                  >
+                    <ShieldCheck size={12} className="text-white/10 group-hover:text-secondary transition-colors" />
+                    Admin Portal
+                    <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 

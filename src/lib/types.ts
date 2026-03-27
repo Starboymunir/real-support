@@ -386,6 +386,41 @@ export interface ContactUsMessage {
   createdAt: string;
 }
 
+// ── Support Tickets ──
+
+export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+export type TicketCategory = 'BOOKING' | 'PAYMENT' | 'DRIVER_ISSUE' | 'APP_ISSUE' | 'ACCOUNT' | 'OTHER';
+
+export interface SupportTicket {
+  id: string;
+  ticketNumber: string;
+  subject: string;
+  description: string;
+  category: TicketCategory;
+  status: TicketStatus;
+  priority: TicketPriority;
+  userId: string;
+  user?: User;
+  assignedAdminId?: string;
+  messages?: SupportTicketMessage[];
+  _count?: { messages: number };
+  resolvedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SupportTicketMessage {
+  id: string;
+  content: string;
+  attachments: string[];
+  isAdminReply: boolean;
+  ticketId: string;
+  senderId: string;
+  sender?: User;
+  createdAt: string;
+}
+
 export interface Notification {
   id: string;
   ROC: string;

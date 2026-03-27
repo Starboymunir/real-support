@@ -14,7 +14,7 @@ import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import FormProvider, {
   RHFTextField,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
-import axiosInstance from \"@/lib/admin-axios\";
+import axiosInstance from "@/lib/admin-axios";
 
 // ----------------------------------------------------------------------
 

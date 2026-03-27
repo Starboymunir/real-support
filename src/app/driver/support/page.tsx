@@ -23,6 +23,8 @@ import {
   XCircle,
   Clock,
   Shield,
+  DollarSign,
+  MapPin,
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -31,39 +33,39 @@ import {
 
 const faqs = [
   {
-    question: 'How do I book a ride?',
+    question: 'How do I accept a ride request?',
     answer:
-      'Navigate to the "Book a Ride" page from your dashboard or sidebar. Enter your pickup and drop-off locations, select a vehicle type, choose your payment method, and confirm the booking. You\'ll receive a confirmation with driver details shortly.',
+      'When a ride request comes in, you\'ll receive a notification with pickup/drop-off details and fare estimate. Tap "Accept" to confirm. You\'ll then see navigation to the pickup location.',
     icon: Car,
   },
   {
-    question: 'What payment methods are accepted?',
+    question: 'How and when do I get paid?',
     answer:
-      'RS CAB accepts cash payments and all major credit/debit cards (Visa, Mastercard, Amex). You can save multiple cards in your Payment Methods page for quick checkout.',
-    icon: CreditCard,
+      'Earnings from completed rides are tracked in your Earnings page. You can withdraw your balance at any time from the Withdraw page. Payments are processed within 1-3 business days.',
+    icon: DollarSign,
   },
   {
-    question: 'How do I cancel a ride?',
+    question: 'What documents are required?',
     answer:
-      'You can cancel an upcoming ride from the "My Rides" page by viewing the ride details and selecting "Cancel Ride". Free cancellation is available up to 5 minutes after booking or if the driver hasn\'t been assigned yet.',
-    icon: XCircle,
-  },
-  {
-    question: 'What is the cancellation policy?',
-    answer:
-      'Cancellations made within 5 minutes of booking are free. After that, a small cancellation fee of £3 may apply. If the driver is already en route, the fee may be higher based on the distance covered.',
+      'You need a valid driving licence, vehicle registration, MOT certificate, insurance documents, and a DBS check. Upload all documents from the Documents page for verification.',
     icon: FileText,
   },
   {
-    question: 'How are fares calculated?',
+    question: 'How do I update my vehicle details?',
     answer:
-      'Fares consist of a base rate, per-mile distance charge, and per-minute time charge. During peak hours, surge pricing may apply. You can always see the estimated fare before confirming your booking.',
-    icon: Clock,
+      'Go to the Vehicle page from your dashboard to update your vehicle information including make, model, year, colour, and registration number. Changes require admin approval.',
+    icon: MapPin,
   },
   {
-    question: 'Is my payment information secure?',
+    question: 'What if a rider cancels?',
     answer:
-      'Absolutely. All payment information is encrypted with bank-level 256-bit SSL encryption. We are PCI-DSS compliant and never store your full card details on our servers.',
+      'If a rider cancels after you\'ve started driving to the pickup location, you may receive a cancellation fee. The fee depends on the distance already covered and is automatically credited to your account.',
+    icon: XCircle,
+  },
+  {
+    question: 'Is my personal information secure?',
+    answer:
+      'Absolutely. All personal and financial information is encrypted with bank-level 256-bit SSL encryption. We are PCI-DSS compliant and follow strict data protection policies.',
     icon: Shield,
   },
 ];
@@ -72,7 +74,7 @@ const faqs = [
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
-export default function SupportPage() {
+export default function DriverSupportPage() {
   const { user } = useRequireAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -87,8 +89,9 @@ export default function SupportPage() {
   const categoryMap: Record<string, string> = {
     booking: 'BOOKING',
     payment: 'PAYMENT',
-    driver: 'DRIVER_ISSUE',
+    rider: 'DRIVER_ISSUE',
     app: 'APP_ISSUE',
+    account: 'ACCOUNT',
     other: 'OTHER',
   };
 
@@ -146,7 +149,7 @@ export default function SupportPage() {
   ];
 
   return (
-    <DashboardLayout role="rider" pageTitle="Support">
+    <DashboardLayout role="driver" pageTitle="Support">
       {/* ── Header & Search ─────────────────────────────────────── */}
       <div className="text-center max-w-2xl mx-auto mb-10">
         <div className="w-16 h-16 rounded-2xl bg-secondary/10 flex items-center justify-center mx-auto mb-4">
@@ -259,10 +262,11 @@ export default function SupportPage() {
                   className="input-field appearance-none cursor-pointer"
                 >
                   <option value="">Select a category</option>
-                  <option value="booking">Booking Issue</option>
-                  <option value="payment">Payment Issue</option>
-                  <option value="driver">Driver Complaint</option>
+                  <option value="booking">Ride Issue</option>
+                  <option value="payment">Payment / Earnings</option>
+                  <option value="rider">Rider Complaint</option>
                   <option value="app">App Problem</option>
+                  <option value="account">Account Issue</option>
                   <option value="other">Other</option>
                 </select>
               </div>
@@ -310,9 +314,9 @@ export default function SupportPage() {
                   try {
                     const chat = await chatApi.getOneOnOneAdmin(user.id);
                     const chatId = chat?.id;
-                    router.push(chatId ? `/rider/chat?chatId=${chatId}` : '/rider/chat');
+                    router.push(chatId ? `/driver/chat?chatId=${chatId}` : '/driver/chat');
                   } catch {
-                    router.push('/rider/chat');
+                    router.push('/driver/chat');
                   } finally {
                     setChatLoading(false);
                   }

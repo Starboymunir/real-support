@@ -11,13 +11,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import dynamic from "next/dynamic";
 import InvoicePDF from "@/components/booking/BookingInvoicePdf";
 import { IBookingType } from "@/types/type";
 import Loader from "@/components/loader";
 import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/providers/auth-providers";
+
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+);
 
 interface DataTableRowActionsProps {
   row: Row<IBookingType>;

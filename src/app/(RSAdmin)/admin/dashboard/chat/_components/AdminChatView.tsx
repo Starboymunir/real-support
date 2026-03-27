@@ -13,12 +13,10 @@ import {
   TextField,
   Stack,
   CircularProgress,
-  Badge,
   IconButton,
   Chip,
   Select,
   MenuItem,
-  Divider,
   InputAdornment,
   Tooltip,
 } from "@mui/material";
@@ -28,6 +26,7 @@ import { useSocket, SOCKET_EVENTS } from "@/lib/socket-context";
 import adminAxios from "@/lib/admin-axios";
 import Iconify from "@/components/iconify/iconify";
 import moment from "moment";
+import type { SupportTicket, SupportTicketMessage } from "@/lib/types";
 
 // ── Constants ──
 
@@ -45,18 +44,19 @@ const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
   URGENT: { label: "Urgent", color: "#D32F2F" },
 };
 
+const CATEGORY_CONFIG: Record<string, { label: string; icon: string }> = {
+  BOOKING: { label: "Booking", icon: "solar:calendar-bold" },
+  PAYMENT: { label: "Payment", icon: "solar:card-bold" },
+  DRIVER_ISSUE: { label: "Driver Issue", icon: "solar:user-bold" },
+  APP_ISSUE: { label: "App Issue", icon: "solar:smartphone-bold" },
+  ACCOUNT: { label: "Account", icon: "solar:settings-bold" },
+  OTHER: { label: "Other", icon: "solar:question-circle-bold" },
+};
+
 // ── Helpers ──
 
 function getUserType(user: any): "DRIVER" | "RIDER" {
   return user?.mode === "DRIVER" ? "DRIVER" : "RIDER";
-}
-
-function getChatContact(chat: any) {
-  const participant = chat.participants?.[0];
-  const user = participant?.user;
-  if (!user) return { name: "Unknown User", type: "RIDER" as const, avatar: null };
-  const name = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Unknown";
-  return { name, type: getUserType(user), avatar: user.coverImage ?? null, phone: user.phone_number };
 }
 
 function getInitials(name: string) {
@@ -130,7 +130,7 @@ function UserTypeBadge({ type }: { type: string }) {
 
 // ── Message bubble ──
 
-function MessageBubble({ message, isOwn }: { message: any; isOwn: boolean }) {
+function MessageBubble({ message, isOwn }: { message: SupportTicketMessage; isOwn: boolean }) {
   const senderName = message.sender
     ? `${message.sender.firstName ?? ""} ${message.sender.lastName ?? ""}`.trim()
     : "Unknown";
@@ -155,10 +155,10 @@ function MessageBubble({ message, isOwn }: { message: any; isOwn: boolean }) {
       >
         {!isOwn && (
           <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.25 }}>
-            <Typography variant="caption" fontWeight={700} sx={{ color: senderType === "DRIVER" ? "#64B5F6" : "#CE93D8" }}>
-              {senderName}
+            <Typography variant="caption" fontWeight={700} sx={{ color: message.isAdminReply ? "#00E676" : (senderType === "DRIVER" ? "#64B5F6" : "#CE93D8") }}>
+              {message.isAdminReply ? "Support Agent" : senderName}
             </Typography>
-            {senderType && (
+            {!message.isAdminReply && senderType && (
               <Typography variant="caption" sx={{ fontSize: 9, opacity: 0.5 }}>
                 ({senderType === "DRIVER" ? "Driver" : "Rider"})
               </Typography>
@@ -181,11 +181,11 @@ export default function AdminChatView() {
   const { socket, connected } = useSocket();
   const userId = user?.id;
 
-  const [chatList, setChatList] = useState<any[]>([]);
-  const [filteredChats, setFilteredChats] = useState<any[]>([]);
-  const [activeChatId, setActiveChatId] = useState<string | null>(null);
-  const [activeChat, setActiveChat] = useState<any>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [filteredTickets, setFilteredTickets] = useState<SupportTicket[]>([]);
+  const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
+  const [activeTicket, setActiveTicket] = useState<SupportTicket | null>(null);
+  const [messages, setMessages] = useState<SupportTicketMessage[]>([]);
   const [content, setContent] = useState("");
   const [loadingList, setLoadingList] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -199,79 +199,96 @@ export default function AdminChatView() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // Filter chats by search and status
+  // Filter tickets by search and status
   useEffect(() => {
-    let filtered = chatList;
+    let filtered = tickets;
     if (statusFilter !== "ALL") {
-      filtered = filtered.filter((c) => (c.ticketStatus || "OPEN") === statusFilter);
+      filtered = filtered.filter((t) => t.status === statusFilter);
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter((c) => {
-        const contact = getChatContact(c);
-        return contact.name.toLowerCase().includes(q) || contact.type.toLowerCase().includes(q);
+      filtered = filtered.filter((t) => {
+        const userName = `${t.user?.firstName ?? ""} ${t.user?.lastName ?? ""}`.trim().toLowerCase();
+        return (
+          userName.includes(q) ||
+          t.ticketNumber.toLowerCase().includes(q) ||
+          t.subject.toLowerCase().includes(q) ||
+          (t.user?.mode ?? "").toLowerCase().includes(q)
+        );
       });
     }
-    setFilteredChats(filtered);
-  }, [chatList, statusFilter, searchQuery]);
+    setFilteredTickets(filtered);
+  }, [tickets, statusFilter, searchQuery]);
 
-  // Load chat list
-  const loadChatList = useCallback(async () => {
+  // Load ticket list
+  const loadTickets = useCallback(async () => {
     if (!userId) return;
     setLoadingList(true);
     try {
-      const res = await adminAxios.get("/chat?getAdminList=true");
-      setChatList(res.data.data || []);
+      const res = await adminAxios.get("/support-tickets");
+      setTickets(res.data.data || []);
     } catch (err) {
-      console.error("Failed to load chats:", err);
+      console.error("Failed to load tickets:", err);
     } finally {
       setLoadingList(false);
     }
   }, [userId]);
 
-  // Load a specific chat's messages
-  const loadChat = useCallback(async (chatId: string) => {
+  // Load a specific ticket with messages
+  const loadTicket = useCallback(async (ticketId: string) => {
     if (!userId) return;
     setLoadingMessages(true);
     try {
-      const res = await adminAxios.get(`/chat/${chatId}`);
-      const chatData = res.data.data;
-      setActiveChat(chatData);
-      setMessages(chatData.messages || []);
-      await adminAxios.post(`/chat/${chatId}/read`).catch(() => {});
+      const res = await adminAxios.get(`/support-tickets/${ticketId}`);
+      const ticketData = res.data.data;
+      setActiveTicket(ticketData);
+      setMessages(ticketData.messages || []);
     } catch (err) {
-      console.error("Failed to load chat:", err);
+      console.error("Failed to load ticket:", err);
     } finally {
       setLoadingMessages(false);
     }
   }, [userId]);
 
   // Update ticket status/priority
-  const updateTicket = useCallback(async (chatId: string, updates: { ticketStatus?: string; ticketPriority?: string }) => {
+  const updateTicket = useCallback(async (ticketId: string, updates: { status?: string; priority?: string }) => {
     try {
-      const res = await adminAxios.patch(`/chat/${chatId}/ticket`, updates);
+      const res = await adminAxios.patch(`/support-tickets/${ticketId}`, updates);
       const updated = res.data.data;
-      setActiveChat((prev: any) => (prev?.id === chatId ? { ...prev, ...updated } : prev));
-      setChatList((prev) => prev.map((c) => (c.id === chatId ? { ...c, ...updated } : c)));
+      setActiveTicket((prev) => (prev?.id === ticketId ? { ...prev, ...updated } : prev));
+      setTickets((prev) => prev.map((t) => (t.id === ticketId ? { ...t, ...updated } : t)));
     } catch (err) {
       console.error("Failed to update ticket:", err);
     }
   }, []);
 
-  // Send message
+  // Send message (admin reply)
   const handleSend = useCallback(async () => {
-    if (!content.trim() || !activeChatId || sending) return;
+    if (!content.trim() || !activeTicketId || sending) return;
     setSending(true);
     try {
-      const res = await adminAxios.post(`/chat/${activeChatId}`, { content: content.trim(), attachments: [] });
-      setMessages((prev) => [...prev, res.data.data]);
+      const res = await adminAxios.post(`/support-tickets/${activeTicketId}/messages`, { content: content.trim(), attachments: [] });
+      const newMsg = res.data.data;
+      setMessages((prev) => [...prev, newMsg]);
       setContent("");
+      // If ticket was OPEN, update local status to IN_PROGRESS
+      setActiveTicket((prev) => {
+        if (prev && prev.status === "OPEN") return { ...prev, status: "IN_PROGRESS" };
+        return prev;
+      });
+      setTickets((prev) =>
+        prev.map((t) =>
+          t.id === activeTicketId
+            ? { ...t, ...(t.status === "OPEN" ? { status: "IN_PROGRESS" as const } : {}), messages: [newMsg] }
+            : t
+        )
+      );
     } catch (err) {
       console.error("Failed to send:", err);
     } finally {
       setSending(false);
     }
-  }, [content, activeChatId, sending]);
+  }, [content, activeTicketId, sending]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -283,50 +300,51 @@ export default function AdminChatView() {
     [handleSend]
   );
 
-  useEffect(() => { loadChatList(); }, [loadChatList]);
-  useEffect(() => { if (activeChatId) loadChat(activeChatId); }, [activeChatId, loadChat]);
+  useEffect(() => { loadTickets(); }, [loadTickets]);
+  useEffect(() => { if (activeTicketId) loadTicket(activeTicketId); }, [activeTicketId, loadTicket]);
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
   // Socket events
   useEffect(() => {
     if (!socket) return;
-    const handleNewMessage = (data: any) => {
-      if (data?.chatId === activeChatId) {
+    const handleNewTicket = (data: any) => {
+      setTickets((prev) => (prev.some((t) => t.id === data.id) ? prev : [data, ...prev]));
+    };
+    const handleTicketMessage = (data: any) => {
+      if (data?.ticketId === activeTicketId) {
         setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, data]));
       }
-      setChatList((prev) =>
-        prev.map((c) => (c.id === data?.chatId ? { ...c, messages: [data] } : c))
+      setTickets((prev) =>
+        prev.map((t) => (t.id === data?.ticketId ? { ...t, messages: [data] } : t))
       );
     };
-    const handleNewChat = (data: any) => {
-      if (data?.isAdminChat) setChatList((prev) => [data, ...prev]);
-    };
-    const handleChatDeleted = (data: any) => {
-      setChatList((prev) => prev.filter((c) => c.id !== data?.chatId));
-      if (activeChatId === data?.chatId) {
-        setActiveChatId(null);
-        setActiveChat(null);
-        setMessages([]);
+    const handleTicketUpdated = (data: any) => {
+      setTickets((prev) => prev.map((t) => (t.id === data?.id ? { ...t, ...data } : t)));
+      if (data?.id === activeTicketId) {
+        setActiveTicket((prev) => (prev ? { ...prev, ...data } : prev));
       }
     };
-    socket.on(SOCKET_EVENTS.MESSAGE_RECEIVED_EVENT, handleNewMessage);
-    socket.on(SOCKET_EVENTS.NEW_CHAT_EVENT, handleNewChat);
-    socket.on(SOCKET_EVENTS.CHAT_DELETE_EVENT, handleChatDeleted);
+    socket.on(SOCKET_EVENTS.NEW_SUPPORT_TICKET, handleNewTicket);
+    socket.on(SOCKET_EVENTS.SUPPORT_TICKET_MESSAGE, handleTicketMessage);
+    socket.on(SOCKET_EVENTS.SUPPORT_TICKET_UPDATED, handleTicketUpdated);
     return () => {
-      socket.off(SOCKET_EVENTS.MESSAGE_RECEIVED_EVENT, handleNewMessage);
-      socket.off(SOCKET_EVENTS.NEW_CHAT_EVENT, handleNewChat);
-      socket.off(SOCKET_EVENTS.CHAT_DELETE_EVENT, handleChatDeleted);
+      socket.off(SOCKET_EVENTS.NEW_SUPPORT_TICKET, handleNewTicket);
+      socket.off(SOCKET_EVENTS.SUPPORT_TICKET_MESSAGE, handleTicketMessage);
+      socket.off(SOCKET_EVENTS.SUPPORT_TICKET_UPDATED, handleTicketUpdated);
     };
-  }, [socket, activeChatId, userId]);
+  }, [socket, activeTicketId]);
 
   // Status counts
-  const statusCounts = chatList.reduce((acc, c) => {
-    const s = c.ticketStatus || "OPEN";
-    acc[s] = (acc[s] || 0) + 1;
+  const statusCounts = tickets.reduce((acc, t) => {
+    acc[t.status] = (acc[t.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  const contact = activeChat ? getChatContact(activeChat) : null;
+  const ticketUser = activeTicket?.user;
+  const ticketUserName = ticketUser
+    ? `${ticketUser.firstName ?? ""} ${ticketUser.lastName ?? ""}`.trim()
+    : "Unknown User";
+  const ticketUserType = ticketUser ? getUserType(ticketUser) : "RIDER";
 
   return (
     <Box sx={{ height: "calc(100vh - 100px)", display: "flex", flexDirection: "column", gap: 2 }}>
@@ -338,7 +356,7 @@ export default function AdminChatView() {
             Support Tickets
           </Typography>
           <Chip
-            label={chatList.length}
+            label={tickets.length}
             size="small"
             sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: alpha("#00E676", 0.12), color: "#00E676" }}
           />
@@ -353,7 +371,7 @@ export default function AdminChatView() {
 
       {/* Status filter tabs */}
       <Stack direction="row" spacing={1}>
-        {[{ key: "ALL", label: "All", count: chatList.length }, ...Object.entries(STATUS_CONFIG).map(([key, cfg]) => ({ key, label: cfg.label, count: statusCounts[key] || 0 }))].map((tab) => (
+        {[{ key: "ALL", label: "All", count: tickets.length }, ...Object.entries(STATUS_CONFIG).map(([key, cfg]) => ({ key, label: cfg.label, count: statusCounts[key] || 0 }))].map((tab) => (
           <Box
             key={tab.key}
             onClick={() => setStatusFilter(tab.key)}
@@ -378,8 +396,8 @@ export default function AdminChatView() {
 
       {/* Main content */}
       <Box sx={{ flex: 1, display: "flex", borderRadius: 2, overflow: "hidden", border: `1px solid ${alpha("#FFFFFF", 0.06)}`, minHeight: 0 }}>
-        {/* Sidebar */}
-        <Box sx={{ width: 340, minWidth: 340, borderRight: `1px solid ${alpha("#FFFFFF", 0.06)}`, display: "flex", flexDirection: "column", bgcolor: alpha("#070D18", 0.6) }}>
+        {/* Sidebar — ticket list */}
+        <Box sx={{ width: 360, minWidth: 360, borderRight: `1px solid ${alpha("#FFFFFF", 0.06)}`, display: "flex", flexDirection: "column", bgcolor: alpha("#070D18", 0.6) }}>
           {/* Search */}
           <Box sx={{ p: 1.5 }}>
             <TextField
@@ -408,12 +426,12 @@ export default function AdminChatView() {
             />
           </Box>
 
-          {/* Chat list */}
+          {/* Ticket list */}
           {loadingList ? (
             <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
               <CircularProgress size={24} sx={{ color: "#00E676" }} />
             </Box>
-          ) : filteredChats.length === 0 ? (
+          ) : filteredTickets.length === 0 ? (
             <Box sx={{ p: 3, textAlign: "center" }}>
               <Iconify icon="solar:inbox-line-bold-duotone" width={40} sx={{ color: alpha("#F0F4F8", 0.1), mb: 1 }} />
               <Typography variant="body2" sx={{ color: alpha("#F0F4F8", 0.3), fontSize: 13 }}>
@@ -422,17 +440,18 @@ export default function AdminChatView() {
             </Box>
           ) : (
             <List sx={{ overflowY: "auto", flex: 1, py: 0 }}>
-              {filteredChats.map((chat) => {
-                const chatContact = getChatContact(chat);
-                const lastMsg = chat.messages?.[0];
-                const status = chat.ticketStatus || "OPEN";
-                const priority = chat.ticketPriority || "MEDIUM";
+              {filteredTickets.map((ticket) => {
+                const tUser = ticket.user;
+                const tUserName = tUser ? `${tUser.firstName ?? ""} ${tUser.lastName ?? ""}`.trim() : "Unknown";
+                const tUserType = tUser ? getUserType(tUser) : "RIDER";
+                const lastMsg = ticket.messages?.[0];
+                const catConfig = CATEGORY_CONFIG[ticket.category] || CATEGORY_CONFIG.OTHER;
 
                 return (
-                  <ListItem key={chat.id} disablePadding>
+                  <ListItem key={ticket.id} disablePadding>
                     <ListItemButton
-                      selected={chat.id === activeChatId}
-                      onClick={() => setActiveChatId(chat.id)}
+                      selected={ticket.id === activeTicketId}
+                      onClick={() => setActiveTicketId(ticket.id)}
                       sx={{
                         py: 1.5,
                         px: 2,
@@ -443,43 +462,51 @@ export default function AdminChatView() {
                     >
                       <ListItemAvatar sx={{ minWidth: 44 }}>
                         <Avatar
-                          src={chatContact.avatar ?? undefined}
+                          src={tUser?.coverImage ?? undefined}
                           sx={{
                             width: 36,
                             height: 36,
                             fontSize: 13,
-                            bgcolor: chatContact.type === "DRIVER" ? alpha("#2196F3", 0.15) : alpha("#9C27B0", 0.15),
-                            color: chatContact.type === "DRIVER" ? "#64B5F6" : "#CE93D8",
+                            bgcolor: tUserType === "DRIVER" ? alpha("#2196F3", 0.15) : alpha("#9C27B0", 0.15),
+                            color: tUserType === "DRIVER" ? "#64B5F6" : "#CE93D8",
                           }}
                         >
-                          {getInitials(chatContact.name)}
+                          {getInitials(tUserName)}
                         </Avatar>
                       </ListItemAvatar>
                       <ListItemText
                         primary={
                           <Stack direction="row" alignItems="center" spacing={0.5}>
                             <Typography variant="subtitle2" noWrap sx={{ color: "#F0F4F8", fontSize: 13, flex: 1 }}>
-                              {chatContact.name}
+                              {tUserName}
                             </Typography>
-                            <PriorityDot priority={priority} />
+                            <PriorityDot priority={ticket.priority} />
                           </Stack>
                         }
                         secondary={
                           <Stack spacing={0.25}>
                             <Stack direction="row" alignItems="center" spacing={0.5}>
-                              <UserTypeBadge type={chatContact.type} />
-                              <StatusBadge status={status} />
-                            </Stack>
-                            {lastMsg && (
-                              <Typography variant="caption" noWrap sx={{ color: alpha("#F0F4F8", 0.35), fontSize: 11 }}>
-                                {lastMsg.content || "Attachment"}
+                              <Typography variant="caption" sx={{ color: alpha("#F0F4F8", 0.5), fontSize: 10, fontWeight: 600 }}>
+                                {ticket.ticketNumber}
                               </Typography>
-                            )}
+                              <Chip
+                                label={catConfig.label}
+                                size="small"
+                                sx={{ height: 16, fontSize: 9, fontWeight: 600, bgcolor: alpha("#FFFFFF", 0.06), color: alpha("#F0F4F8", 0.5) }}
+                              />
+                            </Stack>
+                            <Typography variant="caption" noWrap sx={{ color: alpha("#F0F4F8", 0.4), fontSize: 11, fontWeight: 500 }}>
+                              {ticket.subject}
+                            </Typography>
+                            <Stack direction="row" alignItems="center" spacing={0.5}>
+                              <UserTypeBadge type={tUserType} />
+                              <StatusBadge status={ticket.status} />
+                            </Stack>
                           </Stack>
                         }
                       />
                       <Typography variant="caption" sx={{ color: alpha("#F0F4F8", 0.3), fontSize: 10, ml: 1, flexShrink: 0 }}>
-                        {lastMsg ? getTimeAgo(lastMsg.createdAt) : getTimeAgo(chat.createdAt)}
+                        {lastMsg ? getTimeAgo(lastMsg.createdAt) : getTimeAgo(ticket.createdAt)}
                       </Typography>
                     </ListItemButton>
                   </ListItem>
@@ -489,8 +516,8 @@ export default function AdminChatView() {
           )}
         </Box>
 
-        {/* Chat area */}
-        {!activeChatId ? (
+        {/* Ticket detail / Chat area */}
+        {!activeTicketId ? (
           <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 1.5, bgcolor: alpha("#0A0F1A", 0.5) }}>
             <Iconify icon="solar:inbox-line-bold-duotone" width={56} sx={{ color: alpha("#F0F4F8", 0.06) }} />
             <Typography variant="h6" sx={{ color: alpha("#F0F4F8", 0.2), fontWeight: 600 }}>
@@ -502,7 +529,7 @@ export default function AdminChatView() {
           </Box>
         ) : (
           <Box sx={{ flex: 1, display: "flex", flexDirection: "column", bgcolor: alpha("#0A0F1A", 0.5), minWidth: 0 }}>
-            {/* Chat header with ticket controls */}
+            {/* Ticket header */}
             <Box sx={{ px: 2.5, py: 1.5, borderBottom: `1px solid ${alpha("#FFFFFF", 0.06)}`, bgcolor: alpha("#070D18", 0.4) }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
                 <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -511,22 +538,28 @@ export default function AdminChatView() {
                       width: 36,
                       height: 36,
                       fontSize: 13,
-                      bgcolor: contact?.type === "DRIVER" ? alpha("#2196F3", 0.15) : alpha("#9C27B0", 0.15),
-                      color: contact?.type === "DRIVER" ? "#64B5F6" : "#CE93D8",
+                      bgcolor: ticketUserType === "DRIVER" ? alpha("#2196F3", 0.15) : alpha("#9C27B0", 0.15),
+                      color: ticketUserType === "DRIVER" ? "#64B5F6" : "#CE93D8",
                     }}
                   >
-                    {getInitials(contact?.name || "?")}
+                    {getInitials(ticketUserName)}
                   </Avatar>
                   <Box>
                     <Stack direction="row" alignItems="center" spacing={0.75}>
                       <Typography variant="subtitle2" sx={{ color: "#F0F4F8", fontSize: 14 }}>
-                        {contact?.name}
+                        {ticketUserName}
                       </Typography>
-                      <UserTypeBadge type={contact?.type || "RIDER"} />
+                      <UserTypeBadge type={ticketUserType} />
+                      <Typography variant="caption" sx={{ color: alpha("#F0F4F8", 0.4), fontSize: 10, fontWeight: 600 }}>
+                        {activeTicket?.ticketNumber}
+                      </Typography>
                     </Stack>
-                    {contact?.phone && (
-                      <Typography variant="caption" sx={{ color: alpha("#F0F4F8", 0.35), fontSize: 11 }}>
-                        {contact.phone}
+                    <Typography variant="caption" sx={{ color: alpha("#F0F4F8", 0.5), fontSize: 12 }}>
+                      {activeTicket?.subject}
+                    </Typography>
+                    {(ticketUser as any)?.phone_number && (
+                      <Typography variant="caption" sx={{ color: alpha("#F0F4F8", 0.35), fontSize: 11, display: "block" }}>
+                        {(ticketUser as any).phone_number}
                       </Typography>
                     )}
                   </Box>
@@ -534,14 +567,30 @@ export default function AdminChatView() {
 
                 {/* Ticket controls */}
                 <Stack direction="row" spacing={1} alignItems="center">
+                  {activeTicket?.category && (
+                    <Chip
+                      icon={<Iconify icon={CATEGORY_CONFIG[activeTicket.category]?.icon || "solar:question-circle-bold"} width={14} />}
+                      label={CATEGORY_CONFIG[activeTicket.category]?.label || activeTicket.category}
+                      size="small"
+                      sx={{
+                        height: 24,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        bgcolor: alpha("#FFFFFF", 0.06),
+                        color: alpha("#F0F4F8", 0.6),
+                        "& .MuiChip-icon": { color: alpha("#F0F4F8", 0.4) },
+                      }}
+                    />
+                  )}
+
                   <Select
                     size="small"
-                    value={activeChat?.ticketPriority || "MEDIUM"}
-                    onChange={(e) => updateTicket(activeChatId!, { ticketPriority: e.target.value })}
+                    value={activeTicket?.priority || "MEDIUM"}
+                    onChange={(e) => updateTicket(activeTicketId!, { priority: e.target.value })}
                     sx={{
                       height: 30,
                       fontSize: 12,
-                      color: PRIORITY_CONFIG[activeChat?.ticketPriority || "MEDIUM"]?.color,
+                      color: PRIORITY_CONFIG[activeTicket?.priority || "MEDIUM"]?.color,
                       "& .MuiOutlinedInput-notchedOutline": { borderColor: alpha("#FFFFFF", 0.08) },
                       "& .MuiSvgIcon-root": { color: alpha("#F0F4F8", 0.3) },
                     }}
@@ -558,12 +607,12 @@ export default function AdminChatView() {
 
                   <Select
                     size="small"
-                    value={activeChat?.ticketStatus || "OPEN"}
-                    onChange={(e) => updateTicket(activeChatId!, { ticketStatus: e.target.value })}
+                    value={activeTicket?.status || "OPEN"}
+                    onChange={(e) => updateTicket(activeTicketId!, { status: e.target.value })}
                     sx={{
                       height: 30,
                       fontSize: 12,
-                      color: STATUS_CONFIG[activeChat?.ticketStatus || "OPEN"]?.color,
+                      color: STATUS_CONFIG[activeTicket?.status || "OPEN"]?.color,
                       "& .MuiOutlinedInput-notchedOutline": { borderColor: alpha("#FFFFFF", 0.08) },
                       "& .MuiSvgIcon-root": { color: alpha("#F0F4F8", 0.3) },
                     }}
@@ -578,11 +627,11 @@ export default function AdminChatView() {
                     ))}
                   </Select>
 
-                  {(activeChat?.ticketStatus || "OPEN") !== "RESOLVED" && (activeChat?.ticketStatus || "OPEN") !== "CLOSED" && (
+                  {activeTicket?.status !== "RESOLVED" && activeTicket?.status !== "CLOSED" && (
                     <Tooltip title="Resolve ticket">
                       <IconButton
                         size="small"
-                        onClick={() => updateTicket(activeChatId!, { ticketStatus: "RESOLVED" })}
+                        onClick={() => updateTicket(activeTicketId!, { status: "RESOLVED" })}
                         sx={{
                           bgcolor: alpha("#4CAF50", 0.1),
                           color: "#4CAF50",
@@ -596,9 +645,9 @@ export default function AdminChatView() {
                 </Stack>
               </Stack>
 
-              {activeChat?.resolvedAt && (
+              {activeTicket?.resolvedAt && (
                 <Typography variant="caption" sx={{ color: alpha("#4CAF50", 0.7), fontSize: 10, mt: 0.5, display: "block" }}>
-                  Resolved {moment(activeChat.resolvedAt).format("DD MMM YYYY, HH:mm")}
+                  Resolved {moment(activeTicket.resolvedAt).format("DD MMM YYYY, HH:mm")}
                 </Typography>
               )}
             </Box>
@@ -617,46 +666,48 @@ export default function AdminChatView() {
                 </Box>
               ) : (
                 messages.map((msg, idx) => (
-                  <MessageBubble key={msg.id || idx} message={msg} isOwn={msg.senderId === userId} />
+                  <MessageBubble key={msg.id || idx} message={msg} isOwn={msg.isAdminReply} />
                 ))
               )}
               <div ref={messagesEndRef} />
             </Box>
 
             {/* Input */}
-            <Box sx={{ px: 2, py: 1.5, borderTop: `1px solid ${alpha("#FFFFFF", 0.06)}`, display: "flex", gap: 1, alignItems: "center" }}>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Type a reply..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                onKeyDown={handleKeyDown}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2,
-                    bgcolor: alpha("#FFFFFF", 0.03),
-                    "& fieldset": { borderColor: alpha("#FFFFFF", 0.06) },
-                    "&:hover fieldset": { borderColor: alpha("#FFFFFF", 0.12) },
-                    "&.Mui-focused fieldset": { borderColor: alpha("#00E676", 0.3) },
-                  },
-                  "& input": { fontSize: 13, color: "#F0F4F8" },
-                }}
-              />
-              <IconButton
-                onClick={handleSend}
-                disabled={!content.trim() || sending}
-                sx={{
-                  bgcolor: "#00E676",
-                  color: "#0A0F1A",
-                  width: 38,
-                  height: 38,
-                  "&:hover": { bgcolor: "#00C853" },
-                  "&.Mui-disabled": { bgcolor: alpha("#00E676", 0.2), color: alpha("#0A0F1A", 0.3) },
-                }}
-              >
-                {sending ? <CircularProgress size={18} color="inherit" /> : <Iconify icon="solar:plain-bold" width={18} />}
-              </IconButton>
+            <Box sx={{ px: 2, py: 1.5, borderTop: `1px solid ${alpha("#FFFFFF", 0.06)}`, bgcolor: alpha("#070D18", 0.4) }}>
+              <Stack direction="row" spacing={1} alignItems="flex-end">
+                <TextField
+                  fullWidth
+                  multiline
+                  maxRows={3}
+                  size="small"
+                  placeholder="Type your reply..."
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 1.5,
+                      bgcolor: alpha("#FFFFFF", 0.03),
+                      "& fieldset": { borderColor: alpha("#FFFFFF", 0.06) },
+                      "&:hover fieldset": { borderColor: alpha("#FFFFFF", 0.12) },
+                      "&.Mui-focused fieldset": { borderColor: alpha("#00E676", 0.3) },
+                    },
+                    "& textarea, & input": { fontSize: 13, color: "#F0F4F8" },
+                  }}
+                />
+                <IconButton
+                  onClick={handleSend}
+                  disabled={!content.trim() || sending}
+                  sx={{
+                    bgcolor: "#00E676",
+                    color: "#0A0F1A",
+                    "&:hover": { bgcolor: "#00C853" },
+                    "&.Mui-disabled": { bgcolor: alpha("#00E676", 0.2), color: alpha("#0A0F1A", 0.3) },
+                  }}
+                >
+                  {sending ? <CircularProgress size={18} sx={{ color: "#0A0F1A" }} /> : <Iconify icon="solar:arrow-up-bold" width={18} />}
+                </IconButton>
+              </Stack>
             </Box>
           </Box>
         )}

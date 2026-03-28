@@ -1,68 +1,15 @@
 import PropTypes from 'prop-types';
 // @mui
-import { alpha, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-// auth
-import { useAuthContext } from '@/app/(RSAdmin)/admin/auth/hooks';
-// routes
-import { paths } from '@/app/(RSAdmin)/admin/routes/paths';
-import { RouterLink } from '@/app/(RSAdmin)/admin/routes/components';
 // hooks
 import { useResponsive } from '@/app/(RSAdmin)/admin/hooks//use-responsive';
-// theme
-import { bgGradient } from '@/app/(RSAdmin)/admin/theme/css';
-// components
-import Logo from '@/app/(RSAdmin)/admin/common/logo';
 
 // ----------------------------------------------------------------------
 
-const METHODS = [
-  {
-    id: 'jwt',
-    label: 'Jwt',
-    path: paths.auth.jwt.login,
-    icon: '/assets/icons/auth/ic_jwt.svg',
-  },
-  {
-    id: 'firebase',
-    label: 'Firebase',
-    path: paths.auth.firebase.login,
-    icon: '/assets/icons/auth/ic_firebase.svg',
-  },
-  {
-    id: 'amplify',
-    label: 'Amplify',
-    path: paths.auth.amplify.login,
-    icon: '/assets/icons/auth/ic_amplify.svg',
-  },
-  {
-    id: 'auth0',
-    label: 'Auth0',
-    path: paths.auth.auth0.login,
-    icon: '/assets/icons/auth/ic_auth0.svg',
-  },
-];
-
-export default function AuthClassicLayout({ children, image, title }) {
-  const { method } = useAuthContext();
-
-  const theme = useTheme();
-
+export default function AuthClassicLayout({ children, title }) {
   const upMd = useResponsive('up', 'md');
-
-  const renderLogo = (
-    <Logo
-      sx={{
-        zIndex: 9,
-        position: 'absolute',
-        m: { xs: 2, md: 5 },
-      }}
-    />
-  );
 
   const renderContent = (
     <Stack
@@ -70,8 +17,10 @@ export default function AuthClassicLayout({ children, image, title }) {
         width: 1,
         mx: 'auto',
         maxWidth: 480,
-        px: { xs: 2, md: 8 },
-        py: { xs: 15, md: 30 },
+        px: { xs: 3, md: 6 },
+        py: { xs: 8, md: 0 },
+        justifyContent: 'center',
+        minHeight: '100vh',
       }}
     >
       {children}
@@ -79,53 +28,89 @@ export default function AuthClassicLayout({ children, image, title }) {
   );
 
   const renderSection = (
-    <Stack
-      flexGrow={1}
-      alignItems="center"
-      justifyContent="center"
-      spacing={10}
+    <Box
       sx={{
-        ...bgGradient({
-          color: alpha(
-            theme.palette.background.default,
-            theme.palette.mode === 'light' ? 0.88 : 0.94
-          ),
-          imgUrl: '/assets/background/overlay_2.jpg',
-        }),
+        flexGrow: 1,
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
       }}
     >
-      <Typography variant="h3" sx={{ maxWidth: 480, textAlign: 'center' }}>
-        {title || 'Hi, Welcome back'}
-      </Typography>
-
+      {/* Background image */}
       <Box
         component="img"
-        alt="auth"
-        src={image || '/assets/illustrations/illustration_dashboard.png'}
-        sx={{ maxWidth: 720 }}
+        alt=""
+        src="/images/auth/london-night.jpg"
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+        }}
       />
 
-      {/* <Stack direction="row" spacing={2}>
-        {METHODS.map((option) => (
-          <Tooltip key={option.label} title={option.label}>
-            <Link component={RouterLink} href={option.path}>
-              <Box
-                component="img"
-                alt={option.label}
-                src={option.icon}
-                sx={{
-                  width: 32,
-                  height: 32,
-                  ...(method !== option.id && {
-                    filter: 'grayscale(100%)',
-                  }),
-                }}
-              />
-            </Link>
-          </Tooltip>
-        ))}
-      </Stack> */}
-    </Stack>
+      {/* Dark gradient overlay */}
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(135deg, rgba(7,13,24,0.92) 0%, rgba(10,15,26,0.80) 50%, rgba(0,230,118,0.15) 100%)',
+        }}
+      />
+
+      {/* Content over the image */}
+      <Stack
+        alignItems="center"
+        justifyContent="center"
+        spacing={4}
+        sx={{ position: 'relative', zIndex: 1, px: 6 }}
+      >
+        {/* Logo */}
+        <Box
+          component="img"
+          alt="RS CAB"
+          src="/assets/logo.png"
+          sx={{ width: 120, height: 120, objectFit: 'contain' }}
+        />
+
+        <Typography
+          variant="h3"
+          sx={{
+            color: '#fff',
+            textAlign: 'center',
+            fontWeight: 700,
+            maxWidth: 400,
+          }}
+        >
+          {title || 'RS CAB Admin'}
+        </Typography>
+
+        <Typography
+          variant="body1"
+          sx={{
+            color: 'rgba(255,255,255,0.6)',
+            textAlign: 'center',
+            maxWidth: 360,
+            lineHeight: 1.7,
+          }}
+        >
+          Manage your fleet, drivers, and riders from one powerful dashboard.
+        </Typography>
+
+        {/* Decorative accent line */}
+        <Box
+          sx={{
+            width: 60,
+            height: 4,
+            borderRadius: 2,
+            background: 'linear-gradient(90deg, #00E676, #00C853)',
+          }}
+        />
+      </Stack>
+    </Box>
   );
 
   return (
@@ -134,10 +119,9 @@ export default function AuthClassicLayout({ children, image, title }) {
       direction="row"
       sx={{
         minHeight: '100vh',
+        bgcolor: '#070D18',
       }}
     >
-      {renderLogo}
-
       {upMd && renderSection}
 
       {renderContent}
@@ -147,6 +131,5 @@ export default function AuthClassicLayout({ children, image, title }) {
 
 AuthClassicLayout.propTypes = {
   children: PropTypes.node,
-  image: PropTypes.string,
   title: PropTypes.string,
 };

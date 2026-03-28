@@ -8,6 +8,7 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import Link from "@mui/material/Link";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -30,20 +31,10 @@ export default function JwtLoginView() {
   const LoginSchema = Yup.object().shape({
     email: Yup.string()
       .required("Email is required")
-      .test(
-        "email-format",
-        "Email must be a valid email address with @ and .com domain",
-        (value) => {
-          if (value) {
-            return value.includes("@") && value.includes(".com");
-          }
-          return true;
-          f;
-        }
-      ),
+      .email("Must be a valid email address"),
     password: Yup.string()
       .required("Password is required")
-      .min(6, "Password must be at least 8 characters"),
+      .min(6, "Password must be at least 6 characters"),
   });
 
   const methods = useForm({
@@ -59,7 +50,6 @@ export default function JwtLoginView() {
   const onSubmit = handleSubmit(async (data) => {
     try {
       await login?.(data.email, data.password);
-      // router.push(PATH_AFTER_LOGIN);
     } catch (error) {
       console.error(error);
       reset();
@@ -68,8 +58,26 @@ export default function JwtLoginView() {
   });
 
   const renderHead = (
-    <Stack spacing={2} sx={{ mb: 2 }}>
-      <Typography variant="h5">Sign in to Rider Share Admin</Typography>
+    <Stack spacing={1.5} sx={{ mb: 4 }}>
+      {/* Mobile-only logo */}
+      <Box
+        component="img"
+        alt="RS CAB"
+        src="/assets/logo.png"
+        sx={{
+          width: 64,
+          height: 64,
+          objectFit: "contain",
+          mb: 1,
+          display: { xs: "block", md: "none" },
+        }}
+      />
+      <Typography variant="h4" sx={{ color: "#fff", fontWeight: 700 }}>
+        Welcome back
+      </Typography>
+      <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.5)" }}>
+        Sign in to your admin dashboard
+      </Typography>
     </Stack>
   );
 
@@ -77,16 +85,41 @@ export default function JwtLoginView() {
     <Stack spacing={2.5}>
       {!!errorMsg && <Alert severity="error">{errorMsg}</Alert>}
 
-      <RHFTextField name="email" label="Email address" />
+      <RHFTextField
+        name="email"
+        label="Email address"
+        InputLabelProps={{ sx: { color: "rgba(255,255,255,0.5)" } }}
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            color: "#fff",
+            "& fieldset": { borderColor: "rgba(255,255,255,0.15)" },
+            "&:hover fieldset": { borderColor: "rgba(255,255,255,0.3)" },
+            "&.Mui-focused fieldset": { borderColor: "#00E676" },
+          },
+        }}
+      />
 
       <RHFTextField
         name="password"
         label="Password"
         type={password.value ? "text" : "password"}
+        InputLabelProps={{ sx: { color: "rgba(255,255,255,0.5)" } }}
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            color: "#fff",
+            "& fieldset": { borderColor: "rgba(255,255,255,0.15)" },
+            "&:hover fieldset": { borderColor: "rgba(255,255,255,0.3)" },
+            "&.Mui-focused fieldset": { borderColor: "#00E676" },
+          },
+        }}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton onClick={password.onToggle} edge="end">
+              <IconButton
+                onClick={password.onToggle}
+                edge="end"
+                sx={{ color: "rgba(255,255,255,0.5)" }}
+              >
                 <Iconify
                   icon={
                     password.value ? "solar:eye-bold" : "solar:eye-closed-bold"
@@ -101,22 +134,34 @@ export default function JwtLoginView() {
       <Link
         href={paths.auth.jwt.forgotPassword}
         variant="body2"
-        color="inherit"
-        underline="always"
-        sx={{ alignSelf: "flex-end" }}
+        underline="hover"
+        sx={{
+          alignSelf: "flex-end",
+          color: "#00E676",
+          "&:hover": { color: "#00C853" },
+        }}
       >
         Forgot password?
       </Link>
 
       <LoadingButton
         fullWidth
-        color="inherit"
         size="large"
         type="submit"
         variant="contained"
         loading={isSubmitting}
+        sx={{
+          mt: 1,
+          bgcolor: "#00E676",
+          color: "#070D18",
+          fontWeight: 700,
+          fontSize: "1rem",
+          py: 1.5,
+          "&:hover": { bgcolor: "#00C853" },
+          "&.Mui-disabled": { bgcolor: "rgba(0,230,118,0.3)" },
+        }}
       >
-        Login
+        Sign In
       </LoadingButton>
     </Stack>
   );

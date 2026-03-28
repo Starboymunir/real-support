@@ -1,6 +1,6 @@
 // sections
 
-import { JwtNewPassword } from "@/app/(RSAdmin)/admin/_auth/jwt/components";
+import { JwtNewPassword } from "@/app/(RSAdmin)/admin/auth/jwt/components";
 
 // ----------------------------------------------------------------------
 

@@ -16,7 +16,7 @@ import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { RouterLink } from "@/app/(RSAdmin)/admin/routes/components";
 import { useSearchParams, useRouter } from "@/app/(RSAdmin)/admin/routes/hook";
 import { PATH_AFTER_LOGIN } from "@/config-global";
-import { useAuthContext } from "@/app/(RSAdmin)/admin/_auth/hooks";
+import { useAuthContext } from "@/app/(RSAdmin)/admin/auth/hooks";
 import Iconify from "@/components/iconify/iconify";
 import FormProvider, {
   RHFTextField,

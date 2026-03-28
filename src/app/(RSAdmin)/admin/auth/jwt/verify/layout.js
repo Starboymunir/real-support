@@ -2,7 +2,7 @@
 
 import PropTypes from 'prop-types';
 // auth
-import { GuestGuard } from '@/app/(RSAdmin)/admin/_auth/guard';
+import { GuestGuard } from '@/app/(RSAdmin)/admin/auth/guard';
 // components
 import CompactLayout from '@/app/(RSAdmin)/admin/layouts/compact';
 

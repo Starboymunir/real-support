@@ -13,7 +13,7 @@ import Typography from "@mui/material/Typography";
 import InputAdornment from "@mui/material/InputAdornment";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { useBoolean } from "@/app/(RSAdmin)/admin/hooks//use-boolean";
-import { useAuthContext } from "@/app/(RSAdmin)/admin/_auth/hooks";
+import { useAuthContext } from "@/app/(RSAdmin)/admin/auth/hooks";
 import Iconify from "@/components/iconify/iconify";
 import FormProvider, {
   RHFTextField,

@@ -7,7 +7,7 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 // auth
-import { useAuthContext } from '@/app/(RSAdmin)/admin/_auth/hooks';
+import { useAuthContext } from '@/app/(RSAdmin)/admin/auth/hooks';
 // routes
 import { paths } from '@/app/(RSAdmin)/admin/routes/paths';
 import { RouterLink } from '@/app/(RSAdmin)/admin/routes/components';

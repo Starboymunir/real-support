@@ -2,16 +2,16 @@
 
 import PropTypes from 'prop-types';
 // auth
-import { GuestGuard } from '@/app/(RSAdmin)/admin/_auth/guard';
+import { GuestGuard } from '@/app/(RSAdmin)/admin/auth/guard';
 // components
-import CompactLayout from '@/app/(RSAdmin)/admin/layouts/compact';
+import AuthClassicLayout from '@/app/(RSAdmin)/admin/layouts/auth/classic';
 
 // ----------------------------------------------------------------------
 
 export default function Layout({ children }) {
   return (
     <GuestGuard>
-      <CompactLayout>{children}</CompactLayout>
+      <AuthClassicLayout>{children}</AuthClassicLayout>
     </GuestGuard>
   );
 }

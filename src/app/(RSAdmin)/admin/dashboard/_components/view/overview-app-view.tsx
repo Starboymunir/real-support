@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth-context";
 import SuperAdminDashboard from "./super-admin-dashboard";
 import AdminDashboard from "./admin-dashboard";

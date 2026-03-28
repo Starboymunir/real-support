@@ -1,10 +1,9 @@
 import axios from 'axios';
-// config
-import { HOST_API } from '@/config-global';
 
 // ----------------------------------------------------------------------
 
-const axiosInstance = axios.create({ baseURL: '' });
+const BACKEND_API = process.env.NEXT_PUBLIC_BACKEND_API || 'https://backend.real-support.com';
+const axiosInstance = axios.create({ baseURL: BACKEND_API });
 
 axiosInstance.interceptors.response.use(
   (res) => res,
@@ -20,7 +19,7 @@ export default axiosInstance;
 export const endpoints = {
   admin: {
     getAll: "/api/admin/adminUsers",
-    login: '/api/admin/login',
+    login: '/api/admin/adminUsers/login',
     register: '/api/admin/adminUsers/register',
     userValidation: '/api/admin/adminUsers/user-validation',
     verifyOtp: '/api/admin/adminUsers/verify-code',

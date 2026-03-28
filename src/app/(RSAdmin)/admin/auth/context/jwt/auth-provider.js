@@ -106,10 +106,10 @@ export function AuthProvider({ children }) {
         password,
       };
       const response = await axios.post(endpoints.admin.login, data);
-      const { token } = response.data;
+      const { accessToken } = response.data.data;
 
-      setSession(token);
-      var decodedUser = jwt_decode(token);
+      setSession(accessToken);
+      var decodedUser = jwt_decode(accessToken);
       dispatch({
         type: 'LOGIN',
         payload: {

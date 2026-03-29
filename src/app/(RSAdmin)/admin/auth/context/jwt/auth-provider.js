@@ -7,9 +7,8 @@ import axios, { endpoints } from '@/lib/utils/axios';
 //
 import { AuthContext } from './auth-context';
 import { isValidToken, setSession } from './utils';
-import jwt_decode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import { useSnackbar } from '@/app/(RSAdmin)/admin/common/snackbar';
-import jwtDecode from 'jwt-decode';
 
 // ----------------------------------------------------------------------
 
@@ -109,7 +108,7 @@ export function AuthProvider({ children }) {
       const { accessToken } = response.data.data;
 
       setSession(accessToken);
-      var decodedUser = jwt_decode(accessToken);
+      const decodedUser = jwtDecode(accessToken);
       dispatch({
         type: 'LOGIN',
         payload: {

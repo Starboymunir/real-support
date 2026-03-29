@@ -10,7 +10,7 @@ import AppInput from "./app-input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import axios from "axios";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { toast } from "sonner";
 import { AuthContextType, useAuthContext } from "@/providers/auth-providers";
 import PhoneInput from "react-phone-input-2";

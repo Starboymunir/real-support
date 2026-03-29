@@ -3,7 +3,7 @@ import React, { createContext, useEffect, useMemo, useState } from 'react';
 import { getCurrentUser } from 'aws-amplify/auth';
 import axios from 'axios';
 import { IUser } from '@/types/type';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 type UserContextType = {
   user: IUser | null;

@@ -13,8 +13,9 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import InputAdornment from "@mui/material/InputAdornment";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
+import { useRouter } from "next/navigation";
 import { useBoolean } from "@/app/(RSAdmin)/admin/hooks//use-boolean";
-import { useAuthContext } from "@/app/(RSAdmin)/admin/auth/hooks";
+import { useAuth } from "@/lib/auth-context";
 import Iconify from "@/components/iconify/iconify";
 import FormProvider, {
   RHFTextField,
@@ -22,7 +23,8 @@ import FormProvider, {
 // ----------------------------------------------------------------------
 
 export default function JwtLoginView() {
-  const { login } = useAuthContext();
+  const { adminLogin } = useAuth();
+  const router = useRouter();
 
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -39,6 +41,10 @@ export default function JwtLoginView() {
 
   const methods = useForm({
     resolver: yupResolver(LoginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const {
@@ -49,7 +55,9 @@ export default function JwtLoginView() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await login?.(data.email, data.password);
+      setErrorMsg("");
+      await adminLogin({ emailAddress: data.email, password: data.password });
+      router.replace(paths.dashboard.root);
     } catch (error) {
       console.error(error);
       reset();

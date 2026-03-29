@@ -1,4 +1,4 @@
-{
+﻿{
   "info": {
     "name": "RS CAB - Complete API Collection",
     "description": "Complete Postman collection for RS CAB ride-hailing platform. Base URL: https://backend.real-support.com/api\n\nAll admin endpoints require Bearer token authentication. Login via POST /api/admin/adminUsers/login to get your token.",
@@ -279,12 +279,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/adminUsers?page=1&limit=20",
+              "raw": "{{baseUrl}}/admin/adminUsers?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "adminUsers"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -361,12 +361,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/drivers?page=1&limit=20",
+              "raw": "{{baseUrl}}/admin/drivers?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "drivers"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -465,12 +465,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/passengers?page=1&limit=20",
+              "raw": "{{baseUrl}}/admin/passengers?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "passengers"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" },
+                { "key": "count", "value": "20" },
                 { "key": "status", "value": "", "disabled": true }
               ]
             }
@@ -566,12 +566,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/bookings?page=1&limit=20",
+              "raw": "{{baseUrl}}/admin/bookings?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "bookings"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -690,12 +690,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/packages?page=1&limit=20",
+              "raw": "{{baseUrl}}/admin/packages?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["admin", "packages"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -1520,12 +1520,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/drivers?page=1&limit=20",
+              "raw": "{{baseUrl}}/drivers?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["drivers"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" },
+                { "key": "count", "value": "20" },
                 { "key": "status", "value": "", "disabled": true }
               ]
             }
@@ -1564,12 +1564,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/drivers/getDriverByCompanyId/{{companyId}}?page=1&limit=20",
+              "raw": "{{baseUrl}}/drivers/getDriverByCompanyId/{{companyId}}?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["drivers", "getDriverByCompanyId", "{{companyId}}"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -2085,12 +2085,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/requests?page=1&limit=20",
+              "raw": "{{baseUrl}}/requests?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["requests"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -2113,12 +2113,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/requests/adjustable?page=1&limit=20",
+              "raw": "{{baseUrl}}/requests/adjustable?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["requests", "adjustable"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -2129,12 +2129,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/requests/fixed?page=1&limit=20",
+              "raw": "{{baseUrl}}/requests/fixed?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["requests", "fixed"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -2145,12 +2145,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/requests/driver/{{driverId}}?page=1&limit=20",
+              "raw": "{{baseUrl}}/requests/driver/{{driverId}}?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["requests", "driver", "{{driverId}}"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -2161,12 +2161,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/requests/users/{{userId}}?page=1&limit=20",
+              "raw": "{{baseUrl}}/requests/users/{{userId}}?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["requests", "users", "{{userId}}"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -2255,12 +2255,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/bids?page=1&limit=20",
+              "raw": "{{baseUrl}}/bids?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["bids"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -2613,12 +2613,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/packages?page=1&limit=20",
+              "raw": "{{baseUrl}}/packages?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["packages"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -2629,12 +2629,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/packages/admin?page=1&limit=20",
+              "raw": "{{baseUrl}}/packages/admin?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["packages", "admin"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -2922,12 +2922,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/company-admin/find-all?page=1&limit=20",
+              "raw": "{{baseUrl}}/company-admin/find-all?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["company-admin", "find-all"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }
@@ -3325,12 +3325,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/coupons?page=1&limit=20",
+              "raw": "{{baseUrl}}/coupons?page=1&count=20",
               "host": ["{{baseUrl}}"],
               "path": ["coupons"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "count", "value": "20" }
               ]
             }
           }

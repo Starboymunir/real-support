@@ -1,0 +1,3727 @@
+{
+  "info": {
+    "name": "RS CAB - Complete API Collection",
+    "description": "Complete Postman collection for RS CAB ride-hailing platform. Base URL: https://backend.real-support.com/api\n\nAll admin endpoints require Bearer token authentication. Login via POST /api/admin/adminUsers/login to get your token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://backend.real-support.com/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "driverId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "chatId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "packageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "requestId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ticketId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "API Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": ["{{baseUrl}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Auth",
+      "description": "Admin user authentication and management",
+      "item": [
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.token);",
+                  "    console.log('Token saved to collection variable');",
+                  "}",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('adminId', jsonData.data.id);",
+                  "}",
+                  "pm.test('Login successful', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@rscab.com\",\n  \"password\": \"your_password_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "login"]
+            }
+          }
+        },
+        {
+          "name": "Request Login OTP",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@rscab.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/request-login-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "request-login-otp"]
+            }
+          }
+        },
+        {
+          "name": "Verify Login OTP",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@rscab.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/verify-login-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "verify-login-otp"]
+            }
+          }
+        },
+        {
+          "name": "Register Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newadmin@rscab.com\",\n  \"password\": \"SecurePass123!\",\n  \"name\": \"New Admin\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "register"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Signup OTP",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newadmin@rscab.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/confirm-signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "confirm-signup"]
+            }
+          }
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@rscab.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/resend-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "resend-otp"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"current_password\",\n  \"newPassword\": \"new_password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@rscab.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@rscab.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewSecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "reset-password"]
+            }
+          }
+        },
+        {
+          "name": "List All Admins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Admin By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/{{adminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "{{adminId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Admin",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Admin Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/{{adminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "{{adminId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Admin Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/update-status/{{adminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "update-status", "{{adminId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Admin",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/adminUsers/{{adminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "adminUsers", "{{adminId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Drivers",
+      "description": "Admin driver management",
+      "item": [
+        {
+          "name": "List All Drivers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/drivers?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "drivers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Driver By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/drivers/{{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "drivers", "{{driverId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Driver",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"driver@example.com\",\n  \"name\": \"John Driver\",\n  \"phone\": \"+447700900000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/drivers",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "drivers"]
+            }
+          }
+        },
+        {
+          "name": "Update Driver",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Driver Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/drivers/{{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "drivers", "{{driverId}}"]
+            }
+          }
+        },
+        {
+          "name": "Change Driver Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/drivers/{{driverId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "drivers", "{{driverId}}", "status"]
+            },
+            "description": "Change driver status. Valid values: ACTIVE, PENDING, SUSPEND, ONHOLD. Activating requires all documents verified and an active car."
+          }
+        },
+        {
+          "name": "Delete Driver",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/drivers/{{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "drivers", "{{driverId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Passengers",
+      "description": "Admin passenger/user management",
+      "item": [
+        {
+          "name": "List Passengers (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/passengers?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "passengers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Passengers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/passengers/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "passengers", "all"]
+            }
+          }
+        },
+        {
+          "name": "Get Passenger By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/passengers/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "passengers", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Promote User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/passengers/promote-user",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "passengers", "promote-user"]
+            }
+          }
+        },
+        {
+          "name": "Allow Generate Invoice",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"allowGenerateInvoice\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/passengers/{{userId}}/allow-generate-invoice",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "passengers", "{{userId}}", "allow-generate-invoice"]
+            }
+          }
+        },
+        {
+          "name": "Change Passenger Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/passengers/{{userId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "passengers", "{{userId}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Bookings",
+      "description": "Admin booking management",
+      "item": [
+        {
+          "name": "List Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/bookings?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "bookings"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Booking By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "bookings", "{{bookingId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Booking Cart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/bookings/cart/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "bookings", "cart", "{{bookingId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Driver Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/bookings/driver/{{driverId}}?status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "bookings", "driver", "{{driverId}}"],
+              "query": [
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/bookings/user/{{userId}}?status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "bookings", "user", "{{userId}}"],
+              "query": [
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"driverId\": \"{{driverId}}\",\n  \"pickupAddress\": \"123 London Road\",\n  \"dropoffAddress\": \"456 Oxford Street\",\n  \"pickupLat\": 51.5074,\n  \"pickupLng\": -0.1278,\n  \"dropoffLat\": 51.5155,\n  \"dropoffLng\": -0.1419\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "bookings"]
+            }
+          }
+        },
+        {
+          "name": "Update Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "bookings", "{{bookingId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Booking",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "bookings", "{{bookingId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Packages",
+      "description": "Admin package management",
+      "item": [
+        {
+          "name": "List Packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/packages?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "packages"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Package By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/packages/{{packageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "packages", "{{packageId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Package",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Standard Package\",\n  \"description\": \"Standard ride package\",\n  \"price\": 25.00,\n  \"image\": \"package-image-key\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/packages",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "packages"]
+            }
+          }
+        },
+        {
+          "name": "Update Package",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Package Name\",\n  \"price\": 30.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/packages/{{packageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "packages", "{{packageId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Package",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/packages/{{packageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "packages", "{{packageId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Static Content",
+      "description": "Static content management (Terms, Privacy, FAQ, etc.)",
+      "item": [
+        {
+          "name": "List Static Content",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/staticContent",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "staticContent"]
+            }
+          }
+        },
+        {
+          "name": "Get By Content Type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/staticContent/by-type/TERMS_AND_CONDITIONS",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "staticContent", "by-type", "TERMS_AND_CONDITIONS"]
+            }
+          }
+        },
+        {
+          "name": "Get Static Content By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/staticContent/{{contentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "staticContent", "{{contentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Static Content",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contentType\": \"TERMS_AND_CONDITIONS\",\n  \"title\": \"Terms and Conditions\",\n  \"content\": \"<h1>Terms</h1><p>Content here...</p>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/staticContent",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "staticContent"]
+            }
+          }
+        },
+        {
+          "name": "Update Static Content",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Title\",\n  \"content\": \"<h1>Updated</h1><p>New content...</p>\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/staticContent/{{contentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "staticContent", "{{contentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Static Content",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/staticContent/{{contentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "staticContent", "{{contentId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Super Admin",
+      "description": "Super admin dashboard stats and management",
+      "item": [
+        {
+          "name": "Get All Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/super-admin/all-stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["super-admin", "all-stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Latest News",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/super-admin/latest-news",
+              "host": ["{{baseUrl}}"],
+              "path": ["super-admin", "latest-news"]
+            }
+          }
+        },
+        {
+          "name": "Update Driver Request Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/super-admin/updateStatusByAdmin/{{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["super-admin", "updateStatusByAdmin", "{{driverId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "description": "Chat, direct messages, and broadcasts",
+      "item": [
+        {
+          "name": "Get Chat List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chat?getAdminList=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat"],
+              "query": [
+                { "key": "getAdminList", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get One-on-One Chat",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chat/one-on-one/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "one-on-one", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Admin DM Chat",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chat/one-on-one-admin?userId={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "one-on-one-admin"],
+              "query": [
+                { "key": "userId", "value": "{{userId}}" }
+              ]
+            },
+            "description": "Create or get existing admin DM chat with a specific user"
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chat/unread-count",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "unread-count"]
+            }
+          }
+        },
+        {
+          "name": "Get Chat By Booking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chat/booking/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "booking", "{{bookingId}}"]
+            }
+          }
+        },
+        {
+          "name": "Send Broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Important announcement to all users!\",\n  \"target\": \"ALL\"\n}",
+              "options": {
+                "raw": { "language": "json" }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat/broadcast",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "broadcast"]
+            },
+            "description": "Send broadcast. Target: ALL, DRIVERS, or RIDERS"
+          }
+        },
+        {
+          "name": "Get Broadcast History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chat/broadcasts/list",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "broadcasts", "list"]
+            }
+          }
+        },
+        {
+          "name": "Get Chat Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chat/{{chatId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "{{chatId}}"]
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hello, how can I help you?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat/{{chatId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "{{chatId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Chat",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chat/{{chatId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "{{chatId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Read Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chat/{{chatId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "{{chatId}}", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark Chat Read",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/chat/{{chatId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "{{chatId}}", "read"]
+            }
+          }
+        },
+        {
+          "name": "Update Chat Ticket",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticketStatus\": \"RESOLVED\",\n  \"ticketPriority\": \"HIGH\",\n  \"assignedAdminId\": \"admin_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/chat/{{chatId}}/ticket",
+              "host": ["{{baseUrl}}"],
+              "path": ["chat", "{{chatId}}", "ticket"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Support Tickets",
+      "description": "Support ticket management",
+      "item": [
+        {
+          "name": "List Tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/support-tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["support-tickets"]
+            }
+          }
+        },
+        {
+          "name": "Get Ticket By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/support-tickets/{{ticketId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["support-tickets", "{{ticketId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Payment issue\",\n  \"description\": \"I was charged twice for my ride\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/support-tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["support-tickets"]
+            }
+          }
+        },
+        {
+          "name": "Update Ticket",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"priority\": \"MEDIUM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/support-tickets/{{ticketId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["support-tickets", "{{ticketId}}"]
+            }
+          }
+        },
+        {
+          "name": "Add Ticket Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"We are looking into this issue.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/support-tickets/{{ticketId}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["support-tickets", "{{ticketId}}", "messages"]
+            }
+          }
+        },
+        {
+          "name": "Delete Ticket",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/support-tickets/{{ticketId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["support-tickets", "{{ticketId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Auth",
+      "description": "User/rider authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+447700900001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "User Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.token);",
+                  "}",
+                  "if (jsonData.data && jsonData.data.user && jsonData.data.user.id) {",
+                  "    pm.collectionVariables.set('userId', jsonData.data.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Email",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/confirmEmail",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "confirmEmail"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"your_refresh_token\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/current-user",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "current-user"]
+            }
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/userProfile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "userProfile"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/update-user",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "update-user"]
+            }
+          }
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/resend-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "resend-otp"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"current_password\",\n  \"newPassword\": \"new_password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            }
+          }
+        },
+        {
+          "name": "Company Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"company@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/company-login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "company-login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "User info lookup",
+      "item": [
+        {
+          "name": "Lookup User By Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/lookup?email=user@example.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "lookup"],
+              "query": [
+                { "key": "email", "value": "user@example.com" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/info/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "info", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update User Mode",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentMode\": \"DRIVER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/info/mode/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "info", "mode", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update User Info",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/info/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "info", "{{userId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Drivers",
+      "description": "Public driver endpoints",
+      "item": [
+        {
+          "name": "Register Driver",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"driver@example.com\",\n  \"name\": \"John Driver\",\n  \"phone\": \"+447700900000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/drivers/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "register"]
+            }
+          }
+        },
+        {
+          "name": "List Drivers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/drivers?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Online Drivers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/drivers/online",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "online"],
+              "query": [
+                { "key": "packageId", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Driver By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/drivers/{{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "{{driverId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Drivers By Company",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/drivers/getDriverByCompanyId/{{companyId}}?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "getDriverByCompanyId", "{{companyId}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Driver (Self)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/drivers/update-driver",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "update-driver"]
+            }
+          }
+        },
+        {
+          "name": "Add Package To Driver",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"packages\": { \"connect\": [{ \"id\": \"{{packageId}}\" }] }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/drivers/{{driverId}}/packages/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "{{driverId}}", "packages", "add"]
+            }
+          }
+        },
+        {
+          "name": "Remove Package From Driver",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"packages\": { \"disconnect\": [{ \"id\": \"{{packageId}}\" }] }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/drivers/{{driverId}}/packages/remove",
+              "host": ["{{baseUrl}}"],
+              "path": ["drivers", "{{driverId}}", "packages", "remove"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Driver Cars",
+      "item": [
+        {
+          "name": "Create Car",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"make\": \"Toyota\",\n  \"model\": \"Camry\",\n  \"year\": 2022,\n  \"color\": \"Black\",\n  \"plateNumber\": \"AB12 CDE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/driver-cars",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-cars"]
+            }
+          }
+        },
+        {
+          "name": "List Cars",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/driver-cars",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-cars"]
+            }
+          }
+        },
+        {
+          "name": "Get Car By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/driver-cars/{{carId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-cars", "{{carId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Car",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"color\": \"White\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/driver-cars/{{carId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-cars", "{{carId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Car",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/driver-cars/{{carId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-cars", "{{carId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "description": "Driver document upload and management",
+      "item": [
+        {
+          "name": "Upload File",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "driverId", "value": "{{driverId}}", "type": "text" },
+                { "key": "type", "value": "DRIVING_LICENSE", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/upload_file",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "upload_file"]
+            }
+          }
+        },
+        {
+          "name": "Upload Driving License",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"licenseNumber\": \"DL123456\",\n  \"expiryDate\": \"2025-12-31\",\n  \"front\": \"s3-key-front\",\n  \"back\": \"s3-key-back\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/driving-license",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "driving-license"]
+            }
+          }
+        },
+        {
+          "name": "Upload Passport",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"passportNumber\": \"P123456\",\n  \"expiryDate\": \"2030-01-01\",\n  \"front\": \"s3-key-front\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/passport",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "passport"]
+            }
+          }
+        },
+        {
+          "name": "Upload Bank Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"sortCode\": \"12-34-56\",\n  \"accountNumber\": \"12345678\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/bank-account",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "bank-account"]
+            }
+          }
+        },
+        {
+          "name": "Upload PCO Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"pcoNumber\": \"PCO123\",\n  \"expiryDate\": \"2025-06-30\",\n  \"front\": \"s3-key\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/pco",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "pco"]
+            }
+          }
+        },
+        {
+          "name": "Upload Address Proof",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"front\": \"s3-key\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/address",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "address"]
+            }
+          }
+        },
+        {
+          "name": "Upload Work Permit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{driverId}}\",\n  \"code\": \"WP123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/work-permit-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "work-permit-code"]
+            }
+          }
+        },
+        {
+          "name": "Upload Car Insurance",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"carId\": \"{{carId}}\",\n  \"policyNumber\": \"INS123\",\n  \"expiryDate\": \"2025-12-31\",\n  \"front\": \"s3-key\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/driver/car/insurance",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "driver", "car", "insurance"]
+            }
+          }
+        },
+        {
+          "name": "Upload MOT",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"carId\": \"{{carId}}\",\n  \"expiryDate\": \"2025-12-31\",\n  \"front\": \"s3-key\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/driver/car/mot",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "driver", "car", "mot"]
+            }
+          }
+        },
+        {
+          "name": "Upload Car PCO Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"carId\": \"{{carId}}\",\n  \"pcoNumber\": \"CARPCO123\",\n  \"expiryDate\": \"2025-12-31\",\n  \"front\": \"s3-key\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/driver/car/car_pco_document",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "driver", "car", "car_pco_document"]
+            }
+          }
+        },
+        {
+          "name": "Upload Vehicle Log Book",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"carId\": \"{{carId}}\",\n  \"front\": \"s3-key\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/driver/car/vehicleLogBook",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "driver", "car", "vehicleLogBook"]
+            }
+          }
+        },
+        {
+          "name": "Get Driver Documents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documents/driver/{{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "driver", "{{driverId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Car Documents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documents/car/{{carId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "car", "{{carId}}"]
+            }
+          }
+        },
+        {
+          "name": "Approve/Reject Document",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\",\n  \"remarks\": \"Document verified\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/admin/{{documentId}}/approvedorreject",
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "admin", "{{documentId}}", "approvedorreject"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "description": "Public booking endpoints",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupAddress\": \"123 London Road\",\n  \"dropoffAddress\": \"456 Oxford Street\",\n  \"pickupLat\": 51.5074,\n  \"pickupLng\": -0.1278,\n  \"dropoffLat\": 51.5155,\n  \"dropoffLng\": -0.1419,\n  \"packageId\": \"{{packageId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          }
+        },
+        {
+          "name": "Get Booking By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", "{{bookingId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get User Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", "user", "{{userId}}"],
+              "query": [
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Driver Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/driver/{{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", "driver", "{{driverId}}"],
+              "query": [
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", "{{bookingId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Requests",
+      "description": "Ride request management",
+      "item": [
+        {
+          "name": "Create Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupAddress\": \"123 London Road\",\n  \"dropoffAddress\": \"456 Oxford Street\",\n  \"packageId\": \"{{packageId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests"]
+            }
+          }
+        },
+        {
+          "name": "Create Admin Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"pickupAddress\": \"123 London Road\",\n  \"dropoffAddress\": \"456 Oxford Street\",\n  \"packageId\": \"{{packageId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/requests/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests", "admin"]
+            }
+          }
+        },
+        {
+          "name": "List All Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/requests?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/requests/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests", "admin"]
+            }
+          }
+        },
+        {
+          "name": "Adjustable Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/requests/adjustable?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests", "adjustable"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Fixed Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/requests/fixed?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests", "fixed"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Driver Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/requests/driver/{{driverId}}?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests", "driver", "{{driverId}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/requests/users/{{userId}}?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests", "users", "{{userId}}"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Request By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/requests/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests", "{{requestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/requests/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests", "{{requestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Decline Request (Driver)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/requests/{{requestId}}/declined",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests", "{{requestId}}", "declined"]
+            }
+          }
+        },
+        {
+          "name": "Delete Request",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/requests/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["requests", "{{requestId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bids",
+      "description": "Bid management for adjustable-price requests",
+      "item": [
+        {
+          "name": "Create Bid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestId\": \"{{requestId}}\",\n  \"amount\": 25.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["bids"]
+            }
+          }
+        },
+        {
+          "name": "List Bids",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bids?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["bids"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Bids By Request",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bids/{{requestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bids", "{{requestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Bid",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 30.00,\n  \"status\": \"ACCEPTED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bids/{{bidId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bids", "{{bidId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Bid",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bids/{{bidId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bids", "{{bidId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment Transactions",
+      "description": "Payments, wallets, withdrawals, and transfers",
+      "item": [
+        {
+          "name": "Create Payment Intent",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2500,\n  \"currency\": \"gbp\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/intent",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "intent"]
+            }
+          }
+        },
+        {
+          "name": "Get User Wallet",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/wallets/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "wallets", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Top-Up Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"amount\": 50.00,\n  \"paymentIntentId\": \"pi_xxx\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/transaction",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "transaction"]
+            }
+          }
+        },
+        {
+          "name": "Get All Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/transactions/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "transactions", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Top-Up Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/transactions/{{userId}}/top-up",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "transactions", "{{userId}}", "top-up"]
+            }
+          }
+        },
+        {
+          "name": "Get Transfer Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/transactions/{{userId}}/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "transactions", "{{userId}}", "transfer"]
+            }
+          }
+        },
+        {
+          "name": "Create Payment Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverId\": \"{{userId}}\",\n  \"amount\": 20.00,\n  \"description\": \"Ride payment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "request"]
+            }
+          }
+        },
+        {
+          "name": "Get Sent Payment Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/requests/{{userId}}/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "requests", "{{userId}}", "send"]
+            }
+          }
+        },
+        {
+          "name": "Get Received Payment Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/requests/{{userId}}/received",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "requests", "{{userId}}", "received"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Payment Request",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/request/{{requestId}}/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "request", "{{requestId}}", "confirm"]
+            }
+          }
+        },
+        {
+          "name": "Decline Payment Request",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/request/{{requestId}}/decline",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "request", "{{requestId}}", "decline"]
+            }
+          }
+        },
+        {
+          "name": "Withdraw",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"amount\": 100.00,\n  \"bankAccountId\": \"account_id\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/withdraw",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "withdraw"]
+            }
+          }
+        },
+        {
+          "name": "Get All Withdrawals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/withdraws/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "withdraws", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Withdrawals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/withdraws/{{userId}}/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "withdraws", "{{userId}}", "pending"]
+            }
+          }
+        },
+        {
+          "name": "Get Completed Withdrawals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/withdraws/{{userId}}/completed",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "withdraws", "{{userId}}", "completed"]
+            }
+          }
+        },
+        {
+          "name": "Wallet Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senderId\": \"{{userId}}\",\n  \"receiverId\": \"receiver_id\",\n  \"amount\": 25.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/wallet-transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "wallet-transfer"]
+            }
+          }
+        },
+        {
+          "name": "Admin Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"amount\": 100.00,\n  \"type\": \"CREDIT\",\n  \"description\": \"Manual adjustment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "admin"]
+            }
+          }
+        },
+        {
+          "name": "Admin List Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "admin"]
+            }
+          }
+        },
+        {
+          "name": "Admin List Users With Wallets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Admin Get User Wallet",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/admin/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "admin", "users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Admin List Withdrawals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment-transaction/admin/withdrawals",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment-transaction", "admin", "withdrawals"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Packages (Public)",
+      "description": "Public package endpoints",
+      "item": [
+        {
+          "name": "List Packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/packages?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["packages"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin List Packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/packages/admin?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["packages", "admin"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Package By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/packages/{{packageId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["packages", "{{packageId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Company",
+      "description": "Company management",
+      "item": [
+        {
+          "name": "Create Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ABC Transport Ltd\",\n  \"email\": \"info@abctransport.com\",\n  \"phone\": \"+447700900002\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company/create-company",
+              "host": ["{{baseUrl}}"],
+              "path": ["company", "create-company"]
+            }
+          }
+        },
+        {
+          "name": "List Companies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company/find-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["company", "find-all"]
+            }
+          }
+        },
+        {
+          "name": "Get Company By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company/findById/{{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["company", "findById", "{{companyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Company Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company/updateById/{{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["company", "updateById", "{{companyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Company Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company/updateCompanyStatus/{{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["company", "updateCompanyStatus", "{{companyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Company",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company/deleteById/{{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["company", "deleteById", "{{companyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Invite Driver To Company",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company/inviteDriverToJoin/{{driverId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["company", "inviteDriverToJoin", "{{driverId}}"]
+            }
+          }
+        },
+        {
+          "name": "Company Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"company@example.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company/company-login",
+              "host": ["{{baseUrl}}"],
+              "path": ["company", "company-login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Company Admin",
+      "description": "Company admin auth and management",
+      "item": [
+        {
+          "name": "Register Company Admin",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cadmin@company.com\",\n  \"password\": \"Password123!\",\n  \"name\": \"Company Admin\",\n  \"companyId\": \"{{companyId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company-admin/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["company-admin", "register"]
+            }
+          }
+        },
+        {
+          "name": "Company Admin Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cadmin@company.com\",\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company-admin/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["company-admin", "login"]
+            }
+          }
+        },
+        {
+          "name": "Confirm Email",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cadmin@company.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company-admin/confirm-email",
+              "host": ["{{baseUrl}}"],
+              "path": ["company-admin", "confirm-email"]
+            }
+          }
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cadmin@company.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company-admin/resend-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["company-admin", "resend-otp"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"old\",\n  \"newPassword\": \"new\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company-admin/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["company-admin", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cadmin@company.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company-admin/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["company-admin", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cadmin@company.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewPass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company-admin/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["company-admin", "reset-password"]
+            }
+          }
+        },
+        {
+          "name": "List Company Admins",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company-admin/find-all?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["company-admin", "find-all"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Company Admin By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/company-admin/{{companyAdminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["company-admin", "{{companyAdminId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Company Admin",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/company-admin/{{companyAdminId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["company-admin", "{{companyAdminId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "description": "Bank account management",
+      "item": [
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sortCode\": \"12-34-56\",\n  \"accountNumber\": \"12345678\",\n  \"bankName\": \"Barclays\",\n  \"accountHolder\": \"John Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts"]
+            }
+          }
+        },
+        {
+          "name": "List Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts"]
+            }
+          }
+        },
+        {
+          "name": "Get User Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "user", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Account By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Account",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bankName\": \"HSBC\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/{{accountId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "{{accountId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Address",
+      "item": [
+        {
+          "name": "Create Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"123 London Road\",\n  \"city\": \"London\",\n  \"postCode\": \"SW1A 1AA\",\n  \"label\": \"Home\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-address",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-address"]
+            }
+          }
+        },
+        {
+          "name": "List Addresses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-address",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-address"]
+            }
+          }
+        },
+        {
+          "name": "Get Address By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-address/{{addressId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-address", "{{addressId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Work\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-address/{{addressId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-address", "{{addressId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user-address/{{addressId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["user-address", "{{addressId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Driver Requests",
+      "description": "Driver application requests",
+      "item": [
+        {
+          "name": "Create Driver Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+447700900000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/driver-request/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-request", "create"]
+            }
+          }
+        },
+        {
+          "name": "Create By User ID",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/driver-request/create-by-userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-request", "create-by-userId"]
+            }
+          }
+        },
+        {
+          "name": "List Driver Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/driver-request/find-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-request", "find-all"]
+            }
+          }
+        },
+        {
+          "name": "Get Driver Request By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/driver-request/findById/{{driverRequestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-request", "findById", "{{driverRequestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Driver Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/driver-request/updateById/{{driverRequestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-request", "updateById", "{{driverRequestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Driver Request Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/driver-request/updateStatus/{{driverRequestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-request", "updateStatus", "{{driverRequestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Driver Request",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/driver-request/deleteById/{{driverRequestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-request", "deleteById", "{{driverRequestId}}"]
+            }
+          }
+        },
+        {
+          "name": "Evaluate Request Invitation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/driver-request/evaluateRequestInvitation/{{encryptedCode}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver-request", "evaluateRequestInvitation", "{{encryptedCode}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}", "read"]
+            }
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Discount Coupons",
+      "item": [
+        {
+          "name": "Create Coupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE20\",\n  \"discount\": 20,\n  \"discountType\": \"PERCENTAGE\",\n  \"expiryDate\": \"2025-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/coupons",
+              "host": ["{{baseUrl}}"],
+              "path": ["coupons"]
+            }
+          }
+        },
+        {
+          "name": "List Coupons",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/coupons?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["coupons"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Apply Coupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coupon\": \"SAVE20\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/coupons/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["coupons", "apply"]
+            }
+          }
+        },
+        {
+          "name": "Apply Coupon (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coupon\": \"SAVE20\",\n  \"id\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/coupons/apply/admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["coupons", "apply", "admin"]
+            }
+          }
+        },
+        {
+          "name": "Get Coupon By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/coupons/{{couponId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["coupons", "{{couponId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Coupon",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discount\": 25\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/coupons/{{couponId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["coupons", "{{couponId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Coupon",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/coupons/{{couponId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["coupons", "{{couponId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Airports",
+      "item": [
+        {
+          "name": "Create Airport",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Heathrow Airport\",\n  \"code\": \"LHR\",\n  \"latitude\": 51.4700,\n  \"longitude\": -0.4543\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/airports",
+              "host": ["{{baseUrl}}"],
+              "path": ["airports"]
+            }
+          }
+        },
+        {
+          "name": "List Airports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airports",
+              "host": ["{{baseUrl}}"],
+              "path": ["airports"]
+            }
+          }
+        },
+        {
+          "name": "Get Airport By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airports/{{airportId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["airports", "{{airportId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Airport",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"London Heathrow\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/airports/{{airportId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["airports", "{{airportId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Airport",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airports/{{airportId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["airports", "{{airportId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contact Us",
+      "item": [
+        {
+          "name": "Submit Contact",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"subject\": \"Service Inquiry\",\n  \"message\": \"I'd like to know more about your services.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact-us",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us"]
+            }
+          }
+        },
+        {
+          "name": "List Contact Messages (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact-us",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us"]
+            }
+          }
+        },
+        {
+          "name": "Get User Contact Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact-us/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us", "user"]
+            }
+          }
+        },
+        {
+          "name": "Get Contact By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact-us/{{contactId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us", "{{contactId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Contact",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact-us/{{contactId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us", "{{contactId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Contact",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact-us/{{contactId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us", "{{contactId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mail",
+      "item": [
+        {
+          "name": "Send Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"recipient@example.com\",\n  \"subject\": \"Test Email\",\n  \"body\": \"Hello from RS CAB\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mail/send",
+              "host": ["{{baseUrl}}"],
+              "path": ["mail", "send"]
+            }
+          }
+        },
+        {
+          "name": "Send BCC Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": [\"user1@example.com\", \"user2@example.com\"],\n  \"subject\": \"Announcement\",\n  \"body\": \"Important update from RS CAB\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mail/send-bcc",
+              "host": ["{{baseUrl}}"],
+              "path": ["mail", "send-bcc"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Social Links",
+      "item": [
+        {
+          "name": "Add Social Link",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"platform\": \"TWITTER\",\n  \"url\": \"https://twitter.com/rscab\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/social-links/addSocialLink",
+              "host": ["{{baseUrl}}"],
+              "path": ["social-links", "addSocialLink"]
+            }
+          }
+        },
+        {
+          "name": "Get All Social Links",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/social-links/getAllSocialLinks",
+              "host": ["{{baseUrl}}"],
+              "path": ["social-links", "getAllSocialLinks"]
+            }
+          }
+        },
+        {
+          "name": "Get User Social Links",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/social-links/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["social-links", "users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Social Link",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/social-links/deleteSocialLinkById/{{socialLinkId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["social-links", "deleteSocialLinkById", "{{socialLinkId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Others",
+      "item": [
+        {
+          "name": "Calculate Price",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupLat\": 51.5074,\n  \"pickupLng\": -0.1278,\n  \"dropoffLat\": 51.5155,\n  \"dropoffLng\": -0.1419,\n  \"packageId\": \"{{packageId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/others/calculate-price",
+              "host": ["{{baseUrl}}"],
+              "path": ["others", "calculate-price"]
+            }
+          }
+        },
+        {
+          "name": "Update Location",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 51.5074,\n  \"longitude\": -0.1278\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/others/update-location",
+              "host": ["{{baseUrl}}"],
+              "path": ["others", "update-location"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

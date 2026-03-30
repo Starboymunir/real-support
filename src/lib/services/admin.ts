@@ -21,7 +21,7 @@ export interface AdminRegisterDto {
   email: string;
   phone_number?: string;
   password: string;
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'COMPANY_ADMIN';
+  role: 'SUPER_ADMIN' | 'ADMIN';
   secretNumber: string;
   profileImageUrl?: string;
 }

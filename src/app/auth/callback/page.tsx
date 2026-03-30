@@ -29,9 +29,7 @@ function CallbackContent() {
     authApi
       .getCurrentUser()
       .then((user) => {
-        const dest = user.Admin
-          ? '/admin/dashboard'
-          : '/rider/dashboard';
+        const dest = '/rider/dashboard';
         // Use full page load so AuthProvider re-initialises with the stored token
         window.location.href = dest;
       })

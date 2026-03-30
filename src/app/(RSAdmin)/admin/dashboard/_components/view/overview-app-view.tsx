@@ -9,10 +9,9 @@ import CompanyAdminDashboard from "./company-admin-dashboard";
 const GoogleMap = dynamic(() => import("../google-map"), { ssr: false });
 
 const OverviewAppView = () => {
-  const { user } = useAuth();
-  const role = user?.Admin?.role;
+  const { admin } = useAuth();
+  const role = admin?.role;
 
-  if (role === "COMPANY_ADMIN") return <CompanyAdminDashboard />;
   if (role === "ADMIN") return <AdminDashboard />;
   return <SuperAdminDashboard />;
 };

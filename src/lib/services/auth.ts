@@ -5,6 +5,7 @@
 import { api } from '../api';
 import type {
   User,
+  Admin,
   RegisterDto,
   LoginDto,
   ConfirmOtpDto,
@@ -18,6 +19,13 @@ export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
   userData: User;
+}
+
+/** Shape returned by admin login — userData is an Admin */
+export interface AdminLoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  userData: Admin;
 }
 
 /** Shape returned by admin OTP request — OTP sent */
@@ -44,7 +52,7 @@ export const authApi = {
 
   /** Password login — returns tokens directly */
   adminLogin: (dto: LoginDto) =>
-    api.post<LoginResponse>('/admin/adminUsers/login', {
+    api.post<AdminLoginResponse>('/admin/adminUsers/login', {
       email: dto.emailAddress,
       password: dto.password,
     }),
@@ -55,13 +63,16 @@ export const authApi = {
 
   /** OTP login step 2 — verify OTP and get tokens */
   verifyAdminOtp: (dto: ConfirmOtpDto) =>
-    api.post<LoginResponse>('/admin/adminUsers/verify-login-otp', {
+    api.post<AdminLoginResponse>('/admin/adminUsers/verify-login-otp', {
       email: dto.emailAddress,
       otp: dto.otp,
     }),
 
   getCurrentUser: () =>
     api.get<User>('/auth/current-user'),
+
+  getAdminProfile: (id: string) =>
+    api.get<Admin>(`/admin/adminUsers/${id}`),
 
   updateCurrentUser: (data: Partial<User>) =>
     api.patch<User>('/auth/update-user', data),

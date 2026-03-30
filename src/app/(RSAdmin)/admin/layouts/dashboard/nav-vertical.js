@@ -17,7 +17,7 @@ import { useNavData } from "./config-navigation";
 import { useAuth } from "@/lib/auth-context";
 
 export default function NavVertical({ openNav, onCloseNav }) {
-  const { user } = useAuth();
+  const { admin } = useAuth();
   const pathname = usePathname();
   const lgUp = useResponsive("up", "lg");
   const navData = useNavData();
@@ -70,7 +70,7 @@ export default function NavVertical({ openNav, onCloseNav }) {
       <NavSectionVertical
         data={navData}
         config={{
-          currentRole: user?.Admin?.role || "admin",
+          currentRole: admin?.role || "admin",
         }}
       />
 
@@ -99,7 +99,7 @@ export default function NavVertical({ openNav, onCloseNav }) {
               color: '#00E676',
             }}
           >
-            {(user?.firstName?.[0] || 'A').toUpperCase()}
+            {(admin?.firstName?.[0] || 'A').toUpperCase()}
           </Box>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography
@@ -107,14 +107,14 @@ export default function NavVertical({ openNav, onCloseNav }) {
               sx={{ color: '#F0F4F8', fontWeight: 600, display: 'block', lineHeight: 1.3 }}
               noWrap
             >
-              {user?.firstName || 'Admin'} {user?.lastName || ''}
+              {admin?.firstName || 'Admin'} {admin?.lastName || ''}
             </Typography>
             <Typography
               variant="caption"
               sx={{ color: alpha('#F0F4F8', 0.35), fontSize: 10 }}
               noWrap
             >
-              {user?.Admin?.role?.replace('_', ' ') || 'Admin'}
+              {admin?.role?.replace('_', ' ') || 'Admin'}
             </Typography>
           </Box>
         </Stack>

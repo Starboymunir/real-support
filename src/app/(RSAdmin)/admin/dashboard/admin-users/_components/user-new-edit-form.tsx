@@ -22,7 +22,7 @@ import { fData } from "@/lib/utils/format-number";
 import { IAdmin } from "@/types/type";
 import { useQueryClient } from "@tanstack/react-query";
 
-const roles = ["SUPER_ADMIN", "ADMIN", "COMPANY_ADMIN"];
+const roles = ["SUPER_ADMIN", "ADMIN"];
 
 export default function UserNewEditForm({
   currentUser,

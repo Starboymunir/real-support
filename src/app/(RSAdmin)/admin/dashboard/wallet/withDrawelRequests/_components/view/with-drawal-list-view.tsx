@@ -77,7 +77,7 @@ export default function WithDrawalListView() {
   const table = useTable();
 
   const settings = useSettingsContext();
-  const { user } = useAuth();
+  const { admin } = useAuth();
 
   const router = useRouter();
 
@@ -136,7 +136,7 @@ export default function WithDrawalListView() {
       try {
         const { statusCode, message } = await rejectWithdrawalRequest(
           id,
-          user?.Admin?.id ?? ""
+          admin?.id ?? ""
         );
         if (statusCode == 200) {
           enqueueSnackbar(message);
@@ -160,7 +160,7 @@ export default function WithDrawalListView() {
       try {
         const { statusCode, message } = await processWithdrawalRequest(
           id,
-          user?.Admin?.id ?? ""
+          admin?.id ?? ""
         );
         if (statusCode == 200) {
           enqueueSnackbar(message);

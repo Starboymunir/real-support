@@ -23,10 +23,10 @@ export type TransactionType =
   | 'CANCELLATION_FEE' | 'BOOKING_INCOME' | 'ADMIN_COMMISSION'
   | 'ADMIN_CHARGE' | 'ADMIN_FUND';
 export type AdminTransactionType = 'INCOME' | 'EXPENSE' | 'COMMISSION';
-export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'COMPANY_ADMIN';
+export type Role = 'SUPER_ADMIN' | 'ADMIN';
 export type PaymentOption = 'CASH_BALANCE' | 'BANK_TRANSFER' | 'CARD' | 'OTHER_OPTION';
 export type CompanyStatus = 'ACTIVE' | 'SUSPEND' | 'PENDING' | 'ONHOLD';
-export type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'COMPANY_ADMIN';
+export type AdminRole = 'SUPER_ADMIN' | 'ADMIN';
 export type DriverRequestStatus = 'ACTIVE' | 'SUSPEND' | 'PENDING' | 'ONHOLD' | 'DECLINE';
 export type RequestStatus = 'REJECTED' | 'PENDING' | 'PROCESSED';
 export type AccountStatus = 'REJECTED' | 'PENDING' | 'ACTIVE';
@@ -70,7 +70,6 @@ export interface User {
   wallet?: Wallet;
   status: UserStatus;
   driver?: Driver;
-  Admin?: Admin;
   bankAccounts?: BankAccount[];
   createdAt: string;
   updatedAt: string;
@@ -497,10 +496,16 @@ export interface Company {
 
 export interface Admin {
   id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone_number?: string;
+  profileImageUrl?: string;
+  coverImage?: string;
   role: Role;
   lastLogin?: string;
   status: boolean;
-  userId: string;
+  isEmailConfirm?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -17,14 +17,14 @@ export default function AdminLoginPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { adminLogin, requestAdminLoginOtp, verifyAdminOtp, loading, error, clearError, user } = useAuth();
+  const { adminLogin, requestAdminLoginOtp, verifyAdminOtp, loading, error, clearError, admin } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (user?.Admin) {
+    if (admin) {
       router.replace('/admin/dashboard');
     }
-  }, [user, router]);
+  }, [admin, router]);
 
   // Password login
   const handlePasswordLogin = async (e: React.FormEvent) => {

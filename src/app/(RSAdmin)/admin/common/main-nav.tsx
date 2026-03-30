@@ -11,8 +11,7 @@ const MainNav = ({ className, ...props }: {
 }) => {
   const pathname = usePathname();
   const params = useParams();
-const { user } = useAuth();
-  console.log("user2wqwq",user)
+const { admin } = useAuth();
   const routes = [
     {
       href: `/`,
@@ -53,8 +52,8 @@ const { user } = useAuth();
     active: pathname === "/admin/dashboard",
   };
 
-  // Check if user is an admin (adjust this logic based on your user object structure)
-  const isAdmin = user?.role === "ADMIN" ; // Example condition
+  // Check if user is an admin
+  const isAdmin = !!admin;
 
   return (
     <nav

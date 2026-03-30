@@ -13,15 +13,15 @@ import { useAuth } from '@/lib/auth-context';
 export default function GuestGuard({ children }) {
   const router = useRouter();
 
-  const { user, loading } = useAuth();
+  const { admin, loading } = useAuth();
 
   const check = useCallback(() => {
     if (loading) return;
     // Only redirect if the user is an admin — riders/drivers should stay on login
-    if (user?.Admin) {
+    if (admin) {
       router.replace(paths.dashboard.root);
     }
-  }, [user, loading, router]);
+  }, [admin, loading, router]);
 
   useEffect(() => {
     check();

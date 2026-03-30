@@ -52,7 +52,6 @@ enum BidStatus {
 enum Role {
   SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
-  COMPANY_ADMIN = 'COMPANY_ADMIN',
 }
 
 enum PaymentOption {

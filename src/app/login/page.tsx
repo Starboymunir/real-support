@@ -23,7 +23,7 @@ function LoginContent() {
   // If already logged in, redirect to dashboard
   useEffect(() => {
     if (user) {
-      const dest = user.Admin ? '/admin/dashboard' : '/rider/dashboard';
+      const dest = '/rider/dashboard';
       router.replace(dest);
     }
   }, [user, router]);

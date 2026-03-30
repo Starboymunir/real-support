@@ -92,7 +92,6 @@ export type formattedBookingTableData = {
 
 export type IUser = User & {
   driver?: Driver;
-  Admin?: Admin;
   addressInfo?: UserAddress[];
   SocialLink?: any[];
   wallet?: Wallet;

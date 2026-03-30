@@ -24,8 +24,8 @@ const ICONS = {
 };
 
 export function useNavData() {
-  const { user } = useAuth();
-  const role = user?.Admin?.role;
+  const { admin } = useAuth();
+  const role = admin?.role;
 
   const data = useMemo(() => {
     const isSuperAdmin = role === "SUPER_ADMIN";

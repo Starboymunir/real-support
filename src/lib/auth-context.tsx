@@ -13,9 +13,10 @@ import {
   type ReactNode,
 } from 'react';
 import { setToken, getToken } from './api';
-import { authApi, type LoginResponse, type AdminOtpSentResponse } from './services/auth';
+import { authApi, type LoginResponse, type AdminLoginResponse, type AdminOtpSentResponse } from './services/auth';
 import type {
   User,
+  Admin,
   RegisterDto,
   LoginDto,
   ConfirmOtpDto,
@@ -28,6 +29,7 @@ import { ApiError } from './api';
 
 interface AuthState {
   user: User | null;
+  admin: Admin | null;
   loading: boolean;
   error: string | null;
 }
@@ -55,6 +57,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
+    admin: null,
     loading: true,
     error: null,
   });
@@ -68,17 +71,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = getToken();
     if (!token) {
-      setState({ user: null, loading: false, error: null });
+      setState({ user: null, admin: null, loading: false, error: null });
       return;
     }
+
+    // Check if token is an admin token by decoding payload
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.type === 'admin') {
+        // Admin token — restore admin session via admin profile endpoint
+        authApi
+          .getAdminProfile(payload.sub)
+          .then((res) => {
+            setState({ user: null, admin: res, loading: false, error: null });
+          })
+          .catch(() => {
+            setToken(null);
+            setState({ user: null, admin: null, loading: false, error: null });
+          });
+        return;
+      }
+    } catch {
+      // Not a valid JWT — fall through to user restore
+    }
+
     authApi
       .getCurrentUser()
       .then((res) => {
-        setState({ user: res, loading: false, error: null });
+        setState({ user: res, admin: null, loading: false, error: null });
       })
       .catch(() => {
         setToken(null);
-        setState({ user: null, loading: false, error: null });
+        setState({ user: null, admin: null, loading: false, error: null });
       });
   }, []);
 
@@ -90,7 +114,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (typeof window !== 'undefined' && res.refreshToken) {
         localStorage.setItem('rs_refresh_token', res.refreshToken);
       }
-      setState({ user: res.userData, loading: false, error: null });
+      setState({ user: res.userData, admin: null, loading: false, error: null });
+    } catch (err) {
+      const message =
+        err instanceof ApiError ? err.message : 'Something went wrong';
+      setState((s) => ({ ...s, loading: false, error: message }));
+      throw err;
+    }
+  }, []);
+
+  const handleAdminAuth = useCallback(async (promise: Promise<AdminLoginResponse>) => {
+    setState((s) => ({ ...s, loading: true, error: null }));
+    try {
+      const res = await promise;
+      setToken(res.accessToken);
+      if (typeof window !== 'undefined' && res.refreshToken) {
+        localStorage.setItem('rs_refresh_token', res.refreshToken);
+      }
+      setState({ user: null, admin: res.userData, loading: false, error: null });
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : 'Something went wrong';
@@ -128,9 +169,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const adminLogin = useCallback(
     async (dto: LoginDto) => {
-      await handleAuth(authApi.adminLogin(dto));
+      await handleAdminAuth(authApi.adminLogin(dto));
     },
-    [handleAuth],
+    [handleAdminAuth],
   );
 
   const requestAdminLoginOtp = useCallback(
@@ -152,9 +193,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyAdminOtp = useCallback(
     async (dto: ConfirmOtpDto) => {
-      await handleAuth(authApi.verifyAdminOtp(dto));
+      await handleAdminAuth(authApi.verifyAdminOtp(dto));
     },
-    [handleAuth],
+    [handleAdminAuth],
   );
 
   const confirmEmail = useCallback(
@@ -226,7 +267,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('rs_refresh_token');
     }
-    setState({ user: null, loading: false, error: null });
+    setState({ user: null, admin: null, loading: false, error: null });
   }, []);
 
   return (

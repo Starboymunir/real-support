@@ -13,9 +13,9 @@ import { MotionContainer, varBounce } from '@/app/(RSAdmin)/admin/common/animate
 // ----------------------------------------------------------------------
 
 export default function RoleBasedGuard({ hasContent, roles, children, sx }) {
-  const { user } = useAuth();
+  const { admin } = useAuth();
 
-  const currentRole = user?.Admin?.role;
+  const currentRole = admin?.role;
 
   if (typeof roles !== 'undefined' && !roles.includes(currentRole)) {
     return hasContent ? (

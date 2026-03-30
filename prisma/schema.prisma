@@ -128,7 +128,6 @@ enum AdminTransactionType {
 enum Role {
   SUPER_ADMIN
   ADMIN
-  COMPANY_ADMIN
 }
 
 enum PaymentOption {
@@ -316,7 +315,6 @@ model User {
   WithDrawRequests  WithdrawRequests[] @relation("userInfo")
   AdminTransactions AdminTransaction[] @relation("userInfo")
   addresses         Address[]
-  Admin             Admin?
   SocialLink        SocialLink[]
   bankAccounts      BankAccount[]
   contactUs         ContactUs[]        @relation("contactUsInfo")
@@ -359,6 +357,8 @@ model Driver {
   bids                    Bid[]
   packageIDs              String[]        @db.ObjectId
   driverRequest           DriverRequests?
+  companyId               String?         @db.ObjectId
+  companyInfo             Company?        @relation("companyDrivers", fields: [companyId], references: [id])
 }
 
 model Document {
@@ -781,21 +781,30 @@ model BankAccount {
 }
 
 model Admin {
-  id            String             @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  role          Role               @default(ADMIN)
-  lastLogin     DateTime?          @db.Date
-  otp           Int?
-  status        Boolean            @default(false)
-  expenseRecord Expenses?
-  incomeRecord  Income?
-  accountRecord Account?
-  proceeder     WithdrawRequests[] @relation("proceeder")
-  company       Company?
-
-  userProfile User?  @relation(fields: [userId], references: [id])
-  userId      String @unique() @db.ObjectId()
+  id                      String             @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+  firstName               String
+  lastName                String
+  email                   String             @unique
+  password                String
+  phone_number            String?
+  profileImageUrl         String?
+  coverImage              String?
+  role                    Role               @default(ADMIN)
+  lastLogin               DateTime?          @db.Date
+  otp                     Int?
+  status                  Boolean            @default(false)
+  isEmailConfirm          DateTime?
+  emailVerificationOtp    String?
+  emailVerificationExpiry DateTime?
+  resetToken              String?
+  resetTokenExpiry        DateTime?
+  expenseRecord           Expenses?
+  incomeRecord            Income?
+  accountRecord           Account?
+  proceeder               WithdrawRequests[] @relation("proceeder")
+  company                 Company?
 }
 
 model Expenses {
@@ -892,7 +901,6 @@ model Company {
   companyName                   String?
   companyAddress                CompanyAddress?
   phone_number                  String?
-  password                      String
   companyEmail                  String           @unique
   description                   String?
   coverImage                    String?
@@ -905,6 +913,7 @@ model Company {
   companyAdmins                 CompanyAdmins[]
   notifications                 Notifications[]
   companyDrivers                DriverRequests[]
+  drivers                      Driver[]         @relation("companyDrivers")
 
   contactPerson String? @unique @db.ObjectId
   userInfo      Admin?  @relation(fields: [contactPerson], references: [id])

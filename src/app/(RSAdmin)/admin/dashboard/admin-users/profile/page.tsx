@@ -36,14 +36,14 @@ const ProfileSchema = Yup.object().shape({
 type ProfileFormValues = Yup.InferType<typeof ProfileSchema>;
 
 export default function AdminProfilePage() {
-  const { user, refreshUser } = useAuth();
+  const { admin, refreshUser } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
 
   const defaultValues: ProfileFormValues = {
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.emailAddress || "",
-    phone_number: user?.phone_number || "",
+    firstName: admin?.firstName || "",
+    lastName: admin?.lastName || "",
+    email: admin?.email || "",
+    phone_number: admin?.phone_number || "",
   };
 
   const methods = useForm<ProfileFormValues>({
@@ -58,7 +58,7 @@ export default function AdminProfilePage() {
   } = methods;
 
   const onSubmit = handleSubmit(async (data) => {
-    if (!user?.Admin?.id) return;
+    if (!admin?.id) return;
 
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
@@ -74,7 +74,7 @@ export default function AdminProfilePage() {
 
     try {
       await axiosInstance.put(
-        `/admin/adminUsers/${user.Admin.id}`,
+        `/admin/adminUsers/${admin.id}`,
         formData
       );
       enqueueSnackbar("Profile updated successfully!");
@@ -100,7 +100,7 @@ export default function AdminProfilePage() {
   );
 
   useEffect(() => {
-    const coverImageKey = user?.coverImage;
+    const coverImageKey = admin?.coverImage;
     if (!coverImageKey) return;
     (async () => {
       const url = await getUrl({ key: coverImageKey });
@@ -110,14 +110,12 @@ export default function AdminProfilePage() {
         { shouldValidate: true }
       );
     })();
-  }, [user?.coverImage, setValue]);
+  }, [admin?.coverImage, setValue]);
 
   const roleLabel =
-    user?.Admin?.role === "SUPER_ADMIN"
+    admin?.role === "SUPER_ADMIN"
       ? "Super Admin"
-      : user?.Admin?.role === "ADMIN"
-        ? "Admin"
-        : "Company Admin";
+      : "Admin";
 
   return (
     <Container maxWidth="lg">
@@ -157,10 +155,10 @@ export default function AdminProfilePage() {
 
               <Stack spacing={1} sx={{ mt: 3 }} alignItems="center">
                 <Typography variant="h6">
-                  {user?.firstName} {user?.lastName}
+                  {admin?.firstName} {admin?.lastName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {user?.emailAddress}
+                  {admin?.email}
                 </Typography>
                 <Chip label={roleLabel} color="primary" size="small" />
               </Stack>

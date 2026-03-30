@@ -31,7 +31,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AdminBookingsPage() {
-  const { user } = useAuth();
+  const { admin } = useAuth();
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ export default function AdminBookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
-    if (!user?.Admin) {
+    if (!admin) {
       router.replace('/admin/login');
       return;
     }
@@ -49,9 +49,9 @@ export default function AdminBookingsPage() {
       .then((data) => setBookings(Array.isArray(data) ? data : []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [user, router]);
+  }, [admin, router]);
 
-  if (!user?.Admin) return null;
+  if (!admin) return null;
 
   const tabs: FilterTab[] = ['ALL', 'ACCEPTED', 'COMPLETED', 'CANCELLED'];
 

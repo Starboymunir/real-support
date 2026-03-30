@@ -22,15 +22,6 @@ const NavItem = ({ activeItem, handleIsActive }: NavItemProps) => {
   const menuItems = [
     ...MENU_ITEMS,
     ...(user ? [{ label: "CHAT", href: "/chat", value: "chat" }] : []),
-    ...(user?.Admin
-      ? [
-        {
-          label: "ADMIN DASHBOARD",
-          href: "/admin/dashboard",
-          value: "dashboard",
-        },
-      ]
-      : []),
   ];
 
   return (

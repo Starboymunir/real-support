@@ -30,14 +30,14 @@ function getInitials(name: string) {
 }
 
 export default function Navbar() {
-  const { user, logout, refreshUser } = useAuth();
+  const { user, admin, logout, refreshUser } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [switchingMode, setSwitchingMode] = useState(false);
 
   const displayName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '';
-  const isAdmin = !!user?.Admin;
+  const isAdmin = !!admin;
   const userRole = user?.mode?.toLowerCase() || 'passenger';
   const dashboardHref = isAdmin ? '/admin/dashboard' : userRole === 'driver' ? '/driver/dashboard' : '/rider/dashboard';
   const hasDriver = !!user?.driver;

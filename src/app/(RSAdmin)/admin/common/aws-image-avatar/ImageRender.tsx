@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 
 const S3_BUCKET = "psslrscab-storage-bucket4439f-dev";
 const S3_REGION = "eu-west-1";
@@ -33,8 +33,9 @@ const AwsImageRender: React.FC<AwsImageRenderProps> = ({
   className = "",
   ...rest
 }) => {
+  const [error, setError] = useState(false);
   const resolvedUrl = resolveS3Url(imageKey);
-  const displayImage = resolvedUrl || placeHolderImage;
+  const displayImage = error ? (placeHolderImage || "/fallback.png") : (resolvedUrl || placeHolderImage || "/fallback.png");
 
   return (
     <Image
@@ -42,8 +43,9 @@ const AwsImageRender: React.FC<AwsImageRenderProps> = ({
       width={width}
       height={height}
       id={imageKey ? "aws-image" : "place-holder"}
-      unoptimized={!displayImage?.startsWith("/")}
-      src={displayImage || "/fallback.png"}
+      unoptimized
+      src={displayImage}
+      onError={() => setError(true)}
       className={`rounded-full shadow object-cover object-center ${className}`}
     />
   );

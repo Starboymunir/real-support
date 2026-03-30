@@ -6,7 +6,7 @@ import Box from "@mui/material/Box";
 // routes
 import { RouterLink } from "@/app/(RSAdmin)/admin/routes/components";
 import Image from "next/image";
-import logoImage from "/public/assets/logo.png";
+import logoImage from "../../../../../../public/assets/logo.png";
 // ----------------------------------------------------------------------
 
 type LogoProps = {

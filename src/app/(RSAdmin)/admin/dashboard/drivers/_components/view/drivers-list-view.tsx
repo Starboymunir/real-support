@@ -1,7 +1,7 @@
 "use client";
 
 import isEqual from "lodash/isEqual";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { alpha } from "@mui/material/styles";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
@@ -12,6 +12,9 @@ import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
 import IconButton from "@mui/material/IconButton";
 import TableContainer from "@mui/material/TableContainer";
+import Grid from "@mui/material/Grid";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { useRouter } from "@/app/(RSAdmin)/admin/routes/hook";
 import { useBoolean } from "@/app/(RSAdmin)/admin/hooks/use-boolean";
@@ -49,11 +52,13 @@ const DRIVER_STATUS_OPTIONS = [
 ];
 
 const TABLE_HEAD = [
-  { id: "firstName", label: "Name" },
-  { id: "phone_number", label: "Phone Number", width: 180 },
-  { id: "emailAddress", label: "Email Address", width: 220 },
-  { id: "status", label: "Status", width: 100 },
-  { id: "", label: "Actions", width: 88 },
+  { id: "firstName", label: "Driver" },
+  { id: "phone_number", label: "Contact", width: 200 },
+  { id: "cars", label: "Vehicles", width: 100 },
+  { id: "subscription", label: "Subscription", width: 130 },
+  { id: "ratings", label: "Rating", width: 100 },
+  { id: "status", label: "Status", width: 120 },
+  { id: "", label: "", width: 72 },
 ];
 
 const defaultFilters = {
@@ -74,6 +79,14 @@ export default function DriversListView() {
   const [filters, setFilters] = useState(defaultFilters);
 
   const { data: tableData = [], isPending, refetch } = useDriversQuery();
+
+  const stats = useMemo(() => {
+    const active = tableData.filter((d) => d.status === "ACTIVE").length;
+    const pending = tableData.filter((d) => d.status === "PENDING").length;
+    const onhold = tableData.filter((d) => d.status === "ONHOLD").length;
+    const suspended = tableData.filter((d) => d.status === "SUSPEND").length;
+    return { total: tableData.length, active, pending, onhold, suspended };
+  }, [tableData]);
 
   const dataFiltered: IDriver[] = applyFilter({
     inputData: tableData,
@@ -221,7 +234,7 @@ export default function DriversListView() {
         <>
           <Container maxWidth="xl">
             <CustomBreadcrumbs
-              heading="Drivers List"
+              heading="Drivers"
               links={[
                 { name: "Dashboard", href: paths.dashboard.root },
                 { name: "Drivers", href: paths.dashboard.drivers.root },
@@ -231,6 +244,60 @@ export default function DriversListView() {
                 mb: { xs: 3, md: 5 },
               }}
             />
+
+            {/* Stats Summary Cards */}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+              {[
+                { label: "Total Drivers", value: stats.total, color: "primary", icon: "mdi:account-group" },
+                { label: "Active", value: stats.active, color: "success", icon: "mdi:account-check" },
+                { label: "Pending", value: stats.pending, color: "warning", icon: "mdi:account-clock" },
+                { label: "On Hold", value: stats.onhold, color: "info", icon: "mdi:account-pause" },
+                { label: "Suspended", value: stats.suspended, color: "error", icon: "mdi:account-off" },
+              ].map((stat) => (
+                <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={stat.label}>
+                  <Card
+                    sx={{
+                      p: 2.5,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      borderLeft: 3,
+                      borderColor: `${stat.color}.main`,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 1.5,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        bgcolor: (theme) =>
+                          alpha(
+                            (theme.palette as any)[stat.color]?.main || theme.palette.primary.main,
+                            0.12
+                          ),
+                        color: `${stat.color}.main`,
+                      }}
+                    >
+                      <Iconify icon={stat.icon} width={24} />
+                    </Box>
+                    <Box>
+                      <Typography variant="h4" sx={{ lineHeight: 1 }}>
+                        {stat.value}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "text.secondary", mt: 0.25, display: "block" }}
+                      >
+                        {stat.label}
+                      </Typography>
+                    </Box>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
 
             <Card>
               <Tabs

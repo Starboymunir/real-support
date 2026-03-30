@@ -292,14 +292,11 @@ function applyFilter({
   if (search) {
     const searchLower = search.toLowerCase();
     filteredData = filteredData.filter((user) => {
-      const { firstName, lastName, emailAddress, phone_number } =
-        user.userProfile || {};
-
       return (
-        firstName?.toLowerCase().includes(searchLower) ||
-        lastName?.toLowerCase().includes(searchLower) ||
-        emailAddress?.toLowerCase().includes(searchLower) ||
-        phone_number?.toString().includes(search)
+        user.firstName?.toLowerCase().includes(searchLower) ||
+        user.lastName?.toLowerCase().includes(searchLower) ||
+        user.email?.toLowerCase().includes(searchLower) ||
+        user.phone_number?.toString().includes(search)
       );
     });
   }

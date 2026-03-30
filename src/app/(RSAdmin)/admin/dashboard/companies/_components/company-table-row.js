@@ -21,6 +21,7 @@ export default function CompaniesTableRow({
   onEditRow,
   onDeleteRow,
   onActivePackage,
+  onViewRow,
 }) {
   const confirm = useBoolean();
 
@@ -30,28 +31,27 @@ export default function CompaniesTableRow({
 
   return (
     <>
-      <TableRow hover selected={selected}>
-        {/* <TableCell sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <TableRow hover selected={selected} sx={{ cursor: "pointer" }} onClick={onViewRow}>
+        <TableCell sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <AwsImageRender
             imageKey={row?.coverImage}
-            alt={row?.name}
-            width={80}
-            height={80}
+            alt={row?.companyName}
+            width={44}
+            height={44}
             placeHolderImage="/webAssets/images/placeholder/package.jpg"
-            className="shadow-none"
+            className="shadow-none rounded-lg"
           />
           <ListItemText
             primary={row?.companyName}
-            secondary={row?.summary}
-            primaryTypographyProps={{ typography: "body2" }}
+            secondary={row?.companyEmail}
+            primaryTypographyProps={{ typography: "subtitle2" }}
             secondaryTypographyProps={{
               component: "span",
               color: "text.disabled",
+              typography: "caption",
             }}
           />
-        </TableCell> */}
-
-        <TableCell sx={{ whiteSpace: "nowrap" }}>{row?.companyName}</TableCell>
+        </TableCell>
 
         <TableCell sx={{ whiteSpace: "nowrap" }}>{row?.phone_number}</TableCell>
 
@@ -81,7 +81,7 @@ export default function CompaniesTableRow({
         <TableCell align="right" sx={{ px: 1, whiteSpace: "nowrap" }}>
           <IconButton
             color={popover.open ? "inherit" : "default"}
-            onClick={popover.onOpen}
+            onClick={(e) => { e.stopPropagation(); popover.onOpen(e); }}
           >
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
@@ -100,6 +100,16 @@ export default function CompaniesTableRow({
         arrow="right-top"
         sx={{ width: 200 }}
       >
+        <MenuItem
+          onClick={() => {
+            onViewRow();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:eye-bold" />
+          View
+        </MenuItem>
+
         <MenuItem
           onClick={() => {
             onEditRow();
@@ -160,4 +170,5 @@ CompaniesTableRow.propTypes = {
   row: PropTypes.object,
   selected: PropTypes.bool,
   onActivePackage: PropTypes.func,
+  deleteConfirm: PropTypes.object,
 };

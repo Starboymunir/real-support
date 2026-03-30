@@ -44,8 +44,7 @@ export default function CompanyNewEditForm({
     description: Yup.string(),
     companyEmail: Yup.string().required("Company Email is required"),
     phone_number: Yup.string().required("Company Phone is required"),
-    password: Yup.string().required("Password is required"),
-    contactPerson: Yup.string().required("Admin/User Id is required"),
+    contactPerson: Yup.string().required("Contact Person is required"),
   });
 
   const defaultValues = useMemo(
@@ -54,8 +53,7 @@ export default function CompanyNewEditForm({
       companyEmail: currentCompany?.companyEmail || "",
       description: currentCompany?.description || "",
       phone_number: currentCompany?.phone_number || "",
-      password: currentCompany?.password || "",
-      contactPerson: currentCompany?.userInfo?.id || "", // Use admin ID
+      contactPerson: currentCompany?.contactPerson || currentCompany?.userInfo?.id || "",
     }),
     [currentCompany]
   );
@@ -85,12 +83,17 @@ export default function CompanyNewEditForm({
       }
       delete (payload as any).filePreview;
 
+      const submitData = {
+        companyName: payload.companyName,
+        companyEmail: payload.companyEmail,
+        description: payload.description,
+        phone_number: phone,
+        contactPerson: payload.contactPerson,
+        ...(coverImage !== undefined && { coverImage }),
+      };
+
       if (!currentCompany) {
-        const { data } = await axiosInstance.post("/company/create-company", {
-          ...payload,
-          phone_number: phone,
-          ...(coverImage !== undefined && { coverImage }),
-        });
+        const { data } = await axiosInstance.post("/company/create-company", submitData);
 
         if (data.success === true) {
           queryClient.invalidateQueries({ queryKey: ["all_companies"] });
@@ -100,10 +103,7 @@ export default function CompanyNewEditForm({
       } else {
         const { data } = await axiosInstance.patch(
           `/company/updateById/${currentCompany.id}`,
-          {
-            ...payload,
-            ...(coverImage !== undefined && { coverImage }),
-          }
+          submitData
         );
         if (data.success === true) {
           queryClient.invalidateQueries({ queryKey: ["all_companies"] });
@@ -206,7 +206,7 @@ export default function CompanyNewEditForm({
               display="grid"
               gridTemplateColumns={{
                 xs: "repeat(1, 1fr)",
-                sm: "repeat(3, 1fr)",
+                sm: "repeat(2, 1fr)",
               }}
               marginTop={5}
             >
@@ -215,22 +215,20 @@ export default function CompanyNewEditForm({
                 name="phone_number"
                 label="Company Phone"
               />
-              <RHFTextField name="password" label="Password" />
               <RHFSelect
                 name="contactPerson"
                 label={
                   !currentCompany ? "Select Contact Person" : "Contact Person"
                 }
                 placeholder="Select a contact person"
-                // options={adminUsers.map((option: IAdmin) => option.id)}
               >
                 <MenuItem value="" disabled>
                   Select a contact person
                 </MenuItem>
                 {adminUsers.map((admin: IAdmin) => (
                   <MenuItem key={admin.id} value={admin.id}>
-                    {admin?.userProfile?.firstName}{" "}
-                    {admin?.userProfile?.lastName}
+                    {admin?.firstName || admin?.userProfile?.firstName}{" "}
+                    {admin?.lastName || admin?.userProfile?.lastName}
                   </MenuItem>
                 ))}
               </RHFSelect>

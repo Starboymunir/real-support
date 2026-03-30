@@ -5,6 +5,10 @@ import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import IconButton from "@mui/material/IconButton";
 import ListItemText from "@mui/material/ListItemText";
+import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import Rating from "@mui/material/Rating";
 import {
   useBoolean,
   UseBooleanReturn,
@@ -56,38 +60,96 @@ export default function DriversTableRow({
 
   return (
     <>
-      <TableRow hover selected={selected}>
-        <TableCell sx={{ display: "flex", alignItems: "center" }}>
-          <AwsImageAvatar
-            imageKey={row.userInfo?.coverImage}
-            alt={row?.userInfo?.firstName }
-            sx={{ mr: 2 }}
+      <TableRow hover selected={selected} sx={{ cursor: "pointer" }} onClick={onViewRow}>
+        {/* Driver: Avatar + Name + Email */}
+        <TableCell>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box sx={{ position: "relative" }}>
+              <AwsImageAvatar
+                imageKey={row.userInfo?.coverImage || row.userInfo?.profileImageUrl}
+                alt={row?.userInfo?.firstName}
+                sx={{ width: 44, height: 44 }}
+              />
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  width: 12,
+                  height: 12,
+                  borderRadius: "50%",
+                  border: "2px solid #fff",
+                  bgcolor: row.isOnline ? "success.main" : "grey.400",
+                }}
+              />
+            </Box>
+            <ListItemText
+              primary={`${row?.userInfo?.firstName || ""} ${row?.userInfo?.lastName || ""}`}
+              secondary={row?.userInfo?.emailAddress}
+              primaryTypographyProps={{ typography: "subtitle2", noWrap: true }}
+              secondaryTypographyProps={{
+                component: "span",
+                typography: "caption",
+                color: "text.disabled",
+                noWrap: true,
+                sx: { maxWidth: 200, display: "block" },
+              }}
+            />
+          </Stack>
+        </TableCell>
+
+        {/* Contact: Phone */}
+        <TableCell>
+          <Stack spacing={0.5}>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Iconify icon="solar:phone-bold" width={16} sx={{ color: "text.disabled" }} />
+              <Box component="span" sx={{ typography: "body2", whiteSpace: "nowrap" }}>
+                {row?.userInfo?.phone_number || "—"}
+              </Box>
+            </Stack>
+          </Stack>
+        </TableCell>
+
+        {/* Vehicles */}
+        <TableCell align="center">
+          <Chip
+            icon={<Iconify icon="mdi:car" width={16} />}
+            label={row.cars?.length || 0}
+            size="small"
+            variant="outlined"
+            color={row.cars?.length ? "primary" : "default"}
           />
-          <ListItemText
-            primary={`${row?.userInfo?.firstName} ${row?.userInfo?.lastName}`}
-            secondary={row?.userInfo?.emailAddress}
-            primaryTypographyProps={{ typography: "body2" }}
-            secondaryTypographyProps={{
-              component: "span",
-              color: "text.disabled",
-            }}
-          />
         </TableCell>
 
-        <TableCell sx={{ whiteSpace: "nowrap" }}>
-          {row?.userInfo?.phone_number}
+        {/* Subscription */}
+        <TableCell>
+          <Label
+            variant="soft"
+            color={
+              (row.subscription === "PREMIUM" && "primary") ||
+              (row.subscription === "BASIC" && "info") ||
+              "default"
+            }
+          >
+            {row.subscription === "NONE" ? "Free" : row.subscription || "Free"}
+          </Label>
         </TableCell>
 
-        <TableCell sx={{ whiteSpace: "nowrap" }}>
-          {row?.userInfo?.emailAddress}
+        {/* Rating */}
+        <TableCell>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Rating value={row.ratings || 0} size="small" readOnly precision={0.5} max={5} />
+          </Stack>
         </TableCell>
 
+        {/* Status */}
         <TableCell>
           <Label
             variant="soft"
             color={
               (row?.status === "ACTIVE" && "success") ||
               (row?.status === "PENDING" && "warning") ||
+              (row?.status === "ONHOLD" && "info") ||
               (row?.status === "SUSPEND" && "error") ||
               "default"
             }
@@ -96,10 +158,11 @@ export default function DriversTableRow({
           </Label>
         </TableCell>
 
-        <TableCell align="right" sx={{ px: 1, whiteSpace: "nowrap" }}>
+        {/* Actions */}
+        <TableCell align="right" sx={{ px: 1 }}>
           <IconButton
             color={popover.open ? "inherit" : "default"}
-            onClick={popover.onOpen}
+            onClick={(e) => { e.stopPropagation(); popover.onOpen(e); }}
           >
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>

@@ -42,14 +42,14 @@ export default function UserTableRow({
       <TableRow hover selected={selected}>
         <TableCell sx={{ display: "flex", alignItems: "center" }}>
           <AwsImageAvatar
-            alt={row.userProfile?.firstName}
-            imageKey={row.userProfile?.coverImage}
+            alt={row.firstName}
+            imageKey={row.coverImage || row.profileImageUrl}
             sx={{ mr: 2 }}
           />
 
           <ListItemText
-            primary={`${row.userProfile?.firstName} ${row.userProfile?.lastName}`}
-            secondary={row?.userProfile?.emailAddress}
+            primary={`${row.firstName || ""} ${row.lastName || ""}`}
+            secondary={row.email}
             primaryTypographyProps={{ typography: "body2" }}
             secondaryTypographyProps={{
               component: "span",
@@ -59,11 +59,11 @@ export default function UserTableRow({
         </TableCell>
 
         <TableCell sx={{ whiteSpace: "nowrap" }}>
-          {row.userProfile?.phone_number}
+          {row.phone_number}
         </TableCell>
 
         <TableCell sx={{ whiteSpace: "nowrap" }}>
-          {row.userProfile?.emailAddress}
+          {row.email}
         </TableCell>
 
         <TableCell sx={{ whiteSpace: "nowrap" }}>{row?.role}</TableCell>
@@ -134,8 +134,8 @@ export default function UserTableRow({
         title="Delete"
         content={
           <>
-            Are you sure want to inActive user {row.userProfile?.firstName}{" "}
-            {row.userProfile?.lastName}
+            Are you sure want to inActive user {row.firstName}{" "}
+            {row.lastName}
           </>
         }
         action={

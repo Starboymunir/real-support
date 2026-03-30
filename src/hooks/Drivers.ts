@@ -50,6 +50,6 @@ const getDriverById = async (id: string) => {
 };
 
 const getDrivers = async () => {
-  const { data } = await axiosInstance.get(`/admin/drivers`);
+  const { data } = await axiosInstance.get(`/admin/drivers?count=100`);
   return data.data || [];
 };

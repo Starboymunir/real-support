@@ -1,13 +1,17 @@
 "use client";
-import { getUrl } from "aws-amplify/storage";
-import { Amplify } from "aws-amplify";
-import awsconfig from "@/amplifyconfiguration.json";
 import Image, { ImageProps } from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import { Box } from "@mui/material";
 import { useRouter } from "next/navigation";
 
-Amplify.configure(awsconfig);
+const S3_BUCKET = "psslrscab-storage-bucket4439f-dev";
+const S3_REGION = "eu-west-1";
+function resolveS3Url(key: string | null | undefined): string | null {
+  if (!key) return null;
+  if (key.startsWith("http://") || key.startsWith("https://")) return key;
+  if (key.startsWith("/")) return key;
+  return `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/public/${key}`;
+}
 
 interface DocumentRendererProps extends ImageProps {
   fileKey: string;
@@ -20,31 +24,11 @@ const DocumentRenderer = ({
   ...props
 }: DocumentRendererProps) => {
   const {src, ...restProps} = props;
-  const [file, setFile] = useState<string | null>(null);
-  const [loadFile, setLoadFile] = useState<boolean>(false);
   const navigation = useRouter();
 
-  useEffect(() => {
-    const fetchFile = async (fileKey: string) => {
-      setLoadFile(true);
-      try {
-        const imageUrl = await getUrl({ key: fileKey, options: { accessLevel: "guest" } });
-        setFile(imageUrl?.url?.href);
-      } catch (err) {
-        console.log(err);
-      } finally {
-        setLoadFile(false);
-      }
-    };
+  const file = useMemo(() => resolveS3Url(fileKey), [fileKey]);
 
-    if (fileKey) {
-      fetchFile(fileKey);
-    } else {
-      setFile(null);
-    }
-  }, [fileKey]);
-
-  if (!fileKey || loadFile || !file) {
+  if (!fileKey || !file) {
     return (
       <Image
         {...restProps}
@@ -57,8 +41,7 @@ const DocumentRenderer = ({
     );
   }
 
-  const extension = fileKey?.split(".")[1];
-  console.log("Extension", extension);
+  const extension = fileKey?.split(".").pop()?.toLowerCase();
 
   if (extension !== "pdf") {
     return (
@@ -69,6 +52,7 @@ const DocumentRenderer = ({
         alt={"place holder image"}
         width={width}
         height={height}
+        unoptimized
         className="rounded-full shadow object-cover  object-center cursor-pointer"
       />
     );

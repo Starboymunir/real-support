@@ -17,12 +17,23 @@ import FormProvider, {
 } from "@/app/(RSAdmin)/admin/common/hook-form";
 import axiosInstance from "@/lib/admin-axios";
 import { Grid, Typography } from "@mui/material";
-import { getUrl } from "aws-amplify/storage";
 import { fData } from "@/lib/utils/format-number";
 import { IAdmin } from "@/types/type";
 import { useQueryClient } from "@tanstack/react-query";
 
-const roles = ["SUPER_ADMIN", "ADMIN"];
+const S3_BUCKET = "psslrscab-storage-bucket4439f-dev";
+const S3_REGION = "eu-west-1";
+function resolveS3Url(key: string | null | undefined): string | undefined {
+  if (!key) return undefined;
+  if (key.startsWith("http://") || key.startsWith("https://")) return key;
+  if (key.startsWith("/")) return key;
+  return `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/public/${key}`;
+}
+
+const ROLE_OPTIONS = [
+  { value: "ADMIN", label: "Admin" },
+  { value: "COMPANY_ADMIN", label: "Company Admin" },
+];
 
 export default function UserNewEditForm({
   currentUser,
@@ -51,11 +62,11 @@ export default function UserNewEditForm({
 
   const defaultValues = useMemo(
     () => ({
-      firstName: currentUser?.userProfile?.firstName || "",
-      lastName: currentUser?.userProfile?.lastName || "",
+      firstName: currentUser?.firstName || "",
+      lastName: currentUser?.lastName || "",
       role: currentUser?.role || "",
-      email: currentUser?.userProfile?.emailAddress || "",
-      phone_number: currentUser?.userProfile?.phone_number || "",
+      email: currentUser?.email || "",
+      phone_number: currentUser?.phone_number || "",
       password: "",
       secretNumber: currentUser?.secretNumber || "",
     }),
@@ -77,18 +88,19 @@ export default function UserNewEditForm({
   } = methods;
 
   const onSubmit = handleSubmit(async (data) => {
-    const formData = new FormData();
+    const payload: Record<string, any> = {};
 
     Object.entries(data).forEach(([key, value]) => {
       if (value !== null && value !== undefined && value !== "") {
-        formData.append(key, value);
+        payload[key] = value;
       }
     });
 
     if (currentUser) {
-      formData.delete("password");
+      delete payload.password;
     }
-    formData.delete("filePreview");
+    delete payload.filePreview;
+    delete payload.profileImage;
     try {
       const url = currentUser
         ? `/admin/adminUsers/${currentUser.id}`
@@ -96,7 +108,7 @@ export default function UserNewEditForm({
 
       const method = currentUser ? "put" : "post";
 
-      const response = await axiosInstance[method](url, formData);
+      const response = await axiosInstance[method](url, payload);
 
       const successStatus = currentUser ? 200 : 201;
       if (response.status === successStatus) {
@@ -132,17 +144,11 @@ export default function UserNewEditForm({
   );
 
   useEffect(() => {
-    const coverImageKey = currentUser?.userProfile?.coverImage;
-    if (!coverImageKey) return; // avoid calling getUrl if undefined/null
-    (async () => {
-      const url = await getUrl({ key: coverImageKey });
-      setValue(
-        "filePreview",
-        { preview: url.url.href },
-        { shouldValidate: true }
-      );
-    })();
-  }, [currentUser?.userProfile?.coverImage, setValue]);
+    const imageUrl = resolveS3Url(currentUser?.coverImage || currentUser?.profileImageUrl);
+    if (imageUrl) {
+      setValue("filePreview", { preview: imageUrl }, { shouldValidate: true });
+    }
+  }, [currentUser?.coverImage, currentUser?.profileImageUrl, setValue]);
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
@@ -239,17 +245,21 @@ export default function UserNewEditForm({
                 <RHFAutocomplete
                   name="role"
                   label="Role"
-                  options={roles}
-                  getOptionLabel={(option) => option}
+                  options={ROLE_OPTIONS.map((r) => r.value)}
+                  getOptionLabel={(option) => {
+                    const found = ROLE_OPTIONS.find((r) => r.value === option);
+                    return found ? found.label : option;
+                  }}
                   isOptionEqualToValue={(option, value) => option === value}
                   renderOption={(props, option) => {
                     if (!option) {
                       return null;
                     }
+                    const found = ROLE_OPTIONS.find((r) => r.value === option);
 
                     return (
                       <li {...props} key={option}>
-                        {option}
+                        {found ? found.label : option}
                       </li>
                     );
                   }}

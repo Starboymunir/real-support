@@ -37,20 +37,22 @@ import CompaniesTableRow from "../company-table-row";
 import { activatePackage } from "@/server/Package";
 import { useCompaniesQuery } from "@/hooks/Company";
 import axiosInstance from "@/lib/admin-axios";
+import Button from "@mui/material/Button";
+import { RouterLink } from "@/app/(RSAdmin)/admin/routes/components";
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: "companyName", label: "Name" },
-  { id: "companyPhone", label: "Company Phone", width: 150 },
-  { id: "companyEmail", label: "Company Email", width: 150 },
-  { id: "HMRC_RegistrationNumber", label: "Registration Number", width: 150 },
+  { id: "companyName", label: "Company" },
+  { id: "companyPhone", label: "Phone", width: 150 },
+  { id: "companyEmail", label: "Email", width: 180 },
+  { id: "HMRC_RegistrationNumber", label: "HMRC Reg #", width: 150 },
   {
     id: "PCO_OperatorLicenseNumber",
-    label: "Operator License Number",
+    label: "PCO License #",
     width: 150,
   },
-  { id: "status", label: "Status", width: 90 },
+  { id: "status", label: "Status", width: 100 },
   { id: "", width: 50 },
 ];
 
@@ -152,6 +154,13 @@ export default function CompaniesListView() {
     [router]
   );
 
+  const handleViewRow = useCallback(
+    (id) => {
+      router.push(paths.dashboard.companies.details(id));
+    },
+    [router]
+  );
+
   const handleResetFilters = useCallback(() => {
     setFilters(defaultFilters);
   }, []);
@@ -170,6 +179,16 @@ export default function CompaniesListView() {
                 { name: "Companies", href: paths.dashboard.companies.root },
                 { name: "List" },
               ]}
+              action={
+                <Button
+                  component={RouterLink}
+                  href={paths.dashboard.companies.new}
+                  variant="contained"
+                  startIcon={<Iconify icon="mingcute:add-line" />}
+                >
+                  New Company
+                </Button>
+              }
               sx={{
                 mb: { xs: 3, md: 5 },
               }}
@@ -247,6 +266,7 @@ export default function CompaniesListView() {
                           onDeleteRow={() => handleDeleteRow(row.id)}
                           onActivePackage={() => handleActiveCompany(row.id)}
                           onEditRow={() => handleEditRow(row.id)}
+                          onViewRow={() => handleViewRow(row.id)}
                         />
                       ))}
 
@@ -297,11 +317,12 @@ function applyFilter({ inputData, comparator, filters }) {
   inputData = stabilizedThis.map((el) => el[0]);
 
   if (search) {
-    inputData = inputData?.filter((packages) => {
-      console.log(packages);
+    const lowerSearch = search.toLowerCase();
+    inputData = inputData?.filter((company) => {
       return (
-        packages.name.toLowerCase().indexOf(search.toLowerCase()) !== -1 ||
-        packages.description.toLowerCase().indexOf(search.toLowerCase()) !== -1
+        (company.companyName || "").toLowerCase().includes(lowerSearch) ||
+        (company.companyEmail || "").toLowerCase().includes(lowerSearch) ||
+        (company.phone_number || "").toLowerCase().includes(lowerSearch)
       );
     });
   }

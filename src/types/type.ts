@@ -105,9 +105,11 @@ export type IDriver = Driver & {
 };
 
 export type IAdmin = Admin & {
-  userProfile?: User;
+  userProfile?: User; // legacy — kept for backward compat
   password?: string;
   secretNumber?: string;
+  profileImageUrl?: string;
+  coverImage?: string;
 };
 
 export type ICompany = Company & {

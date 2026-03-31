@@ -3,7 +3,6 @@ import {
   Page,
   View,
   Text,
-  Font,
   Image,
   Document,
   StyleSheet,
@@ -11,14 +10,6 @@ import {
 
 import { fDate } from "@/lib/utils/format-time";
 import { fCurrency } from "@/lib/utils/format-number";
-
-Font.register({
-  family: "Roboto",
-  fonts: [
-    { src: "/fonts/Roboto-Regular.ttf" },
-    { src: "/fonts/Roboto-Bold.ttf" },
-  ],
-});
 
 const useStyles = () =>
   useMemo(
@@ -40,7 +31,7 @@ const useStyles = () =>
         page: {
           fontSize: 9,
           lineHeight: 1.6,
-          fontFamily: "Roboto",
+          fontFamily: "Helvetica",
           backgroundColor: "#FFFFFF",
           textTransform: "capitalize",
           padding: "40px 24px 120px 24px",
@@ -95,16 +86,16 @@ export default function InvoicePDF({ invoice }) {
     invoice || {};
 
   const styles = useStyles();
+  const logoSrc =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/assets/logo.png`
+      : undefined;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={[styles.gridContainer, styles.mb40]}>
-          <Image
-            alt="Logo"
-            source="/assets/logo.png"
-            style={{ width: 48, height: 48 }}
-          />
+          {logoSrc ? <Image src={logoSrc} style={{ width: 48, height: 48 }} /> : <View />}
 
           <View style={{ alignItems: "flex-end", flexDirection: "column" }}>
             <Text style={styles.h3}>{status}</Text>
@@ -217,6 +208,10 @@ export default function InvoicePDF({ invoice }) {
           <View style={[styles.tableCell_3, styles.alignRight]}>
             <Text style={styles.h4}>{fCurrency(invoice?.totalBill)}</Text>
           </View>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.body2}>RS CAB • support@rscab.co.uk • +44 20 7946 0958</Text>
         </View>
       </Page>
     </Document>

@@ -172,7 +172,7 @@ export default function PassengerBookingsTableRow({
           >
             <PDFDownloadLink
               document={<InvoicePDF invoice={row} />}
-              fileName={row.id}
+              fileName={`invoice-${row.id}.pdf`}
               style={{ textDecoration: "none" }}
             >
               {({ loading }) => (
@@ -180,7 +180,7 @@ export default function PassengerBookingsTableRow({
                   {loading ? (
                     <CircularProgress size={24} color="inherit" />
                   ) : (
-                    <div className="flex items-center justify-center bg-red-500">
+                    <div className="flex items-center justify-center gap-2">
                       <Iconify icon="solar:eye-bold" />
                       Generate Invoice
                     </div>

@@ -155,6 +155,7 @@ export const paths = {
     },
     wallet: {
       root: `${ROOTS.DASHBOARD}/wallet`,
+      overview: `${ROOTS.DASHBOARD}/wallet`,
       withDrawalRequests: {
         root: `${ROOTS.DASHBOARD}/wallet/withDrawelRequests/`,
         list: `${ROOTS.DASHBOARD}/wallet/withDrawelRequests/`,

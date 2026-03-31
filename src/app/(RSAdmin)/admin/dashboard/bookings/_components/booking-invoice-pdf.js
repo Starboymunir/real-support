@@ -3,7 +3,6 @@ import {
   Page,
   View,
   Text,
-  Font,
   Image,
   Document,
   StyleSheet,
@@ -11,14 +10,6 @@ import {
 
 import { fDate } from "@/lib/utils/format-time";
 import { fCurrency } from "@/lib/utils/format-number";
-
-Font.register({
-  family: "Roboto",
-  fonts: [
-    { src: "/fonts/Roboto-Regular.ttf" },
-    { src: "/fonts/Roboto-Bold.ttf" },
-  ],
-});
 
 const useStyles = () =>
   useMemo(
@@ -40,7 +31,7 @@ const useStyles = () =>
         page: {
           fontSize: 9,
           lineHeight: 1.6,
-          fontFamily: "Roboto",
+          fontFamily: "Helvetica",
           backgroundColor: "#FFFFFF",
           textTransform: "capitalize",
           padding: "40px 24px 120px 24px",

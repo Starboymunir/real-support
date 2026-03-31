@@ -33,8 +33,7 @@ import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import BookingsTableToolbar from "../bookings-table-toolbar";
 import BookingsTableFiltersResult from "../bookings-table-filters-result";
 import BookingsTableRow from "../bookings-table-row";
-import axios from "axios";
-import { endpoints } from "@/lib/utils/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { Tab, Tabs, alpha } from "@mui/material";
 import Label from "@/app/(RSAdmin)/admin/common/label";
 import { allowGenerateInvoice } from "@/server/Passenger";
@@ -181,12 +180,19 @@ export default function InvoiceListView() {
 
   const fetch = async (): Promise<void> => {
     setLoading(true);
-    const { data, status }: { data: BookingRow[]; status: number } =
-      await axios.get<BookingRow[]>(endpoints.bookings.allBookings);
-    if (status === 200) {
-      setTableData(data);
+    try {
+      const { data, status }: { data: { data?: BookingRow[] } | BookingRow[]; status: number } =
+        await axiosInstance.get(`/admin/bookings`);
+      if (status === 200) {
+        const rows = Array.isArray(data)
+          ? data
+          : Array.isArray((data as any)?.data)
+            ? (data as any).data
+            : [];
+        setTableData(rows);
+      }
+    } finally {
       setLoading(false);
-      console.log(data);
     }
   };
 

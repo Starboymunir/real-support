@@ -64,9 +64,10 @@ export function useNavData() {
         ? [
             {
               title: "Wallet",
-              path: paths.dashboard.wallet.withDrawalRequests.list,
+              path: paths.dashboard.wallet.root,
               icon: ICONS.wallet,
               children: [
+                { title: "Overview", path: paths.dashboard.wallet.root },
                 { title: "Withdrawals", path: paths.dashboard.wallet.withDrawalRequests.list },
                 { title: "User Transactions", path: paths.dashboard.wallet.userTransaction.list },
                 { title: "Transactions", path: paths.dashboard.wallet.adminTransaction.list },

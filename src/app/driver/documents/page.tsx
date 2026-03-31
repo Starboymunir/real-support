@@ -221,17 +221,14 @@ export default function DocumentsPage() {
           await documentsApi.uploadPCO({
             driverId,
             pcoBadgeDocFront: fileUrl,
-            pcoBadgeDocBack: fileUrl,
             pcoBadgeNumber: 'PENDING',
             pcoBadgeExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
-            pcoPaperDoc: fileUrl,
           });
           break;
         case 'dbs-certificate':
           await documentsApi.uploadPassport({
             driverId,
             passportDocFront: fileUrl,
-            passportDocBack: fileUrl,
             passportNumber: 'PENDING',
             passportExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
           });

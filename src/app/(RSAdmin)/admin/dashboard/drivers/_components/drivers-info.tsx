@@ -28,7 +28,7 @@ const formatDocDate = (value: string | null | undefined) => {
   });
 };
 
-const generateDocumentAccordionData = (document: any) => [
+const generateDocumentAccordionData = (document: any, latestCarDocument: any) => [
   {
     documentTitle: "drivingLicense",
     name: "Driving License",
@@ -42,8 +42,6 @@ const generateDocumentAccordionData = (document: any) => [
     name: "PHV License",
     documentsList: {
       pcoBadgeDocFront: document?.pcoDocuments?.pcoBadgeDocFront,
-      pcoBadgeDocBack: document?.pcoDocuments?.pcoBadgeDocBack,
-      pcoPaperDoc: document?.pcoDocuments?.pcoPaperDoc,
     },
   },
   {
@@ -51,22 +49,23 @@ const generateDocumentAccordionData = (document: any) => [
     name: "DBS Certificate",
     documentsList: {
       passportDocFront: document?.passport?.passportDocFront,
-      passportDocBack: document?.passport?.passportDocBack,
     },
   },
   {
-    documentTitle: "bankDocuments",
-    name: "Account Proof",
+    documentTitle: "insuranceDocument",
+    name: "Vehicle Insurance",
     documentsList: {
-      accProfDoc: document?.bankDocuments?.accProfDoc,
+      insuranceDoc: latestCarDocument?.insuranceDocument?.insuranceDoc,
     },
+    showActions: false,
   },
   {
-    documentTitle: "addressProfDocs",
-    name: "Address Proof",
+    documentTitle: "motDocument",
+    name: "MOT Certificate",
     documentsList: {
-      addressProfDoc: document?.addressProfDocs?.addressProfDoc,
+      motDoc: latestCarDocument?.motDocument?.motDoc,
     },
+    showActions: false,
   },
 ];
 
@@ -103,7 +102,8 @@ const generateLegalInfoData = (document: any) => [
 export default function DriverInfo({ info, refetch }: { info: any; refetch: any }) {
   const [expanded, setExpanded] = useState(false);
   const [forEdit, setForEdit] = useState({});
-  const AccordionData = generateDocumentAccordionData(info?.document);
+  const latestCarDocument = info?.cars?.[info?.cars?.length - 1]?.carDocument;
+  const AccordionData = generateDocumentAccordionData(info?.document, latestCarDocument);
   const legalInfoData = generateLegalInfoData(info?.document);
   const theme = useTheme();
   const quickEdit = useBoolean();
@@ -285,7 +285,7 @@ export default function DriverInfo({ info, refetch }: { info: any; refetch: any 
             <CardHeader title="Documents" />
             <Stack spacing={1} sx={{ p: 3 }}>
               {AccordionData.map((accord, index) => {
-                const { name, documentsList, documentTitle } = accord || {};
+                const { name, documentsList, documentTitle, showActions } = accord || {};
                 return (
                   <AccordionDocument
                     info={info}
@@ -297,6 +297,7 @@ export default function DriverInfo({ info, refetch }: { info: any; refetch: any 
                     documentsList={documentsList}
                     documentTitle={documentTitle}
                     refetch={refetch}
+                    showActions={showActions}
                   />
                 );
               })}

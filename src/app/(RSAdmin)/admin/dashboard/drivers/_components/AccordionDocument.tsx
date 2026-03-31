@@ -30,6 +30,7 @@ interface AccordionDocumentProps {
   handleForEdit: any;
   info: any;
   refetch: any;
+  showActions?: boolean;
 }
 
 const AccordionDocument = ({
@@ -41,6 +42,7 @@ const AccordionDocument = ({
   handleForEdit,
   info,
   refetch,
+  showActions = true,
 }: AccordionDocumentProps) => {
   const [isRejecting, setIsRejecting] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
@@ -137,43 +139,46 @@ const AccordionDocument = ({
       </AccordionSummary>
       <AccordionDetails>
         <Stack sx={{ py: 1 }}>
-          <Stack
-            flexGrow={1}
-            direction="row"
-            alignItems="center"
-            justifyContent="flex-end"
-            mb={10}
-            gap={1}
-          >
-            <Button
-              variant="contained"
-              onClick={() => handleForEdit({ documentsList, documentTitle })}
-              startIcon={<Iconify icon="solar:pen-bold" />}
+          {showActions && (
+            <Stack
+              flexGrow={1}
+              direction="row"
+              alignItems="center"
+              justifyContent="flex-end"
+              mb={10}
+              gap={1}
             >
-              Edit
-            </Button>
-            <LoadingButton
-              loading={isAccepting}
-              color="success"
-              variant="contained"
-              disabled={status == "Approved"}
-              onClick={() => acceptDocument(documentTitle)}
-            >
-              Approve
-            </LoadingButton>
-            <LoadingButton
-              loading={isRejecting}
-              color="error"
-              disabled={status == "Rejected"}
-              variant="contained"
-              onClick={() => rejectDocument(documentTitle)}
-            >
-              Reject
-            </LoadingButton>
-          </Stack>
+              <Button
+                variant="contained"
+                onClick={() => handleForEdit({ documentsList, documentTitle })}
+                startIcon={<Iconify icon="solar:pen-bold" />}
+              >
+                Edit
+              </Button>
+              <LoadingButton
+                loading={isAccepting}
+                color="success"
+                variant="contained"
+                disabled={status == "Approved"}
+                onClick={() => acceptDocument(documentTitle)}
+              >
+                Approve
+              </LoadingButton>
+              <LoadingButton
+                loading={isRejecting}
+                color="error"
+                disabled={status == "Rejected"}
+                variant="contained"
+                onClick={() => rejectDocument(documentTitle)}
+              >
+                Reject
+              </LoadingButton>
+            </Stack>
+          )}
           <Grid container spacing={2}>
-            {Object.keys(safeDocumentsList).map((document, i) => {
-              const fileKey = safeDocumentsList[document];
+            {Object.entries(safeDocumentsList)
+              .filter(([, value]) => Boolean(value))
+              .map(([document, fileKey], i) => {
               const extension = fileKey?.split(".").pop()?.toLowerCase();
               const isImage = fileKey && !["pdf", "heic", "heif"].includes(extension || "");
               const resolved = resolveS3Url(fileKey);
@@ -210,7 +215,7 @@ const AccordionDocument = ({
                   />
                 </Grid>
               );
-            })}
+              })}
           </Grid>
         </Stack>
 

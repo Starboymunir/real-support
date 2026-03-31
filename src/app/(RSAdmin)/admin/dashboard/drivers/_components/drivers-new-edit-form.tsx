@@ -191,7 +191,6 @@ export default function DriversNewEditForm({
                 name="filePreview"
                 maxSize={3145728}
                 onDrop={handleDrop}
-                disabled
                 helperText={
                   <Typography
                     variant="caption"

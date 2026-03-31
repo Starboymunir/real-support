@@ -125,8 +125,6 @@ export default function DriversNewEditForm({
       } else {
         enqueueSnackbar(error?.message, { variant: "error" });
       }
-    } finally {
-      reset();
     }
   });
 

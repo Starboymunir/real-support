@@ -66,16 +66,22 @@ export default function AdminProfilePage() {
         value !== null &&
         value !== undefined &&
         value !== "" &&
-        key !== "filePreview"
+        key !== "filePreview" &&
+        key !== "profileImage"
       ) {
-        formData.append(key, value);
+        formData.append(key, value as string);
       }
     });
+    // Append file separately if a new image was dropped
+    if (data.profileImage instanceof File) {
+      formData.append("profileImage", data.profileImage);
+    }
 
     try {
       await axiosInstance.put(
         `/admin/adminUsers/${admin.id}`,
-        formData
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
       enqueueSnackbar("Profile updated successfully!");
       await refreshUser();

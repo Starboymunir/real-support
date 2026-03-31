@@ -96,7 +96,7 @@ const CabDetail = ({ detail }: any) => (
     <Stack direction="row" alignItems="center">
       <AwsImageAvatar
         alt={detail?.userInfo?.firstName}
-        imageKey={detail?.userInfo?.coverImage}
+        imageKey={detail?.userInfo?.coverImage || detail?.userInfo?.profileImageUrl}
         sx={{ mr: 2 }}
       />
       <Typography>

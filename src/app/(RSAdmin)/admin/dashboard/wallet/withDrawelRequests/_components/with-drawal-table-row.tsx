@@ -32,7 +32,7 @@ export default function WithDrawalTableRow({
       <TableRow hover selected={selected}>
         <TableCell sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <AwsImageAvatar
-            imageKey={row?.userInfo?.coverImage}
+            imageKey={row?.userInfo?.coverImage || row?.userInfo?.profileImageUrl}
             alt={row?.userInfo?.firstName}
             width={50}
             height={50}

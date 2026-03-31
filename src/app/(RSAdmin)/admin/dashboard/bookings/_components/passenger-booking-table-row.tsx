@@ -70,7 +70,7 @@ export default function PassengerBookingTableRow({
       <TableCell>
         <div style={{ display: "flex", alignItems: "center" }}>
           <AwsImageAvatar
-            imageKey={row?.driverInfo?.userInfo?.coverImage}
+            imageKey={row?.driverInfo?.userInfo?.coverImage || row?.driverInfo?.userInfo?.profileImageUrl}
             alt={
               row?.driverInfo?.userInfo?.firstName +
               row?.driverInfo?.userInfo?.lastName

@@ -19,7 +19,7 @@ export default function TransactionsTableRow({ row }) {
           {row.userInfo ? (
             <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
               <AwsImageAvatar
-                imageKey={row?.userInfo?.coverImage}
+                imageKey={row?.userInfo?.coverImage || row?.userInfo?.profileImageUrl}
                 alt={row?.userInfo?.firstName}
                 width={50}
                 height={50}

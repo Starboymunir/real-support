@@ -39,7 +39,8 @@ const OPTIONS = [
 export default function AccountPopover() {
   const router = useRouter();
 
-  const { logout, user } = useAuth();
+  const { logout, user, admin } = useAuth();
+  const account = admin || user;
   const { enqueueSnackbar } = useSnackbar();
 
   const popover = usePopover();
@@ -79,8 +80,8 @@ export default function AccountPopover() {
         }}
       >
         <AwsImageAvatar
-          imageKey={user?.coverImage}
-          alt={user?.firstName}
+          imageKey={account?.coverImage}
+          alt={account?.firstName}
           sx={{
             width: 36,
             height: 36,
@@ -96,11 +97,11 @@ export default function AccountPopover() {
       >
         <Box sx={{ p: 2, pb: 1.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {user?.firstName} {user?.lastName}
+            {account?.firstName} {account?.lastName}
           </Typography>
 
           <Typography variant="body2" sx={{ color: "text.secondary" }} noWrap>
-            {user?.emailAddress}
+            {account?.emailAddress || account?.email}
           </Typography>
         </Box>
 

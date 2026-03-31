@@ -74,7 +74,7 @@ export default function DriversNewEditForm({
       driverRecognitionNumber: currentDriver?.driverRecognitionNumber || "",
       nationalInsuranceNumber: currentDriver?.nationalInsuranceNumber || "",
       selfAssessmentTaxId: currentDriver?.selfAssessmentTaxId || "",
-      profileImage: currentDriver?.userInfo?.coverImage ?? null,
+      profileImage: currentDriver?.userInfo?.coverImage || currentDriver?.userInfo?.profileImageUrl || null,
       ratings: currentDriver?.ratings || 0,
       totalJobComplete: currentDriver?.totalJobComplete || 0,
       bio: currentDriver?.bio || "",
@@ -84,7 +84,7 @@ export default function DriversNewEditForm({
       commissionPercentage: currentDriver?.commissionPercentage || 0,
       subscription: currentDriver?.subscription || "",
       status: currentDriver?.status || "",
-      filePreview: currentDriver?.userInfo?.coverImage || null,
+      filePreview: currentDriver?.userInfo?.coverImage || currentDriver?.userInfo?.profileImageUrl || null,
     }),
     [currentDriver]
   );
@@ -143,13 +143,14 @@ export default function DriversNewEditForm({
   });
 
   useEffect(() => {
-    if (currentDriver.userInfo?.coverImage) {
-      const url = resolveS3Url(currentDriver.userInfo.coverImage);
+    const imageKey = currentDriver.userInfo?.coverImage || currentDriver.userInfo?.profileImageUrl;
+    if (imageKey) {
+      const url = resolveS3Url(imageKey);
       if (url) {
         setValue("filePreview", url, { shouldValidate: true });
       }
     }
-  }, [currentDriver?.userInfo?.coverImage, setValue]);
+  }, [currentDriver?.userInfo?.coverImage, currentDriver?.userInfo?.profileImageUrl, setValue]);
 
   const handleDrop = useCallback(
     (acceptedFiles: any[]) => {

@@ -83,7 +83,7 @@ export default function DriverProfileView({ id }: { id: string }) {
                 name={
                   driver?.userInfo?.firstName + " " + driver?.userInfo?.lastName
                 }
-                avatarUrl={driver?.userInfo.coverImage}
+                avatarUrl={driver?.userInfo.coverImage || driver?.userInfo.profileImageUrl}
                 packageName={driver?.packageInfo?.name}
                 status={driver?.status}
               />

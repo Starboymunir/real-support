@@ -48,7 +48,7 @@ export default function FeedbackTableRow({
       {/* <TableCell>
         <div style={{ display: "flex", alignItems: "center" }}>
           <AwsImageAvatar
-            imageKey={row?.userInfo?.coverImage}
+            imageKey={row?.userInfo?.coverImage || row?.userInfo?.profileImageUrl}
             alt={`${row?.userInfo?.firstName ?? ""}${row?.userInfo?.lastName ?? ""}`}
             sx={{ mr: 2 }}
           />

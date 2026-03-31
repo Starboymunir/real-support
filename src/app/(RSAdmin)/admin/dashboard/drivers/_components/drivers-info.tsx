@@ -31,22 +31,15 @@ const formatDocDate = (value: string | null | undefined) => {
 const generateDocumentAccordionData = (document: any) => [
   {
     documentTitle: "drivingLicense",
-    name: "License",
+    name: "Driving License",
     documentsList: {
       licenseDocFront: document?.drivingLicense?.licenseDocFront,
       licenseDocBack: document?.drivingLicense?.licenseDocBack,
     },
   },
   {
-    documentTitle: "bankDocuments",
-    name: "Account proof",
-    documentsList: {
-      accProfDoc: document?.bankDocuments?.accProfDoc,
-    },
-  },
-  {
     documentTitle: "pcoDocuments",
-    name: "PCO badge",
+    name: "PHV License",
     documentsList: {
       pcoBadgeDocFront: document?.pcoDocuments?.pcoBadgeDocFront,
       pcoBadgeDocBack: document?.pcoDocuments?.pcoBadgeDocBack,
@@ -55,15 +48,22 @@ const generateDocumentAccordionData = (document: any) => [
   },
   {
     documentTitle: "passport",
-    name: "Passport",
+    name: "DBS Certificate",
     documentsList: {
       passportDocFront: document?.passport?.passportDocFront,
       passportDocBack: document?.passport?.passportDocBack,
     },
   },
   {
+    documentTitle: "bankDocuments",
+    name: "Account Proof",
+    documentsList: {
+      accProfDoc: document?.bankDocuments?.accProfDoc,
+    },
+  },
+  {
     documentTitle: "addressProfDocs",
-    name: "Address proof",
+    name: "Address Proof",
     documentsList: {
       addressProfDoc: document?.addressProfDocs?.addressProfDoc,
     },

@@ -80,7 +80,7 @@ const BookingDetails = ({ id }) => {
                 <Box sx={{ display: "flex", gap: "10px" }}>
                   <Box>
                     <AwsImageAvatar
-                      imageKey={data?.driverInfo?.userInfo?.coverImage}
+                      imageKey={data?.driverInfo?.userInfo?.coverImage || data?.driverInfo?.userInfo?.profileImageUrl}
                       alt="passenger"
                     />
                   </Box>

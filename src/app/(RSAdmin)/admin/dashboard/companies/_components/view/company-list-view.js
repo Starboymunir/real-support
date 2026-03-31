@@ -1,7 +1,7 @@
 "use client";
 
 import isEqual from "lodash/isEqual";
-import { useState, useCallback, useEffect, use } from "react";
+import { useState, useCallback } from "react";
 import Card from "@mui/material/Card";
 import Table from "@mui/material/Table";
 import Tooltip from "@mui/material/Tooltip";
@@ -13,7 +13,6 @@ import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { useRouter } from "@/app/(RSAdmin)/admin/routes/hook";
 import { useBoolean } from "@/app/(RSAdmin)/admin/hooks//use-boolean";
 import Iconify from "@/components/iconify/iconify";
-import Scrollbar from "@/app/(RSAdmin)/admin/common/scrollbar";
 import { ConfirmDialog } from "@/app/(RSAdmin)/admin/common/custom-dialog";
 import { useSettingsContext } from "@/app/(RSAdmin)/admin/common/settings";
 import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
@@ -29,12 +28,9 @@ import {
 } from "@/app/(RSAdmin)/admin/common/table";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
-import axios from "axios";
-import { endpoints } from "@/lib/utils/axios";
 import PackagesTableToolbar from "../company-table-toolbar";
 import PackagesTableFiltersResult from "../company-table-filters-result";
 import CompaniesTableRow from "../company-table-row";
-import { activatePackage } from "@/server/Package";
 import { useCompaniesQuery } from "@/hooks/Company";
 import axiosInstance from "@/lib/admin-axios";
 import Button from "@mui/material/Button";
@@ -82,11 +78,6 @@ export default function CompaniesListView() {
     filters,
   });
 
-  const dataInPage = dataFiltered.slice(
-    table.page * table.rowsPerPage,
-    table.page * table.rowsPerPage + table.rowsPerPage
-  );
-
   const denseHeight = table.dense ? 52 : 72;
 
   const canReset = !isEqual(defaultFilters, filters);
@@ -115,13 +106,13 @@ export default function CompaniesListView() {
       );
 
       if (data.success) {
-        enqueueSnackbar("SUSPEND Successfully");
+        enqueueSnackbar("Company suspended successfully");
+        await refetch();
       }
     } catch (error) {
-      enqueueSnackbar(error.message, { variant: "error" });
+      enqueueSnackbar(error?.response?.data?.message || error.message, { variant: "error" });
     } finally {
       setLoading(false);
-      refetch();
     }
   };
 
@@ -136,13 +127,13 @@ export default function CompaniesListView() {
       );
 
       if (data.success) {
-        enqueueSnackbar("Company Activate Successfully");
+        enqueueSnackbar("Company activated successfully");
+        await refetch();
       }
     } catch (error) {
-      enqueueSnackbar(error.message, { variant: "error" });
+      enqueueSnackbar(error?.response?.data?.message || error.message, { variant: "error" });
     } finally {
       setLoading(false);
-      refetch();
     }
   };
 
@@ -326,10 +317,6 @@ function applyFilter({ inputData, comparator, filters }) {
         (company.phone_number || "").toLowerCase().includes(lowerSearch)
       );
     });
-  }
-
-  if (status) {
-    inputData = inputData.filter((user) => status.includes(user.status));
   }
 
   return inputData;

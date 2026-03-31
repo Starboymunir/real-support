@@ -48,7 +48,7 @@ export default function AssignCompanyForm({
   const fetchCompanies = async () => {
     setLoading(true);
     try {
-      const { data } = await axiosInstance.get('/companies?count=1000&page=1');
+      const { data } = await axiosInstance.get('/company/find-all?count=1000&page=1');
       setCompanies(Array.isArray(data?.data) ? data.data : []);
     } catch (err) {
       console.log("Error fetching companies:", err);

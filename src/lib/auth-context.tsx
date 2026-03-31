@@ -254,6 +254,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshUser = useCallback(async () => {
+    const token = getToken();
+    if (!token) return;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.type === 'admin') {
+        const admin = await authApi.getAdminProfile(payload.sub);
+        setState((s) => ({ ...s, admin }));
+        return;
+      }
+    } catch { /* not admin token */ }
     try {
       const res = await authApi.getCurrentUser();
       setState((s) => ({ ...s, user: res }));

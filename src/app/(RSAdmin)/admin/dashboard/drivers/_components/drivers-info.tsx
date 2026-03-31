@@ -309,6 +309,7 @@ export default function DriverInfo({ info, refetch }: { info: any; refetch: any 
         title={""}
         currentData={forEdit}
         documentId={info?.document?.id}
+        driverId={info?.id}
         open={quickEdit.value}
         onClose={quickEdit.onFalse}
         refetch={refetch}

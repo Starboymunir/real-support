@@ -13,9 +13,9 @@ import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import FormProvider, {
   RHFUpload,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
-import { endpoints } from "@/lib/utils/axios";
-import axios, { AxiosError } from "axios";
 import { resolveS3Url } from '@/lib/api';
+import { uploadImageFile } from '@/helpers/imageUpload';
+import axiosInstance from "@/lib/admin-axios";
 
 interface DocQuickEditFormProps {
   title: string;
@@ -23,6 +23,7 @@ interface DocQuickEditFormProps {
   open: boolean;
   onClose: () => void;
   documentId: string;
+  driverId?: string;
   refetch: () => void;
 }
 
@@ -32,6 +33,7 @@ export default function DocQuickEditForm({
   open,
   onClose,
   documentId,
+  driverId,
   refetch,
 }: DocQuickEditFormProps): JSX.Element {
   const { enqueueSnackbar } = useSnackbar();
@@ -100,35 +102,54 @@ export default function DocQuickEditForm({
   );
 
   const onSubmit = handleSubmit(async (data: Record<string, any>) => {
-    const formData = new FormData();
-
-    for (const key in data) {
-      if (
-        data[key] !== null &&
-        data[key] !== undefined &&
-        !key.endsWith("preview")
-      ) {
-        formData.append(key, data[key]);
-      }
-    }
-    formData.append("documentType", currentData?.documentTitle || "");
     try {
-      console.log("DocumentId", documentId);
-      const response = await axios.put(
-        endpoints.drivers.updateDoc(null, documentId),
-        formData
-      );
-      if (response.status === 200) {
-        refetch();
-        enqueueSnackbar("Update success!");
-        onClose();
+      // Upload any new File objects to S3 first
+      const uploadedFields: Record<string, string> = {};
+      for (const key in data) {
+        if (key.endsWith('-preview') || key.endsWith('preview')) continue;
+        const val = data[key];
+        if (val instanceof File) {
+          const url = await uploadImageFile(val);
+          if (!url) throw new Error(`Failed to upload ${key}`);
+          uploadedFields[key] = url;
+        } else if (typeof val === 'string' && val) {
+          uploadedFields[key] = val;
+        }
       }
-    } catch (error: AxiosError | any) {
+
+      const docType = currentData?.documentTitle;
+      if (!docType || !driverId) {
+        enqueueSnackbar('Missing document type or driver ID', { variant: 'error' });
+        return;
+      }
+
+      // Map document types to their backend POST endpoints
+      const endpointMap: Record<string, string> = {
+        drivingLicense: '/documents/driving-license',
+        bankDocuments: '/documents/bank-account',
+        pcoDocuments: '/documents/pco',
+        passport: '/documents/passport',
+        addressProfDocs: '/documents/address',
+      };
+
+      const endpoint = endpointMap[docType];
+      if (!endpoint) {
+        enqueueSnackbar(`Unknown document type: ${docType}`, { variant: 'error' });
+        return;
+      }
+
+      // Build payload with driverId + uploaded file URLs
+      const payload: Record<string, any> = { driverId, ...uploadedFields };
+
+      await axiosInstance.post(endpoint, payload);
+      refetch();
+      enqueueSnackbar('Update success!');
+      onClose();
+    } catch (error: any) {
       if (error?.response?.data?.message) {
-        enqueueSnackbar(error?.response?.data?.message,{variant:"error"});
-      }
-      else {
-        enqueueSnackbar("something went wrong",{variant:"error"});
+        enqueueSnackbar(error?.response?.data?.message, { variant: 'error' });
+      } else {
+        enqueueSnackbar(error?.message || 'Something went wrong', { variant: 'error' });
       }
       console.error(error);
     }

@@ -21,6 +21,7 @@ import { DRIVER_SUBSCRIPTION_OPTIONS, DRIVER_STATUS_OPTIONS } from "@/_mock/_dri
 import { MenuItem } from "@mui/material";
 import axiosInstance from "@/lib/admin-axios";
 import { resolveS3Url } from '@/lib/api';
+import { uploadImageFile } from '@/helpers/imageUpload';
 import { IDriver } from "@/types/type";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -105,12 +106,25 @@ export default function DriversNewEditForm({
   const values = watch();
 
   const onSubmit = handleSubmit(async (driverData) => {
-    delete driverData.filePreview;
-    delete driverData.profileImage;
     try {
+      // Upload profile image if a new file was dropped
+      let coverImageUrl: string | undefined;
+      if (driverData.profileImage instanceof File) {
+        const uploadedUrl = await uploadImageFile(driverData.profileImage as any);
+        if (uploadedUrl) coverImageUrl = uploadedUrl;
+      }
+
+      // Remove form-only fields
+      const { filePreview, profileImage, ...payload } = driverData as any;
+
+      // If we uploaded a new image, include coverImage for the user update
+      if (coverImageUrl) {
+        payload.coverImage = coverImageUrl;
+      }
+
       const { data } = await axiosInstance.put(
         `/admin/drivers/${currentDriver.id}`,
-        driverData
+        payload
       );
 
       if (data.success === true) {

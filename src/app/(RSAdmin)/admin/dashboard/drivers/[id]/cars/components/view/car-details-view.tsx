@@ -149,6 +149,7 @@ export default function CarDetailsView({ driverId, id }: CarDetailsViewProps) {
               title={titleForModal}
               currentData={forEdit}
               documentId={currentCar?.carDocument?.id}
+              carId={id}
               open={quickEdit.value}
               onClose={quickEdit.onFalse}
               setChangeFlag={setChangeFlag}

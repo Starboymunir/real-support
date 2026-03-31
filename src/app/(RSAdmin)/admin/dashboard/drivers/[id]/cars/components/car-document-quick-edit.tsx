@@ -14,9 +14,9 @@ import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import FormProvider, {
   RHFUpload,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
-import { endpoints } from "@/lib/utils/axios";
-import axios from "axios";
 import { resolveS3Url } from '@/lib/api';
+import { uploadImageFile } from '@/helpers/imageUpload';
+import axiosInstance from '@/lib/admin-axios';
 
 // ----------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ interface CarDocQuickEditFormProps {
   open: boolean;
   onClose: () => void;
   documentId: string | number;
+  carId?: string;
   setChangeFlag: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -42,6 +43,7 @@ export default function CarDocQuickEditForm({
   open,
   onClose,
   documentId,
+  carId,
   setChangeFlag,
 }: CarDocQuickEditFormProps) {
   const { enqueueSnackbar } = useSnackbar();
@@ -97,33 +99,51 @@ export default function CarDocQuickEditForm({
   );
 
   const onSubmit = handleSubmit(async (data: Record<string, any>) => {
-    const formData = new FormData();
-
-    for (const key in data) {
-      if (
-        data[key] !== null &&
-        data[key] !== undefined &&
-        !key.endsWith("preview")
-      ) {
-        formData.append(key, data[key] as any);
-      }
-    }
-    formData.append("documentType", currentData.documentTitle);
     try {
-      const response = await axios.put(
-        endpoints.cars.carDocUpdate("null", documentId),
-        formData
-      );
-      if (response.status === 200) {
-        setChangeFlag((prev) => !prev);
-        enqueueSnackbar("Update success!");
-        onClose();
+      // Upload any new File objects to S3 first
+      const uploadedFields: Record<string, string> = {};
+      for (const key in data) {
+        if (key.endsWith('-preview') || key.endsWith('preview')) continue;
+        const val = data[key];
+        if (val instanceof File) {
+          const url = await uploadImageFile(val);
+          if (!url) throw new Error(`Failed to upload ${key}`);
+          uploadedFields[key] = url;
+        } else if (typeof val === 'string' && val) {
+          uploadedFields[key] = val;
+        }
       }
+
+      const docType = currentData.documentTitle;
+      if (!carId) {
+        enqueueSnackbar('Missing car ID', { variant: 'error' });
+        return;
+      }
+
+      // Map car document types to backend POST endpoints
+      const endpointMap: Record<string, string> = {
+        insuranceDocument: '/documents/driver/car/insurance',
+        motDocument: '/documents/driver/car/mot',
+        pcoDocument: '/documents/driver/car/car_pco_document',
+        vehicleLogBook: '/documents/driver/car/vehicleLogBook',
+      };
+
+      const endpoint = endpointMap[docType];
+      if (!endpoint) {
+        enqueueSnackbar(`Unknown document type: ${docType}`, { variant: 'error' });
+        return;
+      }
+
+      const payload: Record<string, any> = { carId, ...uploadedFields };
+      await axiosInstance.post(endpoint, payload);
+      setChangeFlag((prev) => !prev);
+      enqueueSnackbar('Update success!');
+      onClose();
     } catch (error: any) {
       if (error?.response?.data?.message) {
-        enqueueSnackbar(error?.response?.data?.message, { variant: "error" });
+        enqueueSnackbar(error?.response?.data?.message, { variant: 'error' });
       } else {
-        enqueueSnackbar("something went wrong", { variant: "error" });
+        enqueueSnackbar(error?.message || 'Something went wrong', { variant: 'error' });
       }
     }
   });
@@ -198,5 +218,6 @@ CarDocQuickEditForm.propTypes = {
   onClose: PropTypes.func,
   open: PropTypes.bool,
   documentId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  carId: PropTypes.string,
   setChangeFlag: PropTypes.func,
 };

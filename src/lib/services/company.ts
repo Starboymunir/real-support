@@ -19,6 +19,9 @@ export interface CompanyWalletData {
 }
 
 export const companyApi = {
+  getAll: (page = 1, limit = 20) =>
+    api.get<Company[]>(`/companies?page=${page}&count=${limit}`),
+
   getById: (id: string) =>
     api.get<Company>(`/company/findById/${id}`),
 

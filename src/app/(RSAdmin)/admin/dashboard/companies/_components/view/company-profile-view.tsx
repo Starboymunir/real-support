@@ -29,7 +29,6 @@ export default function CompanyProfileView({ id }: { id: string }) {
   if (!company) return null;
 
   const address = company.companyAddress;
-  const contactPerson = company.userInfo;
   const fullAddress = address
     ? [address.houseNumber, address.streetName, address.city, address.postCode]
         .filter(Boolean)
@@ -148,34 +147,101 @@ export default function CompanyProfileView({ id }: { id: string }) {
         {/* Left Column */}
         <Grid size={{ xs: 12, md: 4 }}>
           <Stack spacing={3}>
-            {/* Contact Person Card */}
+            {/* Company Admins Card */}
             <Card>
-              <CardHeader title="Contact Person" />
-              {contactPerson ? (
+              <CardHeader title="Company Admins" />
+              {company.companyAdmins && company.companyAdmins.length > 0 ? (
                 <Stack spacing={2} sx={{ p: 3 }}>
-                  <Stack direction="row" alignItems="center" spacing={2}>
-                    <AwsImageAvatar
-                      imageKey={contactPerson.coverImage || contactPerson.profileImageUrl}
-                      alt={contactPerson.firstName}
-                      sx={{ width: 48, height: 48 }}
-                    />
-                    <Box>
-                      <Typography variant="subtitle2">
-                        {contactPerson.firstName} {contactPerson.lastName}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                        {contactPerson.role?.replace("_", " ")}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                  <Divider />
-                  <InfoRow icon="solar:letter-bold" label="Email" value={contactPerson.email} />
-                  <InfoRow icon="solar:phone-bold" label="Phone" value={contactPerson.phone_number} />
+                  {company.companyAdmins.map((admin: any) => (
+                    <Stack key={admin.id} direction="row" alignItems="center" spacing={2}>
+                      <Box
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: '50%',
+                          bgcolor: 'action.hover',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 18,
+                        }}
+                      >
+                        {admin.Name?.[0]}
+                      </Box>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="subtitle2">
+                          {admin.Name} {admin.Surname}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                          {admin.companyAdminEmail}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  ))}
                 </Stack>
               ) : (
                 <Box sx={{ p: 3 }}>
                   <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    No contact person assigned
+                    No admins assigned
+                  </Typography>
+                </Box>
+              )}
+            </Card>
+
+            {/* Drivers Card */}
+            <Card>
+              <CardHeader 
+                title="Drivers" 
+                subheader={`Total: ${company.drivers?.length || 0}`}
+              />
+              {company.drivers && company.drivers.length > 0 ? (
+                <Stack spacing={1.5} sx={{ p: 2 }}>
+                  {company.drivers.slice(0, 10).map((driver: any) => (
+                    <Box
+                      key={driver.id}
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 1,
+                        bgcolor: 'background.neutral',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
+                        <AwsImageAvatar
+                          imageKey={driver.userInfo?.coverImage || driver.userInfo?.profileImageUrl}
+                          alt={driver.userInfo?.firstName}
+                          sx={{ width: 32, height: 32, fontSize: 12 }}
+                        />
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" noWrap>
+                            {driver.userInfo?.firstName} {driver.userInfo?.lastName}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: "text.secondary" }} noWrap>
+                            {driver.userInfo?.phone_number}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Label
+                        variant="soft"
+                        color={driver.isActive ? "success" : "default"}
+                        sx={{ ml: 1 }}
+                      >
+                        {driver.isActive ? "Active" : "Inactive"}
+                      </Label>
+                    </Box>
+                  ))}
+                  {company.drivers.length > 10 && (
+                    <Typography variant="caption" sx={{ color: "text.secondary", p: 1.5 }}>
+                      +{company.drivers.length - 10} more drivers
+                    </Typography>
+                  )}
+                </Stack>
+              ) : (
+                <Box sx={{ p: 3 }}>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    No drivers assigned
                   </Typography>
                 </Box>
               )}

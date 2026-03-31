@@ -23,6 +23,7 @@ import DriversQuickEditForm from "./drivers-quick-edit-form";
 import AwsImageAvatar from "../../../common/aws-image-avatar/Avatar";
 import AssignPackageDriverForm from "./AssignPackageForm";
 import RemovePackageDriverForm from "./RemovePackageForm";
+import AssignCompanyForm from "./AssignCompanyForm";
 import { IDriver } from "@/types/type";
 
 export default function DriversTableRow({
@@ -55,6 +56,7 @@ export default function DriversTableRow({
   const quickEdit = useBoolean();
   const quickEditPackage = useBoolean();
   const quickRemovePackage = useBoolean();
+  const quickEditCompany = useBoolean();
 
   const popover = usePopover();
 
@@ -182,6 +184,13 @@ export default function DriversTableRow({
         refetch={refetch}
       />
 
+      <AssignCompanyForm
+        driver={row}
+        open={quickEditCompany.value}
+        onClose={quickEditCompany.onFalse}
+        refetch={refetch}
+      />
+
       <DriversQuickEditForm
         currentUser={row}
         open={quickEdit.value}
@@ -232,6 +241,16 @@ export default function DriversTableRow({
         >
           <Iconify icon="bxs:package" />
           Assign Package
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            quickEditCompany.onTrue();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="bxs:building" />
+          Assign Company
         </MenuItem>
 
         <MenuItem

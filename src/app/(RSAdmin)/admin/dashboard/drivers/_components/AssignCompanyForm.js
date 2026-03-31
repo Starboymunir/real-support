@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import * as Yup from "yup";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import LoadingButton from "@mui/lab/LoadingButton";
@@ -45,11 +45,26 @@ export default function AssignCompanyForm({
     setValue,
   } = methods;
 
+  const normalizeCompanies = (raw) => {
+    const list = Array.isArray(raw) ? raw : [];
+    const seen = new Set();
+    return list
+      .map((company, idx) => ({
+        ...company,
+        _optionKey: String(company?.id || `${company?.companyName || "company"}-${idx}`),
+      }))
+      .filter((company) => {
+        if (seen.has(company._optionKey)) return false;
+        seen.add(company._optionKey);
+        return true;
+      });
+  };
+
   const fetchCompanies = async () => {
     setLoading(true);
     try {
       const { data } = await axiosInstance.get('/company/find-all?count=1000&page=1');
-      setCompanies(Array.isArray(data?.data) ? data.data : []);
+      setCompanies(normalizeCompanies(data?.data));
     } catch (err) {
       console.log("Error fetching companies:", err);
       enqueueSnackbar("Failed to load companies. Please try again.", {
@@ -119,8 +134,8 @@ export default function AssignCompanyForm({
               options={companies}
               getOptionLabel={(option) => option?.companyName || ""}
               isOptionEqualToValue={(option, value) => option?.id === value?.id}
-              renderOption={(props, option) => (
-                <li {...props} key={option.id}>
+              renderOption={(props, option, state) => (
+                <li {...props} key={`${option?._optionKey || option?.id || option?.companyName || "company"}-${state.index}`}>
                   <Box>
                     <ListItemText
                       primary={option?.companyName}

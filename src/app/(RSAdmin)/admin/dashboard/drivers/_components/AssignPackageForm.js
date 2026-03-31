@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import * as Yup from "yup";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import LoadingButton from "@mui/lab/LoadingButton";
@@ -46,17 +46,32 @@ export default function AssignPackageDriverForm({
     setValue,
   } = methods;
 
+  const normalizePackages = (raw) => {
+    const list = Array.isArray(raw) ? raw : [];
+    const seen = new Set();
+    return list
+      .map((pkg, idx) => ({
+        ...pkg,
+        _optionKey: String(pkg?.id || `${pkg?.name || "package"}-${idx}`),
+      }))
+      .filter((pkg) => {
+        if (seen.has(pkg._optionKey)) return false;
+        seen.add(pkg._optionKey);
+        return true;
+      });
+  };
+
   const fetchPackages = async () => {
     setLoading(true);
     try {
       // Admin endpoint includes all packages; request a large page to avoid empty picker.
       const { data } = await axiosInstance.get('/packages/admin?count=1000&page=1&sort=asc');
-      setPackages(Array.isArray(data?.data) ? data.data : []);
+      setPackages(normalizePackages(data?.data));
     } catch (err) {
       // Fallback for non-admin roles that may only access /packages.
       try {
         const { data } = await axiosInstance.get('/packages?count=1000&page=1&sort=asc');
-        setPackages(Array.isArray(data?.data) ? data.data : []);
+        setPackages(normalizePackages(data?.data));
       } catch (fallbackErr) {
         console.log("Error fetching packages:", fallbackErr);
       }
@@ -124,8 +139,8 @@ export default function AssignPackageDriverForm({
               options={packages}
               getOptionLabel={(option) => option?.name || ""}
               isOptionEqualToValue={(option, value) => option?.id === value?.id}
-              renderOption={(props, option) => (
-                <li {...props} key={option.id}>
+              renderOption={(props, option, state) => (
+                <li {...props} key={`${option?._optionKey || option?.id || option?.name || "package"}-${state.index}`}>
                   <Box sx={{ mr: 2 }}>
                     <AwsImageRender
                       placeHolderImage={"/webAssets/images/placeholder/car.png"}

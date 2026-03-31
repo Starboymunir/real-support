@@ -122,6 +122,10 @@ export default function DriverInfo({ info, refetch }: { info: any; refetch: any 
     legalInfoQuickEdit.onTrue();
   };
 
+  const assignedPackages = Array.isArray(info?.packageInfos)
+    ? info.packageInfos.map((pkg: any) => pkg?.name).filter(Boolean)
+    : [];
+
   const completedJobs = info?.totalJobs?.filter((b: { status: string }) => b?.status === "COMPLETED")?.length || 0;
   const totalJobs = info?.totalJobs?.length || 0;
 
@@ -191,6 +195,17 @@ export default function DriverInfo({ info, refetch }: { info: any; refetch: any 
         {[
           { icon: "solar:letter-bold", label: "Email", value: info?.userInfo?.emailAddress },
           { icon: "solar:phone-bold", label: "Phone", value: info?.userInfo?.phone_number },
+          { icon: "solar:buildings-2-bold", label: "Company", value: info?.companyInfo?.companyName },
+          {
+            icon: "solar:box-bold",
+            label: "Packages",
+            value:
+              assignedPackages.length > 0
+                ? assignedPackages.join(", ")
+                : Array.isArray(info?.packageIDs) && info.packageIDs.length > 0
+                ? `${info.packageIDs.length} assigned`
+                : null,
+          },
           { icon: "solar:calendar-bold", label: "Date of Birth", value: info?.dateOfBirth ? new Date(info.dateOfBirth).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : null },
           { icon: "solar:map-point-bold", label: "Address", value: [info?.address, info?.city, info?.postcode].filter(Boolean).join(", ") || null },
           { icon: "solar:shield-check-bold", label: "NI Number", value: info?.nationalInsuranceNumber },

@@ -37,9 +37,9 @@ import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import DriversTableToolbar from "../drivers-table-toolbar";
 import DriversTableFiltersResult from "../drivers-table-filters-result";
 import DriversTableRow from "../drivers-table-row";
-import { changeStatusDriver } from "@/server/Driver";
 import { useDriversQuery } from "@/hooks/Drivers";
 import { IDriver } from "@/types/type";
+import axiosInstance from "@/lib/admin-axios";
 
 // ----------------------------------------------------------------------
 
@@ -130,9 +130,9 @@ export default function DriversListView() {
     async (id: string) => {
       setLoading(true);
       try {
-        const response = await changeStatusDriver(id, "SUSPEND");
-        if (response?.statusCode == 400) {
-          enqueueSnackbar(response.message, { variant: "error" });
+        const response = await axiosInstance.patch(`/admin/drivers/${id}/status`, { status: "SUSPEND" });
+        if (response?.data?.success === false) {
+          enqueueSnackbar(response?.data?.message || "Failed to suspend driver", { variant: "error" });
         } else {
           enqueueSnackbar("Driver suspend successfully");
         }
@@ -170,9 +170,9 @@ export default function DriversListView() {
     async (id: string) => {
       setLoading(true);
       try {
-        const response = await changeStatusDriver(id, "ACTIVE");
-        if (response?.statusCode == 400) {
-          enqueueSnackbar(response.message, { variant: "error" });
+        const response = await axiosInstance.patch(`/admin/drivers/${id}/status`, { status: "ACTIVE" });
+        if (response?.data?.success === false) {
+          enqueueSnackbar(response?.data?.message || "Failed to activate driver", { variant: "error" });
         } else {
           enqueueSnackbar("Driver active successfully");
         }
@@ -190,9 +190,9 @@ export default function DriversListView() {
     async (id: string) => {
       setLoading(true);
       try {
-        const response = await changeStatusDriver(id, "ONHOLD");
-        if (response?.statusCode == 400) {
-          enqueueSnackbar(response.message, { variant: "error" });
+        const response = await axiosInstance.patch(`/admin/drivers/${id}/status`, { status: "ONHOLD" });
+        if (response?.data?.success === false) {
+          enqueueSnackbar(response?.data?.message || "Failed to set driver on hold", { variant: "error" });
         } else {
           enqueueSnackbar("Driver hold successfully");
         }
@@ -210,9 +210,9 @@ export default function DriversListView() {
     async (id: string) => {
       setLoading(true);
       try {
-        const response = await changeStatusDriver(id, "PENDING");
-        if (response?.statusCode == 400) {
-          enqueueSnackbar(response.message, { variant: "error" });
+        const response = await axiosInstance.patch(`/admin/drivers/${id}/status`, { status: "PENDING" });
+        if (response?.data?.success === false) {
+          enqueueSnackbar(response?.data?.message || "Failed to set driver pending", { variant: "error" });
         } else {
           enqueueSnackbar("Driver pending successfully");
         }

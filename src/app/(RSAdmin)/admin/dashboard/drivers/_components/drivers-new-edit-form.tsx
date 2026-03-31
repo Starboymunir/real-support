@@ -24,6 +24,7 @@ import { resolveS3Url } from '@/lib/api';
 import { uploadImageFile } from '@/helpers/imageUpload';
 import { IDriver } from "@/types/type";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCompaniesQuery } from "@/hooks/Company";
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +35,7 @@ export default function DriversNewEditForm({
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
+  const { data: companies = [] } = useCompaniesQuery();
 
   const NewUserSchema = Yup.object().shape({
     driverRecognitionNumber: Yup.string().required(
@@ -61,8 +63,9 @@ export default function DriversNewEditForm({
       "Status is required"
     ),
     subscription: Yup.string().required("Subscription is required"),
-    profileImage: Yup.string().nullable(),
-    filePreview: Yup.string().nullable(),
+    companyId: Yup.string().nullable(),
+    profileImage: Yup.mixed().nullable(),
+    filePreview: Yup.mixed().nullable(),
   });
 
   const defaultValues = useMemo(
@@ -84,6 +87,7 @@ export default function DriversNewEditForm({
       commissionPercentage: currentDriver?.commissionPercentage || 0,
       subscription: currentDriver?.subscription || "",
       status: currentDriver?.status || "",
+      companyId: currentDriver?.companyId || "",
       filePreview: currentDriver?.userInfo?.coverImage || currentDriver?.userInfo?.profileImageUrl || null,
     }),
     [currentDriver]
@@ -116,6 +120,11 @@ export default function DriversNewEditForm({
 
       // Remove form-only fields
       const { filePreview, profileImage, ...payload } = driverData as any;
+
+      // Empty string means unassign company
+      if (payload.companyId === "") {
+        payload.companyId = null;
+      }
 
       // If we uploaded a new image, include coverImage for the user update
       if (coverImageUrl) {
@@ -217,6 +226,19 @@ export default function DriversNewEditForm({
               {DRIVER_SUBSCRIPTION_OPTIONS.map((status) => (
                 <MenuItem key={status.value} value={status.value}>
                   {status.label}
+                </MenuItem>
+              ))}
+            </RHFSelect>
+
+            <RHFSelect
+              name="companyId"
+              label="Company"
+              sx={{ mb: 3 }}
+            >
+              <MenuItem value="">Unassigned</MenuItem>
+              {companies.map((company: any) => (
+                <MenuItem key={company.id} value={company.id}>
+                  {company?.name || company?.companyName || company?.email || company?.id}
                 </MenuItem>
               ))}
             </RHFSelect>

@@ -9,16 +9,14 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
+import { ListItemText } from "@mui/material";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import FormProvider, {
   RHFAutocomplete,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
-import { endpoints } from "@/lib/utils/axios";
-import axios from "axios";
-import { ListItemText } from "@mui/material";
-import AwsImageRender from "../../../common/aws-image-avatar/ImageRender";
 import axiosInstance from "@/lib/admin-axios";
 import { IDriver } from "@/types/type";
+import AwsImageRender from "../../../common/aws-image-avatar/ImageRender";
 
 // ----------------------------------------------------------------------
 
@@ -34,7 +32,7 @@ export default function RemovePackageDriverForm({
   refetch: () => void;
 }) {
   const { enqueueSnackbar } = useSnackbar();
-  const [packages, setPackages] = useState([]);
+  const [packages, setPackages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const schema = Yup.object().shape({
@@ -44,36 +42,53 @@ export default function RemovePackageDriverForm({
   const methods = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
-      package: driver?.packageIDs,
+      package: null,
     },
   });
 
   const {
     handleSubmit,
-    formState: { errors },
+    setValue,
   } = methods;
 
-  const fetch = async () => {
+  const fetchPackages = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(endpoints.packages.allPackages);
-      setPackages(data);
+      const { data } = await axiosInstance.get('/packages/admin?count=1000&page=1&sort=asc');
+      const allPackages = Array.isArray(data?.data) ? data.data : [];
+      const assigned = allPackages.filter((pkg: any) =>
+        (driver?.packageIDs || []).includes(pkg.id)
+      );
+      setPackages(assigned);
     } catch (err) {
-      console.log("Error in  fetching packages :", err);
+      try {
+        const { data } = await axiosInstance.get('/packages?count=1000&page=1&sort=asc');
+        const allPackages = Array.isArray(data?.data) ? data.data : [];
+        const assigned = allPackages.filter((pkg: any) =>
+          (driver?.packageIDs || []).includes(pkg.id)
+        );
+        setPackages(assigned);
+      } catch (fallbackErr) {
+        console.log("Error fetching packages:", fallbackErr);
+      }
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
-    fetch();
-  }, []);
+    if (open) {
+      fetchPackages();
+      setValue("package", null);
+    }
+  }, [open, driver?.id]);
 
   const onSubmit = handleSubmit(async (data) => {
     try {
       setLoading(true);
       const result = await axiosInstance.patch(
         `/drivers/${driver.id}/packages/remove`,
-        { packageId: data.package }
+        { packageId: data.package?.id }
       );
 
       if (result.data.success) {
@@ -117,10 +132,11 @@ export default function RemovePackageDriverForm({
             <RHFAutocomplete
               name="package"
               label="Packages"
-              options={packages.map((option) => option)}
-              getOptionLabel={(option) => option.name}
+              options={packages}
+              getOptionLabel={(option) => option?.name || ""}
+              isOptionEqualToValue={(option, value) => option?.id === value?.id}
               renderOption={(props, option) => (
-                <li {...props} key={option}>
+                <li {...props} key={option.id}>
                   <Box sx={{ mr: 2 }}>
                     <AwsImageRender
                       placeHolderImage={"/webAssets/images/placeholder/car.png"}

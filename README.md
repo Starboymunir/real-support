@@ -77,11 +77,11 @@ Users are created from the **Admin Dashboard**.
 
 ### Role IDs
 
-| Role | ID |
-|-----|-----|
-| SuperAdmin | 1 |
-| Admin | 2 |
-| CompanyAdmin | 3 |
+| Role         | ID  |
+| ------------ | --- |
+| SuperAdmin   | 1   |
+| Admin        | 2   |
+| CompanyAdmin | 3   |
 
 ### Rules
 
@@ -140,8 +140,10 @@ Profile updates follow the **same structure as regular user profiles**.
 
 # Summary
 
-| Role | Can Create | Can Manage | Restrictions |
-|-----|-----|-----|-----|
-| SuperAdmin | Admin | Everything | Only one allowed |
-| Admin | Company, CompanyAdmin | Companies & CompanyAdmins | Cannot create SuperAdmin or Admin |
-| CompanyAdmin | None | Company & Drivers | Cannot manage Admin roles
+| Role         | Can Create            | Can Manage                | Restrictions                      |
+| ------------ | --------------------- | ------------------------- | --------------------------------- |
+| SuperAdmin   | Admin                 | Everything                | Only one allowed                  |
+| Admin        | Company, CompanyAdmin | Companies & CompanyAdmins | Cannot create SuperAdmin or Admin |
+| CompanyAdmin | None                  | Company & Drivers         | Cannot manage Admin roles         |
+
+pushed

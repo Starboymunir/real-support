@@ -17,9 +17,8 @@ import { useRouter } from "next/navigation";
 import { useBoolean } from "@/app/(RSAdmin)/admin/hooks//use-boolean";
 import { useAuth } from "@/lib/auth-context";
 import Iconify from "@/components/iconify/iconify";
-import FormProvider, {
-  RHFTextField,
-} from "@/app/(RSAdmin)/admin/common/hook-form";
+import FormProvider from "@/app/(RSAdmin)/admin/common/hook-form/form-provider";
+import RHFTextField from "@/app/(RSAdmin)/admin/common/hook-form/rhf-text-field";
 // ----------------------------------------------------------------------
 
 export default function JwtLoginView() {

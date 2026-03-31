@@ -18,9 +18,8 @@ import { useSearchParams, useRouter } from "@/app/(RSAdmin)/admin/routes/hook";
 import { PATH_AFTER_LOGIN } from "@/config-global";
 import { useAuthContext } from "@/app/(RSAdmin)/admin/auth/hooks";
 import Iconify from "@/components/iconify/iconify";
-import FormProvider, {
-  RHFTextField,
-} from "@/app/(RSAdmin)/admin/common/hook-form";
+import FormProvider from "@/app/(RSAdmin)/admin/common/hook-form/form-provider";
+import RHFTextField from "@/app/(RSAdmin)/admin/common/hook-form/rhf-text-field";
 
 export default function JwtRegisterView() {
   const { register } = useAuthContext();

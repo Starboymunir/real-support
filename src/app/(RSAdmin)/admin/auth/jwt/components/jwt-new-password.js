@@ -10,9 +10,8 @@ import Typography from "@mui/material/Typography";
 import InputAdornment from "@mui/material/InputAdornment";
 import { useBoolean } from "@/app/(RSAdmin)/admin/hooks//use-boolean";
 import Iconify from "@/components/iconify/iconify";
-import FormProvider, {
-  RHFTextField,
-} from "@/app/(RSAdmin)/admin/common/hook-form";
+import FormProvider from "@/app/(RSAdmin)/admin/common/hook-form/form-provider";
+import RHFTextField from "@/app/(RSAdmin)/admin/common/hook-form/rhf-text-field";
 import { useAuth } from "@/lib/auth-context";
 import { adminAuthApi } from "@/lib/services/admin";
 

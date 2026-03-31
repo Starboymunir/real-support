@@ -11,17 +11,18 @@ import { CacheProvider } from '@emotion/react';
 
 export default function RTL({ children, themeDirection }) {
   useEffect(() => {
-    document.dir = themeDirection;
+    if (typeof document !== 'undefined') {
+      document.dir = themeDirection;
+    }
   }, [themeDirection]);
 
-  const cacheRtl = createCache({
-    key: 'rtl',
-    prepend: true,
-    // https://github.com/styled-components/stylis-plugin-rtl/issues/35
-    stylisPlugins: [prefixer, rtlPlugin],
-  });
-
-  if (themeDirection === 'rtl') {
+  if (themeDirection === 'rtl' && typeof window !== 'undefined') {
+    const cacheRtl = createCache({
+      key: 'rtl',
+      prepend: true,
+      // https://github.com/styled-components/stylis-plugin-rtl/issues/35
+      stylisPlugins: [prefixer, rtlPlugin],
+    });
     return <CacheProvider value={cacheRtl}>{children}</CacheProvider>;
   }
 

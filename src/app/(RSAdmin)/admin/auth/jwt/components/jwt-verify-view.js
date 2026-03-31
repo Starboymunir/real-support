@@ -10,7 +10,8 @@ import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { EmailInboxIcon } from "@/config/icons";
 import Iconify from "@/components/iconify/iconify";
 import { RouterLink } from "@/app/(RSAdmin)/admin/routes/components";
-import FormProvider, { RHFCode } from "@/app/(RSAdmin)/admin/common/hook-form";
+import FormProvider from "@/app/(RSAdmin)/admin/common/hook-form/form-provider";
+import RHFCode from "@/app/(RSAdmin)/admin/common/hook-form/rhf-code";
 import axiosInstance, { endpoints } from "@/lib/utils/axios";
 
 export default function JwtVerifyOtp() {

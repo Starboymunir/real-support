@@ -16,9 +16,8 @@ import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { RouterLink } from "@/app/(RSAdmin)/admin/routes/components";
 import { PasswordIcon } from "@/config/icons";
 import Iconify from "@/components/iconify/iconify";
-import FormProvider, {
-  RHFTextField,
-} from "@/app/(RSAdmin)/admin/common/hook-form";
+import FormProvider from "@/app/(RSAdmin)/admin/common/hook-form/form-provider";
+import RHFTextField from "@/app/(RSAdmin)/admin/common/hook-form/rhf-text-field";
 import { adminAuthApi } from "@/lib/services/admin";
 
 export default function JwtForgotPasswordView() {

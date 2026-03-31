@@ -5,15 +5,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Iconify from '@/components/iconify/iconify';
 import { Car } from '@/lib/interface-types/driver-types';
 import React, { useState } from 'react';
-
-const S3_BUCKET = "psslrscab-storage-bucket4439f-dev";
-const S3_REGION = "eu-west-1";
-function resolveS3Url(key: string | null | undefined): string | null {
-  if (!key) return null;
-  if (key.startsWith("http://") || key.startsWith("https://")) return key;
-  if (key.startsWith("/")) return key;
-  return `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/public/${key}`;
-}
+import { resolveS3Url } from '@/lib/api';
 
 interface CarCardProps {
   car: Car;

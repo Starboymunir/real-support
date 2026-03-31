@@ -70,7 +70,7 @@ const Image = forwardRef(
         useIntersectionObserver={useIntersectionObserver}
         wrapperClassName={wrapperClassName || "component-image-wrapper"}
         placeholderSrc={
-          disabledEffect ? "/assets/transparent.png" : "/assets/placeholder.svg"
+          disabledEffect ? "/file.svg" : "/file.svg"
         }
         sx={{
           width: 1,

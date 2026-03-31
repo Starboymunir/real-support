@@ -42,4 +42,7 @@ export const chatApi = {
 
   deleteChat: (chatId: string) =>
     api.del(`/chat/${chatId}`),
+
+  getBroadcasts: () =>
+    api.get<any[]>('/chat/broadcasts/list'),
 };

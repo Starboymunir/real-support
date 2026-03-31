@@ -17,10 +17,11 @@ import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
 import Label from "@/app/(RSAdmin)/admin/common/label";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import AwsImageAvatar from "@/app/(RSAdmin)/admin/common/aws-image-avatar/Avatar";
-import { useCompanyQuery } from "@/hooks/Company";
+import { useCompanyQuery, useCompanyWalletQuery } from "@/hooks/Company";
 
 export default function CompanyProfileView({ id }: { id: string }) {
   const { data, isLoading } = useCompanyQuery(id);
+  const { data: walletData } = useCompanyWalletQuery(id);
   const company: any = data;
   const router = useRouter();
 
@@ -97,6 +98,23 @@ export default function CompanyProfileView({ id }: { id: string }) {
           {company.description && (
             <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
               {company.description}
+            </Typography>
+          )}
+          {company.companyCode && (
+            <Typography
+              variant="subtitle2"
+              sx={{
+                mt: 0.5,
+                fontFamily: "monospace",
+                color: "primary.main",
+                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 1,
+                display: "inline-block",
+              }}
+            >
+              Company ID: {company.companyCode}
             </Typography>
           )}
           <Stack
@@ -242,6 +260,67 @@ export default function CompanyProfileView({ id }: { id: string }) {
                   <InfoRow icon="mdi:road" label="Street" value={address.streetName} />
                   <InfoRow icon="mdi:city" label="City" value={address.city} />
                   <InfoRow icon="mdi:mailbox" label="Postcode" value={address.postCode} />
+                </Stack>
+              </Card>
+            )}
+
+            {/* Company Wallet */}
+            {walletData && (
+              <Card>
+                <CardHeader title="Company Wallet" />
+                <Stack spacing={2} sx={{ p: 3 }}>
+                  <Box
+                    sx={{
+                      p: 2.5,
+                      borderRadius: 2,
+                      bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography variant="overline" sx={{ color: "text.secondary" }}>
+                      Wallet Balance
+                    </Typography>
+                    <Typography variant="h3" sx={{ color: "primary.main", mt: 0.5 }}>
+                      £{(walletData.walletBalance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Typography>
+                  </Box>
+                  <Divider />
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 6 }}>
+                      <Box sx={{ textAlign: "center", p: 1.5, borderRadius: 1.5, bgcolor: "success.lighter" }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>Revenue</Typography>
+                        <Typography variant="h6" sx={{ color: "success.dark" }}>
+                          £{(walletData.totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <Box sx={{ textAlign: "center", p: 1.5, borderRadius: 1.5, bgcolor: "info.lighter" }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>Profit</Typography>
+                        <Typography variant="h6" sx={{ color: "info.dark" }}>
+                          £{(walletData.totalProfit ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <Box sx={{ textAlign: "center", p: 1.5, borderRadius: 1.5, bgcolor: "warning.lighter" }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>Commission</Typography>
+                        <Typography variant="h6" sx={{ color: "warning.dark" }}>
+                          £{(walletData.totalCommission ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <Box sx={{ textAlign: "center", p: 1.5, borderRadius: 1.5, bgcolor: "grey.100" }}>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>Bookings</Typography>
+                        <Typography variant="h6">{walletData.totalBookings ?? 0}</Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                  <Divider />
+                  <InfoRow icon="mdi:cash" label="Cash Collected" value={`£${(walletData.totalCashCollected ?? 0).toFixed(2)}`} />
+                  <InfoRow icon="mdi:wallet" label="Wallet Collected" value={`£${(walletData.totalWalletCollected ?? 0).toFixed(2)}`} />
+                  <InfoRow icon="mdi:account-group" label="Active Drivers" value={String(walletData.totalDrivers ?? 0)} />
                 </Stack>
               </Card>
             )}

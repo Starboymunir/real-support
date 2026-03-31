@@ -17,7 +17,6 @@ import FormProvider, {
 } from "@/app/(RSAdmin)/admin/common/hook-form";
 import { endpoints } from "@/lib/utils/axios";
 import axios from "axios";
-import { getUrl } from "aws-amplify/storage";
 import AwsImageAvatar from "../../../common/aws-image-avatar/Avatar";
 import { ListItemText } from "@mui/material";
 import {

@@ -16,8 +16,8 @@ import FormProvider, {
   RHFUploadAvatar,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
 import { fData } from "@/lib/utils/format-number";
-import { getUrl } from "aws-amplify/storage";
 import { updatePassengerById } from "@/server/Passenger";
+import { resolveS3Url } from '@/lib/api';
 import { uploadImageFile } from "@/helpers/imageUpload";
 import { useRouter } from "next/navigation";
 
@@ -99,16 +99,10 @@ export default function PassengerNewEditForm({ currentPassenger }: { currentPass
 
   useEffect(() => {
     if (currentPassenger?.coverImage) {
-      (async () => {
-        const url = await getUrl({ key: currentPassenger?.coverImage });
-        const newFile = Object.assign(
-          {},
-          {
-            preview: url.url.href,
-          }
-        );
-        setValue("filePreview", newFile, { shouldValidate: true });
-      })();
+      const url = resolveS3Url(currentPassenger.coverImage);
+      if (url) {
+        setValue("filePreview", { preview: url }, { shouldValidate: true });
+      }
     }
   }, [currentPassenger?.coverImage, setValue]);
 

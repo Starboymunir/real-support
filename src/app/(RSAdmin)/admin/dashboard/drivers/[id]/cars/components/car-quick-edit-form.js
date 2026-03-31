@@ -21,8 +21,8 @@ import { CAR_STATUS_OPTIONS } from "@/_mock/_drivers";
 import { MenuItem, Typography } from "@mui/material";
 import axios from "axios";
 import { endpoints } from "@/lib/utils/axios";
-import { getUrl } from "aws-amplify/storage";
 import { fData } from "@/lib/utils/format-number";
+import { resolveS3Url } from '@/lib/api';
 
 // ----------------------------------------------------------------------
 
@@ -93,18 +93,12 @@ export default function CarsQuickEditForm({
 
   useEffect(() => {
     if (currentCar?.carImage) {
-      (async () => {
-        const url = await getUrl({ key: currentCar?.carImage });
-        const newFile = Object.assign(
-          {},
-          {
-            preview: url.url.href,
-          }
-        );
-        setValue("filePreview", newFile, { shouldValidate: true });
-      })();
+      const url = resolveS3Url(currentCar.carImage);
+      if (url) {
+        setValue("filePreview", { preview: url }, { shouldValidate: true });
+      }
     }
-  }, [currentCar?.carImage]);
+  }, [currentCar?.carImage, setValue]);
 
   const handleDrop = useCallback(
     (acceptedFiles) => {

@@ -1,18 +1,18 @@
 "use client";
 
 import axiosInstance from "@/lib/admin-axios";
-import { Package } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
+import { AdminPackage } from "@/types/package";
 
 export const usePackagesQuery = () => {
-  return useQuery<Package[], Error>({
+  return useQuery<AdminPackage[], Error>({
     queryKey: ["all-packages"],
     queryFn: async () => getAllPackages(),
   });
 };
 
 export const useAdminPackagesQuery = () => {
-  return useQuery<Package[], Error>({
+  return useQuery<AdminPackage[], Error>({
     queryKey: ["all-packages"],
     queryFn: async () => getAllAdminPackages(),
   });

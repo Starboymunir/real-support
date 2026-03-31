@@ -17,8 +17,8 @@ import { styled } from "@mui/material/styles";
 import { useSocket } from "@/providers/SocketProvider";
 import { useChatContext } from "@/providers/ChatDataProvider";
 import moment from "moment";
-import { getUrl } from "aws-amplify/storage";
 import { useAsyncMemo } from "use-async-memo";
+import { resolveS3Url } from '@/lib/api';
 import IconButton from "@mui/material/IconButton";
 import { DeleteIcon } from "lucide-react";
 import Image from "next/image";
@@ -98,10 +98,7 @@ function ChatMessage({ message, userId }: any) {
     if (message.attachments?.length > 0) {
       const key = message.attachments?.find((x: any) => !!x);
       if (key) {
-        try {
-          const res = await getUrl({ key });
-          return res?.url?.href || null;
-        } catch (e) {}
+        return resolveS3Url(key);
       }
     }
     return null;

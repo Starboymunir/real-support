@@ -29,3 +29,14 @@ const getCompanyInfo = async (id: string) => {
   return data.data;
 };
 
+export const useCompanyWalletQuery = (companyId: string) => {
+  return useQuery({
+    queryKey: ["company_wallet", companyId],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get(`/company/${companyId}/wallet`);
+      return data.data;
+    },
+    enabled: !!companyId,
+  });
+};
+

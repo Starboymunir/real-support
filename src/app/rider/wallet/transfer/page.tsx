@@ -23,6 +23,7 @@ import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi } from '@/lib/services/wallet';
 import { userInfoApi } from '@/lib/services/user';
 import { toast } from '@/lib/toast';
+import { resolveS3Url } from '@/lib/api';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -40,6 +41,7 @@ type RecipientInfo = {
   emailAddress: string;
   phone_number: string;
   profileImageUrl: string;
+  coverImage?: string;
 };
 
 export default function TransferPage() {
@@ -224,9 +226,9 @@ export default function TransferPage() {
               <div className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-6">
                 <p className="text-xs text-white/30 uppercase tracking-wider font-semibold mb-3">Sending to</p>
                 <div className="flex items-center gap-4">
-                  {recipient.profileImageUrl ? (
+                  {resolveS3Url(recipient.profileImageUrl || recipient.coverImage) ? (
                     <Image
-                      src={recipient.profileImageUrl}
+                      src={resolveS3Url(recipient.profileImageUrl || recipient.coverImage)!}
                       alt={recipient.firstName}
                       width={56}
                       height={56}
@@ -371,9 +373,9 @@ export default function TransferPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-3 p-4 rounded-xl bg-secondary/[0.06] border border-secondary/20"
                   >
-                    {recipient.profileImageUrl ? (
+                    {resolveS3Url(recipient.profileImageUrl || recipient.coverImage) ? (
                       <Image
-                        src={recipient.profileImageUrl}
+                        src={resolveS3Url(recipient.profileImageUrl || recipient.coverImage)!}
                         alt={recipient.firstName}
                         width={40}
                         height={40}

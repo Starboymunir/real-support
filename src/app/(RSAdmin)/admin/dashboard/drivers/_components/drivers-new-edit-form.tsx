@@ -19,8 +19,8 @@ import FormProvider, {
 } from "@/app/(RSAdmin)/admin/common/hook-form";
 import { DRIVER_SUBSCRIPTION_OPTIONS, DRIVER_STATUS_OPTIONS } from "@/_mock/_drivers";
 import { MenuItem } from "@mui/material";
-import { getUrl } from "aws-amplify/storage";
 import axiosInstance from "@/lib/admin-axios";
+import { resolveS3Url } from '@/lib/api';
 import { IDriver } from "@/types/type";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -132,18 +132,12 @@ export default function DriversNewEditForm({
 
   useEffect(() => {
     if (currentDriver.userInfo?.coverImage) {
-      (async () => {
-        const url = await getUrl({ key: currentDriver?.userInfo?.coverImage ?? '' });
-        const newFile = Object.assign(
-          {},
-          {
-            preview: url.url.href,
-          }
-        );
-        setValue("filePreview", newFile.preview, { shouldValidate: true });
-      })();
+      const url = resolveS3Url(currentDriver.userInfo.coverImage);
+      if (url) {
+        setValue("filePreview", url, { shouldValidate: true });
+      }
     }
-  }, [currentDriver?.userInfo?.coverImage]);
+  }, [currentDriver?.userInfo?.coverImage, setValue]);
 
   const handleDrop = useCallback(
     (acceptedFiles: any[]) => {

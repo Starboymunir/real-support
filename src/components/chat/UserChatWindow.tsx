@@ -4,8 +4,8 @@ import React, { useEffect, useMemo } from "react";
 import { useChatContext } from "@/providers/ChatDataProvider";
 import { useSocket } from "@/providers/SocketProvider";
 import moment from "moment/moment";
-import { getUrl } from "aws-amplify/storage";
 import { useAsyncMemo } from "use-async-memo";
+import { resolveS3Url } from '@/lib/api';
 import { TrashIcon } from "lucide-react";
 import Image from "next/image";
 import { AppAvatar } from "../app-components/app-avatar";
@@ -26,10 +26,7 @@ function ChatMessage({ message, userId, showAdminAsSentBy = false }: any) {
     if (message.attachments?.length > 0) {
       const key = message.attachments?.find((x: any) => !!x);
       if (key) {
-        try {
-          const res = await getUrl({ key });
-          return res?.url?.href || null;
-        } catch (e) {}
+        return resolveS3Url(key);
       }
     }
     return null;

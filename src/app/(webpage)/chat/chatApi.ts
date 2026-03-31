@@ -2,7 +2,7 @@ import { fetchAuthSession } from "aws-amplify/auth";
 import axios from "axios";
 import type { InternalAxiosRequestConfig  } from 'axios';
 import { v4 as uuid } from "uuid";
-import { getUrl, uploadData } from "aws-amplify/storage";
+import { uploadData } from "aws-amplify/storage";
 import { Amplify } from "aws-amplify";
 import awsconfig from "@/amplifyconfiguration.json";
 Amplify.configure(awsconfig);

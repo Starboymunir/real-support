@@ -1,5 +1,4 @@
-import { v4 as uuid } from "uuid";
-import { uploadData } from "aws-amplify/storage";
+import { api } from "@/lib/api";
 
 export const uploadImageFile = async (
   image: File | null
@@ -8,40 +7,21 @@ export const uploadImageFile = async (
     return null;
   }
 
-  const mimeType = image.type;
-  const fileExtension = mimeType ? mimeType.split("/")[1] : null;
-
-  if (!fileExtension) {
+  if (!image.type?.startsWith("image/")) {
     return null;
   }
 
-  const fileName = `${uuid()}.${fileExtension}`;
-
   try {
-    const result = await uploadData({
-      key: fileName,
-      data: image,
-      options: {
-        accessLevel: 'guest',
-        onProgress: ({
-          transferredBytes,
-          totalBytes,
-        }: {
-          transferredBytes: number;
-          totalBytes: number;
-        }) => {
-          if (totalBytes) {
-            console.log(
-              `Upload progress ${Math.round(
-                (transferredBytes / totalBytes) * 100
-              )} %`
-            );
-          }
-        },
-      },
-    }).result;
+    const formData = new FormData();
+    formData.append("file", image);
 
-    return result.key;
+    const result = await api.upload<{ fileUrl?: string }>(
+      "/documents/upload_file",
+      formData
+    );
+
+    // Backend returns { fileUrl } in the unwrapped data payload
+    return result?.fileUrl ?? null;
   } catch (error: any) {
     console.log("uploading error: ", error);
     return null;

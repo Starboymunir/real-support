@@ -5,7 +5,9 @@ import {
   AccordionDetails,
   AccordionSummary,
   Button,
+  Dialog,
   Grid,
+  IconButton,
   Stack,
   Typography,
 } from "@mui/material";
@@ -16,6 +18,7 @@ import { enqueueSnackbar } from "notistack";
 import { carDocumentApprovalOrRejection } from "@/server/Document";
 import Iconify from "@/components/iconify/iconify";
 import Label from "@/app/(RSAdmin)/admin/common/label";
+import { resolveS3Url } from '@/lib/api';
 
 interface AccordionDocumentProps {
   name: string;
@@ -39,10 +42,12 @@ const AccordionDocument = ({
   const [isRejecting, setIsRejecting] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [status, setStatus] = useState("Pending");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const safeDocumentsList = documentsList ?? {};
 
   useEffect(() => {
     if (info) {
-      const detail = info[documentTitle]?.details;
+      const detail = info?.[documentTitle]?.details;
 
       let approveStatus = detail?.isVerified
         ? "Approved"
@@ -51,7 +56,7 @@ const AccordionDocument = ({
         : "Rejected";
       setStatus(approveStatus);
     }
-  }, [info?.id]);
+  }, [info?.id, documentTitle]);
 
   const acceptDocument = async (documentType: string) => {
     setIsAccepting(true);
@@ -140,32 +145,89 @@ const AccordionDocument = ({
             </LoadingButton>
           </Stack>
           <Grid container spacing={2}>
-            {Object.keys(documentsList).map((document, i) => (
-              <Grid
-                key={i}
-                sm={12}
-                mx={2}
-                md={5}
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  my: 5,
-                  gap: 2,
-                }}
-              >
-                <Typography variant="h6">{document?.toUpperCase()}</Typography>
-                <DocumentRenderer
-                  width={400}
-                  height={300}
-                  alt={document}
-                  src={documentsList[document]}
-                  fileKey={documentsList[document]}
-                />
-              </Grid>
-            ))}
+            {Object.keys(safeDocumentsList).map((document, i) => {
+              const fileKey = safeDocumentsList[document];
+              const extension = fileKey?.split(".").pop()?.toLowerCase();
+              const isImage = fileKey && !["pdf", "heic", "heif"].includes(extension || "");
+              const resolved = resolveS3Url(fileKey);
+
+              return (
+                <Grid
+                  key={i}
+                  sm={12}
+                  mx={2}
+                  md={5}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    my: 2,
+                    gap: 1,
+                  }}
+                >
+                  <Typography variant="subtitle2" color="text.secondary">
+                    {document?.replace(/([A-Z])/g, " $1").replace(/^./, (s: string) => s.toUpperCase())}
+                  </Typography>
+                  <DocumentRenderer
+                    width={350}
+                    height={250}
+                    alt={document}
+                    fileKey={fileKey || ""}
+                    onClick={
+                      isImage && resolved
+                        ? () => setPreviewUrl(resolved)
+                        : resolved
+                        ? () => window.open(resolved, "_blank")
+                        : undefined
+                    }
+                  />
+                </Grid>
+              );
+            })}
           </Grid>
         </Stack>
+
+        {/* Image preview dialog */}
+        <Dialog
+          open={!!previewUrl}
+          onClose={() => setPreviewUrl(null)}
+          maxWidth="lg"
+          PaperProps={{
+            sx: {
+              bgcolor: "transparent",
+              boxShadow: "none",
+              overflow: "visible",
+              position: "relative",
+            },
+          }}
+        >
+          <IconButton
+            onClick={() => setPreviewUrl(null)}
+            sx={{
+              position: "absolute",
+              top: -40,
+              right: -10,
+              color: "white",
+              bgcolor: "rgba(0,0,0,0.5)",
+              "&:hover": { bgcolor: "rgba(0,0,0,0.7)" },
+              zIndex: 1,
+            }}
+          >
+            <Iconify icon="carbon:close" />
+          </IconButton>
+          {previewUrl && (
+            <img
+              src={previewUrl}
+              alt="Document Preview"
+              style={{
+                maxWidth: "90vw",
+                maxHeight: "85vh",
+                objectFit: "contain",
+                borderRadius: 8,
+              }}
+            />
+          )}
+        </Dialog>
       </AccordionDetails>
     </Accordion>
   );

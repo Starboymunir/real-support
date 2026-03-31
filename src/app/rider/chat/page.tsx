@@ -15,8 +15,15 @@ import {
   CheckCheck,
   User,
   Loader2,
+  Shield,
+  Megaphone,
+  X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import { resolveS3Url } from '@/lib/api';
+
+const RS_CAB_LOGO = '/images/brand/logo.png';
 
 /* ── helpers ── */
 function formatTime(iso: string) {
@@ -40,20 +47,29 @@ function getInitials(name: string) {
 }
 
 function getOtherParticipant(chat: Chat, userId: string) {
+  if (chat.isAdminChat) {
+    return chat.adminId
+      ? { name: 'RS CAB Admin', id: 'admin-dm', coverImage: null as string | null }
+      : { name: 'RS CAB Support', id: 'support-admin', coverImage: null as string | null };
+  }
+
   const other = chat.participants.find(p => p.userId !== userId);
   if (other?.user) {
     return {
       name: `${other.user.firstName} ${other.user.lastName}`.trim(),
       id: other.userId,
+      coverImage: (other.user as any).coverImage || null,
     };
   }
-  return { name: 'Unknown User', id: other?.userId || '' };
+  return { name: 'Unknown User', id: other?.userId || '', coverImage: null as string | null };
 }
 
-function getLastMessage(chat: Chat): string {
+function getLastMessage(chat: Chat, currentUserId: string): string {
   if (!chat.messages || chat.messages.length === 0) return 'No messages yet';
   const last = chat.messages[chat.messages.length - 1];
-  return last.content || (last.attachments?.length > 0 ? '📎 Attachment' : 'No messages yet');
+  const content = last.content || (last.attachments?.length > 0 ? 'Attachment' : 'No messages yet');
+  const isAdminMessage = chat.isAdminChat && last.senderId !== currentUserId && (last.senderType === 'ADMIN' || !chat.participants.some((participant) => participant.userId === last.senderId));
+  return isAdminMessage ? `Admin: ${content}` : content;
 }
 
 function getLastMessageTime(chat: Chat): string {
@@ -98,6 +114,8 @@ export default function RiderChatPage() {
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileList, setShowMobileList] = useState(true);
+  const [broadcasts, setBroadcasts] = useState<any[]>([]);
+  const [viewingBroadcasts, setViewingBroadcasts] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -121,6 +139,18 @@ export default function RiderChatPage() {
 
   useEffect(() => { fetchChats(); }, [fetchChats]);
 
+  // Fetch broadcast announcements
+  const fetchBroadcasts = useCallback(async () => {
+    try {
+      const data = await chatApi.getBroadcasts();
+      const list = Array.isArray(data) ? data : [];
+      setBroadcasts(list.filter((b: any) => b.target === 'ALL' || b.target === 'RIDERS'));
+    } catch {
+      // empty
+    }
+  }, []);
+  useEffect(() => { fetchBroadcasts(); }, [fetchBroadcasts]);
+
   // Auto-open chat when navigated with ?chatId=
   useEffect(() => {
     if (!chatIdFromUrl || loading) return;
@@ -140,6 +170,7 @@ export default function RiderChatPage() {
 
   // Open a chat and load its messages
   const openChat = useCallback(async (chat: Chat) => {
+    setViewingBroadcasts(false);
     setActiveChat(chat);
     setShowMobileList(false);
     setLoadingMessages(true);
@@ -213,12 +244,20 @@ export default function RiderChatPage() {
       fetchChats();
     };
 
+    const handleBroadcast = (data: any) => {
+      if (data?.id && data?.content) {
+        setBroadcasts(prev => [data, ...prev]);
+      }
+    };
+
     socket.on(SOCKET_EVENTS.MESSAGE_RECEIVED_EVENT, handleNewMessage);
     socket.on(SOCKET_EVENTS.NEW_CHAT_EVENT, handleNewChat);
+    socket.on(SOCKET_EVENTS.BROADCAST_MESSAGE, handleBroadcast);
 
     return () => {
       socket.off(SOCKET_EVENTS.MESSAGE_RECEIVED_EVENT, handleNewMessage);
       socket.off(SOCKET_EVENTS.NEW_CHAT_EVENT, handleNewChat);
+      socket.off(SOCKET_EVENTS.BROADCAST_MESSAGE, handleBroadcast);
     };
   }, [socket, activeChat, scrollToBottom, fetchChats]);
 
@@ -256,7 +295,7 @@ export default function RiderChatPage() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 size={24} className="text-secondary animate-spin" />
               </div>
-            ) : filteredChats.length === 0 ? (
+            ) : filteredChats.length === 0 && broadcasts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center mb-4">
                   <MessageSquare size={28} className="text-white/15" />
@@ -265,9 +304,35 @@ export default function RiderChatPage() {
                 <p className="text-white/20 text-xs mt-1">Messages from your rides will appear here</p>
               </div>
             ) : (
-              filteredChats.map((chat) => {
+              <>
+              {broadcasts.length > 0 && (
+                <button
+                  onClick={() => { setViewingBroadcasts(true); setActiveChat(null); setShowMobileList(false); }}
+                  className={`w-full flex items-center gap-3 p-4 text-left transition-all duration-200 border-b border-white/[0.03] ${
+                    viewingBroadcasts
+                      ? 'bg-secondary/[0.08] border-l-2 border-l-secondary'
+                      : 'hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${
+                    viewingBroadcasts ? 'bg-secondary/20 text-secondary' : 'bg-amber-500/15 text-amber-400'
+                  }`}>
+                    <Megaphone size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`text-sm font-semibold truncate ${viewingBroadcasts ? 'text-white' : 'text-white/70'}`}>
+                        Announcements
+                      </p>
+                      <span className="text-[10px] text-white/25 shrink-0">{formatDate(broadcasts[0].createdAt)}</span>
+                    </div>
+                    <p className="text-xs mt-0.5 truncate text-white/30">{broadcasts[0].content}</p>
+                  </div>
+                </button>
+              )}
+              {filteredChats.map((chat) => {
                 const other = getOtherParticipant(chat, user?.id || '');
-                const lastMsg = getLastMessage(chat);
+                const lastMsg = getLastMessage(chat, user?.id || '');
                 const lastTime = getLastMessageTime(chat);
                 const isActive = activeChat?.id === chat.id;
                 // Check if there are unread messages
@@ -288,13 +353,27 @@ export default function RiderChatPage() {
                     }`}
                   >
                     {/* Avatar */}
-                    <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
-                      isActive
-                        ? 'bg-secondary/20 text-secondary'
-                        : 'bg-white/[0.06] text-white/50'
-                    }`}>
-                      {getInitials(other.name)}
-                    </div>
+                    {chat.isAdminChat ? (
+                      <div className={`w-11 h-11 rounded-full overflow-hidden shrink-0 ${
+                        isActive ? 'ring-2 ring-secondary/30' : ''
+                      }`}>
+                        <Image src={RS_CAB_LOGO} alt="RS CAB" width={44} height={44} className="w-full h-full object-cover" />
+                      </div>
+                    ) : resolveS3Url(other.coverImage) ? (
+                      <div className={`w-11 h-11 rounded-full overflow-hidden shrink-0 ${
+                        isActive ? 'ring-2 ring-secondary/30' : ''
+                      }`}>
+                        <Image src={resolveS3Url(other.coverImage)!} alt={other.name} width={44} height={44} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                        isActive
+                          ? 'bg-secondary/20 text-secondary'
+                          : 'bg-white/[0.06] text-white/50'
+                      }`}>
+                        {getInitials(other.name)}
+                      </div>
+                    )}
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
@@ -319,14 +398,50 @@ export default function RiderChatPage() {
                     )}
                   </button>
                 );
-              })
+              })}
+              </>
             )}
           </div>
         </div>
 
         {/* ═══════ Message Panel ═══════ */}
         <div className={`${!showMobileList ? 'flex' : 'hidden'} lg:flex flex-col flex-1 bg-dark/50`}>
-          {activeChat ? (
+          {viewingBroadcasts ? (
+            <>
+              <div className="flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+                <button
+                  onClick={() => setShowMobileList(true)}
+                  className="lg:hidden p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+                <div className="w-10 h-10 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-400">
+                  <Megaphone size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white">Announcements</p>
+                  <p className="text-[11px] text-white/30">Broadcasts from RS CAB</p>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
+                {broadcasts.map((b) => (
+                  <div key={b.id} className="flex justify-start mb-2">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center bg-amber-500/15 text-amber-400 mr-2 mt-auto mb-1 shrink-0">
+                      <Megaphone size={12} />
+                    </div>
+                    <div className="max-w-[75%] sm:max-w-[65%]">
+                      <div className="px-4 py-2.5 rounded-2xl rounded-bl-md text-sm leading-relaxed bg-amber-500/10 text-white border border-amber-500/20">
+                        {b.content}
+                      </div>
+                      <span className="text-[10px] text-white/20 mt-1 block">
+                        {formatTime(b.createdAt)} · {formatDate(b.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : activeChat ? (
             <>
               {/* Chat header */}
               <div className="flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-white/[0.06] bg-white/[0.02]">
@@ -337,17 +452,30 @@ export default function RiderChatPage() {
                   <ArrowLeft size={20} />
                 </button>
 
-                <div className="w-10 h-10 rounded-full bg-secondary/15 flex items-center justify-center text-secondary text-xs font-bold">
-                  {getInitials(getOtherParticipant(activeChat, user?.id || '').name)}
+                <div className="w-10 h-10 rounded-full bg-secondary/15 flex items-center justify-center text-secondary text-xs font-bold overflow-hidden">
+                  {activeChat.isAdminChat ? (
+                    <Image src={RS_CAB_LOGO} alt="RS CAB" width={40} height={40} className="w-full h-full object-cover" />
+                  ) : resolveS3Url(getOtherParticipant(activeChat, user?.id || '').coverImage) ? (
+                    <Image src={resolveS3Url(getOtherParticipant(activeChat, user?.id || '').coverImage)!} alt="Avatar" width={40} height={40} className="w-full h-full object-cover" />
+                  ) : (
+                    getInitials(getOtherParticipant(activeChat, user?.id || '').name)
+                  )}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white truncate">
                     {getOtherParticipant(activeChat, user?.id || '').name}
                   </p>
-                  <p className="text-[11px] text-white/30">
-                    {activeChat.bookingId ? `Ride ${activeChat.bookingId.slice(-6)}` : 'Direct message'}
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-[11px] text-white/30">
+                      {activeChat.isAdminChat ? (activeChat.adminId ? 'Admin direct message' : 'Support conversation') : activeChat.bookingId ? `Ride ${activeChat.bookingId.slice(-6)}` : 'Direct message'}
+                    </p>
+                    {activeChat.isAdminChat && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-secondary/30 bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold text-secondary">
+                        <Shield size={10} /> Admin
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -381,6 +509,7 @@ export default function RiderChatPage() {
                         {/* Messages */}
                         {group.messages.map((msg) => {
                           const isMine = msg.senderId === user?.id;
+                          const isAdminMessage = activeChat.isAdminChat && !isMine && (msg.senderType === 'ADMIN' || !activeChat.participants.some((participant) => participant.userId === msg.senderId));
                           return (
                             <motion.div
                               key={msg.id}
@@ -390,15 +519,33 @@ export default function RiderChatPage() {
                               className={`flex mb-2 ${isMine ? 'justify-end' : 'justify-start'}`}
                             >
                               {!isMine && (
-                                <div className="w-7 h-7 rounded-full bg-white/[0.06] flex items-center justify-center text-white/30 text-[9px] font-bold mr-2 mt-auto mb-1 shrink-0">
-                                  <User size={12} />
+                                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold mr-2 mt-auto mb-1 shrink-0 overflow-hidden ${isAdminMessage ? 'bg-secondary/15 text-secondary' : 'bg-white/[0.06] text-white/30'}`}>
+                                  {isAdminMessage ? (
+                                    <Image src={RS_CAB_LOGO} alt="Admin" width={28} height={28} className="w-full h-full object-cover" />
+                                  ) : (() => {
+                                    const sender = activeChat.participants.find(p => p.userId === msg.senderId);
+                                    const senderImage = resolveS3Url((sender?.user as any)?.coverImage);
+                                    return senderImage
+                                      ? <Image src={senderImage} alt="User" width={28} height={28} className="w-full h-full object-cover" />
+                                      : <User size={12} />;
+                                  })()}
                                 </div>
                               )}
                               <div className={`max-w-[75%] sm:max-w-[65%]`}>
+                                {!isMine && isAdminMessage && (
+                                  <div className="mb-1 flex items-center gap-2">
+                                    <span className="text-[11px] font-semibold text-secondary">RS CAB Admin</span>
+                                    <span className="inline-flex items-center rounded-full border border-secondary/30 bg-secondary/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-secondary">
+                                      Admin
+                                    </span>
+                                  </div>
+                                )}
                                 <div
                                   className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                                     isMine
                                       ? 'bg-secondary text-dark rounded-br-md'
+                                      : isAdminMessage
+                                      ? 'bg-secondary/10 text-white rounded-bl-md border border-secondary/20'
                                       : 'bg-white/[0.06] text-white/90 rounded-bl-md'
                                   }`}
                                 >

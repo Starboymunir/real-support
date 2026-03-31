@@ -19,7 +19,6 @@ import Image from "next/image";
 import { UploadCloudIcon } from "lucide-react";
 import { IUser } from "@/types/type";
 import { uploadImageFile } from "@/helpers/imageUpload";
-import { remove, getUrl } from "aws-amplify/storage";
 import axiosInstance from "@/lib/axios";
 import { useSnackbar } from "notistack";
 

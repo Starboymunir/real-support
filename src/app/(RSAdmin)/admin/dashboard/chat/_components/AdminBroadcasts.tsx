@@ -35,12 +35,12 @@ interface BroadcastItem {
   id: string;
   content: string;
   target: string;
-  sender: { id: string; firstName: string; lastName: string };
+  sender?: { id: string; firstName: string; lastName: string } | null;
   createdAt: string;
 }
 
 export default function AdminBroadcasts() {
-  const { user } = useAuth();
+  const { admin, user } = useAuth();
   const { connected } = useSocket();
 
   const [broadcasts, setBroadcasts] = useState<BroadcastItem[]>([]);
@@ -223,7 +223,7 @@ export default function AdminBroadcasts() {
             <Box sx={{ flex: 1, overflowY: "auto", p: 2, display: "flex", flexDirection: "column", gap: 1.5 }}>
               {broadcasts.map((b) => {
                 const cfg = TARGET_CONFIG[b.target] || TARGET_CONFIG.ALL;
-                const senderName = b.sender ? `${b.sender.firstName} ${b.sender.lastName}`.trim() : "Admin";
+                const senderName = b.sender ? `${b.sender.firstName} ${b.sender.lastName}`.trim() : `${admin?.firstName || user?.firstName || "RS CAB"} ${admin?.lastName || user?.lastName || "Admin"}`.trim();
                 return (
                   <Card
                     key={b.id}

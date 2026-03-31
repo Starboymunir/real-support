@@ -33,7 +33,7 @@ import PackagesTableRow from "../packages-table-row";
 import { activatePackage } from "@/server/Package";
 import { useAdminPackagesQuery } from "@/hooks/Packages";
 import Iconify from "@/components/iconify/iconify";
-import { Package } from "@prisma/client";
+import { AdminPackage } from "@/types/package";
 
 // ----------------------------------------------------------------------
 
@@ -295,8 +295,8 @@ function applyFilter({
   comparator,
   filters,
 }: {
-  inputData: Package[];
-  comparator: (a: Package, b: Package) => number;
+  inputData: AdminPackage[];
+  comparator: (a: AdminPackage, b: AdminPackage) => number;
   filters: { search: string };
 }) {
   // Make sure we have an array
@@ -304,7 +304,7 @@ function applyFilter({
 
   // 1️⃣ Sort the data
   const stabilized = safeData.map(
-    (el, index) => [el, index] as [Package, number]
+    (el, index) => [el, index] as [AdminPackage, number]
   );
   stabilized.sort((a, b) => {
     const order = comparator(a[0], b[0]);

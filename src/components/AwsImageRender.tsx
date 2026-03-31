@@ -1,8 +1,8 @@
 'use client'
 
-import { getUrl } from 'aws-amplify/storage'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
+import { resolveS3Url } from '@/lib/api'
 
 type PropsType = {
   imageKey?: string | null
@@ -28,28 +28,7 @@ const AwsImageRender = ({
   className = '',
   ...props
 }: Partial<PropsType>) => {
-  const [image, setImage] = useState<string | null>(null)
-  const [loadImage, setLoadImage] = useState(false)
-
-  useEffect(() => {
-    const fetchImage = async (key: string) => {
-      setLoadImage(true)
-      try {
-        const imageUrl = await getUrl({ key })
-        setImage(imageUrl?.url?.href)
-      } catch (err) {
-        console.log(err)
-      } finally {
-        setLoadImage(false)
-      }
-    }
-
-    if (imageKey) {
-      fetchImage(imageKey)
-    } else {
-      setImage(null)
-    }
-  }, [imageKey])
+  const resolvedImage = useMemo(() => resolveS3Url(imageKey), [imageKey])
 
   // Determine defaults based on variant
   let defaultClasses = 'align-middle shadow-md'
@@ -62,12 +41,10 @@ const AwsImageRender = ({
   } else {
     objectFit = 'contain'
   }
-  // Combine default classes with user-provided classes
   const combinedClasses = `${defaultClasses} ${className}`.trim()
-
   const imgStyle = { objectFit }
+  const displaySrc = resolvedImage || placeHolderImage || ''
 
-  // If fill mode is requested, wrap the Image in a relative container with explicit height
   if (fill) {
     const containerStyle: React.CSSProperties = {
       position: 'relative',
@@ -77,40 +54,12 @@ const AwsImageRender = ({
 
     return (
       <div className="flex justify-center items-center" style={containerStyle}>
-        {!imageKey || loadImage || !image ? (
-          <Image
-            alt={alt}
-            src={(placeHolderImage as string) || ''}
-            fill
-            style={imgStyle}
-            className={combinedClasses}
-            {...props}
-          />
-        ) : (
-          <Image
-            alt={alt}
-            src={image}
-            fill
-            style={imgStyle}
-            className={combinedClasses}
-            {...props}
-          />
-        )}
-      </div>
-    )
-  }
-
-  // Default non-fill behavior: keep width & height for Next/Image optimization
-  if (!imageKey || loadImage || !image) {
-    return (
-      <div className="flex justify-center items-center">
         <Image
           alt={alt}
-          width={width}
-          height={height}
-          src={(placeHolderImage as string) || ''}
+          src={displaySrc}
+          fill
+          style={imgStyle}
           className={combinedClasses}
-          style={{ width, height, objectFit }} // ensure objectFit applied
           {...props}
         />
       </div>
@@ -123,9 +72,9 @@ const AwsImageRender = ({
         alt={alt}
         width={width}
         height={height}
-        src={image}
+        src={displaySrc}
         className={combinedClasses}
-        style={{ width, height, objectFit }} // ensure objectFit applied
+        style={{ width, height, objectFit }}
         {...props}
       />
     </div>

@@ -15,15 +15,15 @@ import FormProvider, {
 } from "@/app/(RSAdmin)/admin/common/hook-form";
 import { fData } from "@/lib/utils/format-number";
 import { Typography } from "@mui/material";
-import { getUrl } from "aws-amplify/storage";
 import { useRouter } from "@/app/(RSAdmin)/admin/routes/hook";
+import { resolveS3Url } from '@/lib/api';
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { uploadImageFile } from "@/helpers/imageUpload";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Package } from "@prisma/client";
 import axiosInstance from "@/lib/admin-axios";
 import { useQueryClient } from "@tanstack/react-query";
+import { AdminPackage } from "@/types/package";
 
 // ----------------------------------------------------------------------
 type PackageFormValues = {
@@ -35,7 +35,7 @@ type PackageFormValues = {
 export default function PackagesNewEditForm({
   currentPackage,
 }: {
-  currentPackage?: Package;
+  currentPackage?: AdminPackage;
 }) {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
@@ -92,13 +92,19 @@ export default function PackagesNewEditForm({
 
     // If a File was uploaded, push it to S3
     if (data.coverImage instanceof File) {
-      fileName = await uploadImageFile(data.coverImage);
+      const uploadedKey = await uploadImageFile(data.coverImage);
+      if (!uploadedKey) {
+        throw new Error("Image upload failed. Please try another image.");
+      }
+      fileName = uploadedKey;
     }
     delete data.filePreview;
 
     const payload = {
       ...data,
-      coverImage: fileName,
+      ...(typeof fileName === "string" && fileName.trim().length > 0
+        ? { coverImage: fileName }
+        : {}),
     };
 
     try {
@@ -151,20 +157,14 @@ export default function PackagesNewEditForm({
   // Prefill preview when editing
   // -------------------------
   useEffect(() => {
-    if (currentPackage?.coverImage) {
-      (async () => {
-        try {
-          if (typeof currentPackage.coverImage === "string") {
-            const url = await getUrl({ key: currentPackage.coverImage });
-            setValue("filePreview", url.url.href, { shouldValidate: true });
-            setValue("coverImage", currentPackage.coverImage, {
-              shouldValidate: true,
-            });
-          }
-        } catch (err) {
-          console.error("Failed to fetch S3 preview:", err);
-        }
-      })();
+    if (currentPackage?.coverImage && typeof currentPackage.coverImage === "string") {
+      const url = resolveS3Url(currentPackage.coverImage);
+      if (url) {
+        setValue("filePreview", url, { shouldValidate: true });
+        setValue("coverImage", currentPackage.coverImage, {
+          shouldValidate: true,
+        });
+      }
     }
   }, [currentPackage?.coverImage, setValue]);
 

@@ -12,22 +12,14 @@ import {
   Typography,
 } from "@mui/material";
 import { GridExpandMoreIcon } from "@mui/x-data-grid";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import DocumentRenderer from "./document-renderer";
 import { enqueueSnackbar } from "notistack";
 import Iconify from "@/components/iconify/iconify";
 import Label from "@/app/(RSAdmin)/admin/common/label";
 import axiosInstance from "@/lib/admin-axios";
 import { AxiosError } from "axios";
-
-const S3_BUCKET = "psslrscab-storage-bucket4439f-dev";
-const S3_REGION = "eu-west-1";
-function resolveS3Url(key: string | null | undefined): string | null {
-  if (!key) return null;
-  if (key.startsWith("http://") || key.startsWith("https://")) return key;
-  if (key.startsWith("/")) return key;
-  return `https://${S3_BUCKET}.s3.${S3_REGION}.amazonaws.com/public/${key}`;
-}
+import { resolveS3Url } from '@/lib/api';
 
 interface AccordionDocumentProps {
   name: string;
@@ -54,9 +46,10 @@ const AccordionDocument = ({
   const [isAccepting, setIsAccepting] = useState(false);
   const [status, setStatus] = useState("Pending");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const safeDocumentsList = documentsList ?? {};
 
   useEffect(() => {
-    const detail = info?.document[documentTitle]?.details;
+    const detail = info?.document?.[documentTitle]?.details;
     let approveStatus = detail?.isVerified
       ? "Approved"
       : !detail?.isVerified && !detail?.isReturned
@@ -64,7 +57,7 @@ const AccordionDocument = ({
       : "Rejected";
 
     setStatus(approveStatus);
-  }, [info?.document]);
+  }, [info?.document, documentTitle]);
 
   const acceptDocument = async (documentType: string) => {
     setIsAccepting(true);
@@ -179,8 +172,8 @@ const AccordionDocument = ({
             </LoadingButton>
           </Stack>
           <Grid container spacing={2}>
-            {Object.keys(documentsList).map((document, i) => {
-              const fileKey = documentsList[document];
+            {Object.keys(safeDocumentsList).map((document, i) => {
+              const fileKey = safeDocumentsList[document];
               const extension = fileKey?.split(".").pop()?.toLowerCase();
               const isImage = fileKey && !["pdf", "heic", "heif"].includes(extension || "");
               const resolved = resolveS3Url(fileKey);
@@ -206,7 +199,7 @@ const AccordionDocument = ({
                     width={350}
                     height={250}
                     alt={document}
-                    fileKey={fileKey}
+                    fileKey={fileKey || ""}
                     onClick={
                       isImage && resolved
                         ? () => setPreviewUrl(resolved)

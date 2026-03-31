@@ -12,11 +12,11 @@ import { ConfirmDialog } from "@/app/(RSAdmin)/admin/common/custom-dialog";
 import AwsImageRender from "../../../common/aws-image-avatar/ImageRender";
 import Label from "../../../common/label";
 import Iconify from "@/components/iconify/iconify";
-import { Package } from "@prisma/client";
+import { AdminPackage } from "@/types/package";
 
 
 interface PackagesTableRowProps {
-  row: Package;
+  row: AdminPackage;
   selected?: boolean;
   onEditRow: () => void;
   onDeleteRow?: () => void;
@@ -47,7 +47,7 @@ export default function PackagesTableRow({
             alt={row?.name || "package-image"}
             width={80}
             height={80}
-            placeHolderImage="/webAssets/images/placeholder/package.jpg"
+            placeHolderImage="/images/services/parcel.jpg"
             className="shadow-none"
           />
 

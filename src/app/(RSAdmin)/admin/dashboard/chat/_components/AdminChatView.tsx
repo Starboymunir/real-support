@@ -27,6 +27,7 @@ import adminAxios from "@/lib/admin-axios";
 import Iconify from "@/components/iconify/iconify";
 import moment from "moment";
 import type { SupportTicket, SupportTicketMessage } from "@/lib/types";
+import { resolveS3Url } from "@/lib/api";
 
 // ── Constants ──
 
@@ -54,6 +55,10 @@ const CATEGORY_CONFIG: Record<string, { label: string; icon: string }> = {
 };
 
 // ── Helpers ──
+
+function resolveAvatar(img: string | null | undefined): string | undefined {
+  return resolveS3Url(img) ?? undefined;
+}
 
 function getUserType(user: any): "DRIVER" | "RIDER" {
   return user?.mode === "DRIVER" ? "DRIVER" : "RIDER";
@@ -139,7 +144,7 @@ function MessageBubble({ message, isOwn }: { message: SupportTicketMessage; isOw
   return (
     <Box sx={{ display: "flex", flexDirection: isOwn ? "row-reverse" : "row", alignItems: "flex-end", gap: 1 }}>
       {!isOwn && (
-        <Avatar sx={{ width: 28, height: 28, fontSize: 11, bgcolor: senderType === "DRIVER" ? "#2196F3" : "#9C27B0" }}>
+        <Avatar src={resolveAvatar((message.sender as any)?.coverImage)} sx={{ width: 28, height: 28, fontSize: 11, bgcolor: senderType === "DRIVER" ? "#2196F3" : "#9C27B0" }}>
           {getInitials(senderName)}
         </Avatar>
       )}
@@ -177,9 +182,9 @@ function MessageBubble({ message, isOwn }: { message: SupportTicketMessage; isOw
 // ── Main component ──
 
 export default function AdminChatView() {
-  const { user } = useAuth();
+  const { admin, user } = useAuth();
   const { socket, connected } = useSocket();
-  const userId = user?.id;
+  const adminId = admin?.id ?? user?.id;
 
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [filteredTickets, setFilteredTickets] = useState<SupportTicket[]>([]);
@@ -222,7 +227,7 @@ export default function AdminChatView() {
 
   // Load ticket list
   const loadTickets = useCallback(async () => {
-    if (!userId) return;
+    if (!adminId) return;
     setLoadingList(true);
     try {
       const res = await adminAxios.get("/support-tickets");
@@ -232,11 +237,11 @@ export default function AdminChatView() {
     } finally {
       setLoadingList(false);
     }
-  }, [userId]);
+  }, [adminId]);
 
   // Load a specific ticket with messages
   const loadTicket = useCallback(async (ticketId: string) => {
-    if (!userId) return;
+    if (!adminId) return;
     setLoadingMessages(true);
     try {
       const res = await adminAxios.get(`/support-tickets/${ticketId}`);
@@ -248,7 +253,7 @@ export default function AdminChatView() {
     } finally {
       setLoadingMessages(false);
     }
-  }, [userId]);
+  }, [adminId]);
 
   // Update ticket status/priority
   const updateTicket = useCallback(async (ticketId: string, updates: { status?: string; priority?: string }) => {
@@ -301,6 +306,22 @@ export default function AdminChatView() {
   );
 
   useEffect(() => { loadTickets(); }, [loadTickets]);
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      loadTickets();
+    }, 15000);
+
+    const onFocus = () => {
+      loadTickets();
+    };
+
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [loadTickets]);
   useEffect(() => { if (activeTicketId) loadTicket(activeTicketId); }, [activeTicketId, loadTicket]);
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
@@ -462,7 +483,7 @@ export default function AdminChatView() {
                     >
                       <ListItemAvatar sx={{ minWidth: 44 }}>
                         <Avatar
-                          src={tUser?.coverImage ?? undefined}
+                          src={resolveAvatar(tUser?.coverImage)}
                           sx={{
                             width: 36,
                             height: 36,
@@ -534,6 +555,7 @@ export default function AdminChatView() {
               <Stack direction="row" alignItems="center" justifyContent="space-between">
                 <Stack direction="row" alignItems="center" spacing={1.5}>
                   <Avatar
+                    src={resolveAvatar(activeTicket?.user?.coverImage)}
                     sx={{
                       width: 36,
                       height: 36,

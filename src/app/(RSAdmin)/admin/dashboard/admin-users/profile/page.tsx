@@ -18,8 +18,8 @@ import FormProvider, {
   RHFUploadAvatar,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
 import { fData } from "@/lib/utils/format-number";
-import { getUrl } from "aws-amplify/storage";
 import { useAuth } from "@/lib/auth-context";
+import { resolveS3Url } from '@/lib/api';
 import axiosInstance from "@/lib/admin-axios";
 import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
@@ -102,14 +102,14 @@ export default function AdminProfilePage() {
   useEffect(() => {
     const coverImageKey = admin?.coverImage;
     if (!coverImageKey) return;
-    (async () => {
-      const url = await getUrl({ key: coverImageKey });
+    const url = resolveS3Url(coverImageKey);
+    if (url) {
       setValue(
         "filePreview",
-        { preview: url.url.href },
+        { preview: url },
         { shouldValidate: true }
       );
-    })();
+    }
   }, [admin?.coverImage, setValue]);
 
   const roleLabel =

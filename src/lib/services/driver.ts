@@ -16,6 +16,7 @@ export interface CreateDriverDto {
   address?: string;
   city?: string;
   postcode?: string;
+  companyCode?: string;
 }
 
 export const driverApi = {

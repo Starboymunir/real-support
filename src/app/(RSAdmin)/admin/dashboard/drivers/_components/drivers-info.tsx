@@ -10,17 +10,95 @@ import CardHeader from "@mui/material/CardHeader";
 import Typography from "@mui/material/Typography";
 import DriverWidget from "./driver-widget";
 import { bgGradient } from "@/app/(RSAdmin)/admin/theme/css";
-import {
-  generateDocumentAccordionData,
-  generateLegalInfoData,
-} from "@/lib/utils";
 import AccordionDocument from "./AccordionDocument";
 import DocQuickEditForm from "./drivers-document-quick-edit";
 import { useBoolean } from "../../../hooks/use-boolean";
 import { IconButton } from "@mui/material";
 import Iconify from "../../../common/iconify/iconify";
 import LegalInfoQuickEditForm from "./legal-info-quick-edit-form";
-import Label from "../../../common/label/label";
+
+const formatDocDate = (value: string | null | undefined) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const generateDocumentAccordionData = (document: any) => [
+  {
+    documentTitle: "drivingLicense",
+    name: "License",
+    documentsList: {
+      licenseDocFront: document?.drivingLicense?.licenseDocFront,
+      licenseDocBack: document?.drivingLicense?.licenseDocBack,
+    },
+  },
+  {
+    documentTitle: "bankDocuments",
+    name: "Account proof",
+    documentsList: {
+      accProfDoc: document?.bankDocuments?.accProfDoc,
+    },
+  },
+  {
+    documentTitle: "pcoDocuments",
+    name: "PCO badge",
+    documentsList: {
+      pcoBadgeDocFront: document?.pcoDocuments?.pcoBadgeDocFront,
+      pcoBadgeDocBack: document?.pcoDocuments?.pcoBadgeDocBack,
+      pcoPaperDoc: document?.pcoDocuments?.pcoPaperDoc,
+    },
+  },
+  {
+    documentTitle: "passport",
+    name: "Passport",
+    documentsList: {
+      passportDocFront: document?.passport?.passportDocFront,
+      passportDocBack: document?.passport?.passportDocBack,
+    },
+  },
+  {
+    documentTitle: "addressProfDocs",
+    name: "Address proof",
+    documentsList: {
+      addressProfDoc: document?.addressProfDocs?.addressProfDoc,
+    },
+  },
+];
+
+const generateLegalInfoData = (document: any) => [
+  { name: "Sort code", value: document?.bankDocuments?.sortCode },
+  { name: "Bank name", value: document?.bankDocuments?.bankName },
+  { name: "Account Number", value: document?.bankDocuments?.accountNumber },
+  { name: "License number", value: document?.drivingLicense?.licenseNumber },
+  {
+    name: "License expiry date",
+    value: formatDocDate(document?.drivingLicense?.licenseExpiryDate),
+  },
+  { name: "PCO badge number", value: document?.pcoDocuments?.pcoBadgeNumber },
+  {
+    name: "PCO badge expiry date",
+    value: formatDocDate(document?.pcoDocuments?.pcoBadgeExpiryDate),
+  },
+  { name: "Work permit code", value: document?.workPermitCode },
+  { name: "Passport number", value: document?.passport?.passportNumber },
+  {
+    name: "Passport expiry date",
+    value: formatDocDate(document?.passport?.passportExpiryDate),
+  },
+  { name: "House number", value: document?.addressProfDocs?.houseNumber },
+  { name: "State", value: document?.addressProfDocs?.state },
+  {
+    name: "Zip Code/Postal Code",
+    value: document?.addressProfDocs?.addressCode,
+  },
+  { name: "Street Address", value: document?.addressProfDocs?.streetAddress },
+  { name: "City", value: document?.addressProfDocs?.city },
+];
 
 export default function DriverInfo({ info, refetch }: { info: any; refetch: any }) {
   const [expanded, setExpanded] = useState(false);

@@ -84,12 +84,12 @@ const sidebarLinks = {
   ],
   admin: [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Bookings', href: '/admin/bookings', icon: Briefcase },
-    { label: 'Drivers', href: '/admin/drivers', icon: Car },
-    { label: 'Riders', href: '/admin/riders', icon: Users },
-    { label: 'Packages', href: '/admin/packages', icon: Package },
-    { label: 'Admins', href: '/admin/admins', icon: Shield },
-    { label: 'Settings', href: '/admin/settings', icon: Settings },
+    { label: 'Bookings', href: '/admin/dashboard/bookings', icon: Briefcase },
+    { label: 'Drivers', href: '/admin/dashboard/drivers', icon: Car },
+    { label: 'Riders', href: '/admin/dashboard/passengers', icon: Users },
+    { label: 'Packages', href: '/admin/dashboard/packages', icon: Package },
+    { label: 'Admins', href: '/admin/dashboard/admin-users', icon: Shield },
+    { label: 'Settings', href: '/admin/dashboard/settings', icon: Settings },
   ],
 };
 
@@ -118,10 +118,10 @@ const bottomTabs: Record<string, { label: string; href: string; icon: typeof Lay
   ],
   admin: [
     { label: 'Home', href: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Bookings', href: '/admin/bookings', icon: Briefcase },
-    { label: 'Drivers', href: '/admin/drivers', icon: Car },
-    { label: 'Riders', href: '/admin/riders', icon: Users },
-    { label: 'More', href: '/admin/packages', icon: Package },
+    { label: 'Bookings', href: '/admin/dashboard/bookings', icon: Briefcase },
+    { label: 'Drivers', href: '/admin/dashboard/drivers', icon: Car },
+    { label: 'Riders', href: '/admin/dashboard/passengers', icon: Users },
+    { label: 'More', href: '/admin/dashboard/packages', icon: Package },
   ],
 };
 

@@ -12,14 +12,57 @@ const BASE = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
 const BACKEND_ORIGIN = BASE.replace(/\/api\/?$/, '');
 
 /**
+ * Parse an S3 URL and extract bucket + key.
+ * Matches patterns like:
+ *   https://bucket.s3.region.amazonaws.com/key
+ *   https://bucket.s3.amazonaws.com/key
+ *   https://s3.region.amazonaws.com/bucket/key
+ */
+function parseS3Url(url: string): { bucket: string; key: string } | null {
+  // bucket.s3.region.amazonaws.com/key  OR  bucket.s3.amazonaws.com/key
+  const vhost = url.match(/https?:\/\/([^.]+)\.s3[.-][^/]*\.amazonaws\.com\/(.+)/);
+  if (vhost) return { bucket: vhost[1], key: decodeURIComponent(vhost[2]) };
+  // s3.region.amazonaws.com/bucket/key
+  const path = url.match(/https?:\/\/s3[.-][^/]*\.amazonaws\.com\/([^/]+)\/(.+)/);
+  if (path) return { bucket: path[1], key: decodeURIComponent(path[2]) };
+  return null;
+}
+
+/**
  * Resolve an image URL from the backend.
+ * - S3 URLs are routed through the presigned URL proxy.
  * - Relative paths like `/uploads/file.png` are prefixed with the backend origin.
- * - Absolute URLs (S3, Google, etc.) are returned as-is.
+ * - Other absolute URLs (Google, etc.) are returned as-is.
  */
 export function resolveImageUrl(url: string | undefined | null): string | null {
   if (!url) return null;
+  // Delegate S3 URLs through the presigned proxy
+  if (url.includes('.amazonaws.com')) return resolveS3Url(url);
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   return `${BACKEND_ORIGIN}${url}`;
+}
+
+/**
+ * Resolve an S3 image key (e.g. "uuid.ext") or full S3 URL to a backend presigned URL redirect.
+ * Returns null if key is falsy.
+ */
+export function resolveS3Url(key: string | null | undefined): string | null {
+  if (!key) return null;
+
+  // Full S3 URL — extract bucket + key and route through presigned endpoint
+  if (key.includes('.amazonaws.com')) {
+    const parsed = parseS3Url(key);
+    if (parsed) {
+      return `${BASE}/documents/s3-image?key=${encodeURIComponent(parsed.key)}&bucket=${encodeURIComponent(parsed.bucket)}`;
+    }
+  }
+
+  // Other full URL (Google, data:, etc.) — return as-is
+  if (key.startsWith('http://') || key.startsWith('https://') || key.startsWith('data:')) return key;
+  // Relative path (e.g. /api/uploads/...) — resolve via backend origin
+  if (key.startsWith('/')) return `${BACKEND_ORIGIN}${key}`;
+  // Bare S3 key — route through backend presigned URL endpoint
+  return `${BASE}/documents/s3-image?key=${encodeURIComponent(key)}`;
 }
 
 // ── Token management ──

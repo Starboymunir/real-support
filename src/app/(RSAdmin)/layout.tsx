@@ -7,7 +7,6 @@ import { ReactNode } from "react";
 import "simplebar-react/dist/simplebar.min.css";
 
 // Components
-import MotionLazy from "@/app/(RSAdmin)/admin/common/animate/motion-lazy";
 import { SettingsProvider } from "@/app/(RSAdmin)/admin/common/settings";
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider as MuiLocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -29,9 +28,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       >
         <ThemeProvider>
           <SnackbarProvider>
-            <MotionLazy>
-              {children}
-            </MotionLazy>
+            {children}
           </SnackbarProvider>
         </ThemeProvider>
       </SettingsProvider>

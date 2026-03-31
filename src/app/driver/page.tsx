@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { driverApi } from '@/lib/services';
 import type { CreateDriverDto } from '@/lib/services/driver';
 import { authApi } from '@/lib/services/auth';
+import { companyApi } from '@/lib/services/company';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from '@/lib/toast';
 import type { Driver } from '@/lib/types';
@@ -76,7 +77,32 @@ export default function DriverRegistrationPage() {
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', email: '', phone: '', dob: '',
     niNumber: '', taxId: '', address: '', city: '', postcode: '', bio: '', hobby: '',
+    companyCode: '',
   });
+
+  const [companyMatch, setCompanyMatch] = useState<{ id: string; companyName: string } | null>(null);
+  const [companyError, setCompanyError] = useState('');
+
+  const lookupCompany = async (code: string) => {
+    if (!code.trim()) {
+      setCompanyMatch(null);
+      setCompanyError('');
+      return;
+    }
+    try {
+      const company = await companyApi.getByCode(code.trim()) as any;
+      if (company?.id) {
+        setCompanyMatch({ id: company.id, companyName: company.companyName });
+        setCompanyError('');
+      } else {
+        setCompanyMatch(null);
+        setCompanyError('No company found with this ID');
+      }
+    } catch {
+      setCompanyMatch(null);
+      setCompanyError('No company found with this ID');
+    }
+  };
 
   // Pre-fill from user and existing driver data
   useEffect(() => {
@@ -120,6 +146,7 @@ export default function DriverRegistrationPage() {
         ...(formData.address && { address: formData.address }),
         ...(formData.city && { city: formData.city }),
         ...(formData.postcode && { postcode: formData.postcode }),
+        ...(companyMatch && formData.companyCode && { companyCode: formData.companyCode.trim() }),
       };
 
       const result = await driverApi.register(dto) as Driver;
@@ -263,6 +290,32 @@ export default function DriverRegistrationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField label="City" name="city" icon={<Building2 size={18} />} placeholder="Enter your city" value={formData.city} onChange={handleChange} />
                 <FormField label="Postcode" name="postcode" icon={<MapPin size={18} />} placeholder="Enter postcode" value={formData.postcode} onChange={handleChange} />
+              </div>
+
+              {/* Company Code */}
+              <div>
+                <label className="block text-white/40 text-sm font-medium mb-2">Company ID (Optional)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none"><Building2 size={18} /></span>
+                  <input
+                    type="text"
+                    name="companyCode"
+                    placeholder="e.g. RSCAB-001"
+                    value={formData.companyCode}
+                    onChange={handleChange}
+                    onBlur={() => lookupCompany(formData.companyCode)}
+                    className="input-dark w-full rounded-xl pl-11 pr-4 py-3.5"
+                  />
+                </div>
+                {companyMatch && (
+                  <p className="mt-2 text-sm text-green-400 flex items-center gap-1.5">
+                    <Shield size={14} /> Matched: <span className="font-semibold">{companyMatch.companyName}</span>
+                  </p>
+                )}
+                {companyError && (
+                  <p className="mt-2 text-sm text-red-400">{companyError}</p>
+                )}
+                <p className="mt-1 text-xs text-white/25">Enter the Company ID provided by your company to register under them.</p>
               </div>
 
               <div>

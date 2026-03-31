@@ -25,14 +25,10 @@ import { useSocket, SOCKET_EVENTS } from "@/lib/socket-context";
 import adminAxios from "@/lib/admin-axios";
 import Iconify from "@/components/iconify/iconify";
 import moment from "moment";
-
-const S3_BASE = "https://psslrscab-storage-bucket4439f-dev.s3.eu-west-1.amazonaws.com/public";
+import { resolveS3Url } from "@/lib/api";
 
 function resolveAvatar(img: string | null | undefined): string | undefined {
-  if (!img) return undefined;
-  if (img.startsWith("http")) return img;
-  if (img.includes("/")) return img;
-  return `${S3_BASE}/${img}`;
+  return resolveS3Url(img) ?? undefined;
 }
 
 function getInitials(name: string) {
@@ -74,16 +70,17 @@ interface ChatItem {
 interface ChatMessage {
   id: string;
   senderId: string;
-  sender: { firstName: string; lastName: string };
+  senderType?: "ADMIN" | "CLIENT";
+  sender?: { firstName: string; lastName: string };
   content: string;
   attachments: string[];
   createdAt: string;
 }
 
 export default function AdminDirectMessages() {
-  const { user } = useAuth();
+  const { admin, user } = useAuth();
   const { socket, connected } = useSocket();
-  const userId = user?.id;
+  const adminId = admin?.id ?? user?.id;
 
   // State for user list (right panel for picking users)
   const [allUsers, setAllUsers] = useState<UserItem[]>([]);
@@ -129,12 +126,12 @@ export default function AdminDirectMessages() {
 
   // Load admin chat list
   const loadChats = useCallback(async () => {
-    if (!userId) return;
+    if (!adminId) return;
     setLoadingChats(true);
     try {
       const res = await adminAxios.get("/chat?getAdminList=true");
       const chatList = (res.data.data || []).map((chat: any) => {
-        const otherParticipant = chat.participants?.find((p: any) => p.userId !== userId)?.user;
+        const otherParticipant = chat.participants?.find((p: any) => p.userId !== adminId)?.user;
         return {
           ...chat,
           title: otherParticipant
@@ -149,7 +146,7 @@ export default function AdminDirectMessages() {
     } finally {
       setLoadingChats(false);
     }
-  }, [userId]);
+  }, [adminId]);
 
   // Open/create chat with a user
   const openChatWithUser = useCallback(async (targetUser: UserItem) => {
@@ -180,14 +177,14 @@ export default function AdminDirectMessages() {
       const chatData = res.data.data;
       setActiveMessages(chatData?.messages || []);
       // Set active user from participants
-      const otherUser = chatData?.participants?.find((p: any) => p.userId !== userId)?.user;
+      const otherUser = chatData?.participants?.find((p: any) => p.userId !== adminId)?.user;
       if (otherUser) setActiveChatUser(otherUser);
     } catch (err) {
       console.error("Failed to load messages:", err);
     } finally {
       setLoadingMessages(false);
     }
-  }, [userId]);
+  }, [adminId]);
 
   // Send message
   const handleSend = useCallback(async () => {
@@ -330,7 +327,7 @@ export default function AdminDirectMessages() {
               ) : (
                 <List sx={{ overflowY: "auto", flex: 1, py: 0 }}>
                   {chats.map((chat) => {
-                    const otherUser = chat.participants?.find((p) => p.userId !== userId)?.user;
+                    const otherUser = chat.participants?.find((p) => p.userId !== adminId)?.user;
                     const lastMsg = chat.messages?.[chat.messages.length - 1];
                     const userMode = otherUser?.mode || "PASSENGER";
 
@@ -600,7 +597,7 @@ export default function AdminDirectMessages() {
                 </Box>
               ) : (
                 activeMessages.map((msg, idx) => {
-                  const isOwn = msg.senderId === userId;
+                  const isOwn = msg.senderType === "ADMIN" || msg.senderId === adminId;
                   const senderName = msg.sender ? `${msg.sender.firstName || ""} ${msg.sender.lastName || ""}`.trim() : "Unknown";
                   return (
                     <Box key={msg.id || idx} sx={{ display: "flex", flexDirection: isOwn ? "row-reverse" : "row", alignItems: "flex-end", gap: 1 }}>

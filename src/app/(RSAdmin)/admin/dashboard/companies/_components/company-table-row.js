@@ -38,7 +38,7 @@ export default function CompaniesTableRow({
             alt={row?.companyName}
             width={44}
             height={44}
-            placeHolderImage="/webAssets/images/placeholder/package.jpg"
+            placeHolderImage="/images/services/parcel.jpg"
             className="shadow-none rounded-lg"
           />
           <ListItemText
@@ -51,6 +51,10 @@ export default function CompaniesTableRow({
               typography: "caption",
             }}
           />
+        </TableCell>
+
+        <TableCell sx={{ whiteSpace: "nowrap", fontFamily: "monospace", fontWeight: 600 }}>
+          {row?.companyCode || "—"}
         </TableCell>
 
         <TableCell sx={{ whiteSpace: "nowrap" }}>{row?.phone_number}</TableCell>

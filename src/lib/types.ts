@@ -435,9 +435,11 @@ export interface Chat {
   id: string;
   isGroupChat: boolean;
   isAdminChat: boolean;
+  adminId?: string | null;
   bookingId?: string;
   participants: ChatParticipant[];
   messages: ChatMessage[];
+  unreadCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -454,6 +456,7 @@ export interface ChatMessage {
   id: string;
   senderId?: string;
   sender?: User;
+  senderType?: MessageSender;
   content?: string;
   attachments: string[];
   chatId?: string;

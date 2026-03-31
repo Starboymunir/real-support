@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth-context";
 import { adminStatsApi, type DashboardStats } from "@/lib/services/admin";
+import { companyApi, type CompanyWalletData } from "@/lib/services/company";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import {
   Building2,
@@ -80,6 +81,7 @@ export default function CompanyAdminDashboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [wallet, setWallet] = useState<CompanyWalletData | null>(null);
 
   useEffect(() => {
     adminStatsApi
@@ -88,6 +90,28 @@ export default function CompanyAdminDashboard() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  // Fetch company wallet for the admin's company
+  useEffect(() => {
+    if (!stats) return;
+    // The stats endpoint returns companies; try to get the first active company
+    // For company admin, we look for the company they manage
+    const adminId = (user as any)?.id;
+    if (!adminId) return;
+    // Use the admin stats API which includes company info
+    // For now, look up all companies and find the one where contactPerson = admin id
+    import("@/lib/admin-axios").then(({ default: axios }) => {
+      axios.get("/company/find-all?count=100").then(({ data }) => {
+        const companies = data?.data || [];
+        const myCompany = companies.find(
+          (c: any) => c.contactPerson === adminId || c.userInfo?.id === adminId
+        );
+        if (myCompany?.id) {
+          companyApi.getWallet(myCompany.id).then(setWallet).catch(() => {});
+        }
+      }).catch(() => {});
+    });
+  }, [stats, user]);
 
   if (loading) return <LoadingScreen />;
 
@@ -175,26 +199,44 @@ export default function CompanyAdminDashboard() {
             <div className="p-4 rounded-xl border border-white/[0.04] bg-white/[0.02]">
               <p className="text-xs" style={{ color: T.textMuted }}>Balance</p>
               <p className="text-3xl font-bold mt-1" style={{ color: T.accent }}>
-                £{(stats?.totalRevenue ?? 0).toLocaleString()}
+                £{(wallet?.walletBalance ?? stats?.totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                 <div className="flex items-center gap-1 mb-1">
                   <ArrowUpRight size={12} className="text-green-400" />
-                  <p className="text-[10px]" style={{ color: T.textMuted }}>Earnings</p>
+                  <p className="text-[10px]" style={{ color: T.textMuted }}>Revenue</p>
                 </div>
                 <p className="text-lg font-bold text-green-400">
-                  £{Math.round((stats?.totalRevenue ?? 0) * 0.65).toLocaleString()}
+                  £{(wallet?.totalRevenue ?? stats?.totalRevenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <div className="flex items-center gap-1 mb-1">
+                  <TrendingUp size={12} className="text-blue-400" />
+                  <p className="text-[10px]" style={{ color: T.textMuted }}>Profit</p>
+                </div>
+                <p className="text-lg font-bold text-blue-400">
+                  £{(wallet?.totalProfit ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                 <div className="flex items-center gap-1 mb-1">
                   <ArrowDownRight size={12} className="text-red-400" />
-                  <p className="text-[10px]" style={{ color: T.textMuted }}>Payouts</p>
+                  <p className="text-[10px]" style={{ color: T.textMuted }}>Commission</p>
                 </div>
                 <p className="text-lg font-bold text-red-400">
-                  £{Math.round((stats?.totalRevenue ?? 0) * 0.35).toLocaleString()}
+                  £{(wallet?.totalCommission ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <div className="flex items-center gap-1 mb-1">
+                  <Wallet size={12} className="text-yellow-400" />
+                  <p className="text-[10px]" style={{ color: T.textMuted }}>Bookings</p>
+                </div>
+                <p className="text-lg font-bold text-yellow-400">
+                  {wallet?.totalBookings ?? stats?.completedBookings ?? 0}
                 </p>
               </div>
             </div>

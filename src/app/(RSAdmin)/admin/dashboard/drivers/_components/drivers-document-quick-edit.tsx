@@ -15,7 +15,7 @@ import FormProvider, {
 } from "@/app/(RSAdmin)/admin/common/hook-form";
 import { endpoints } from "@/lib/utils/axios";
 import axios, { AxiosError } from "axios";
-import { getUrl } from "aws-amplify/storage";
+import { resolveS3Url } from '@/lib/api';
 
 interface DocQuickEditFormProps {
   title: string;
@@ -135,21 +135,15 @@ export default function DocQuickEditForm({
   });
 
   useEffect(() => {
-    const fetchDocumentUrls = async () => {
-      try {
-        for (const file of Object.keys(documentsList)) {
-          if (documentsList[file]) {
-            const DocumentUrl = await getUrl({ key: documentsList[file] });
-            setValue(`${file}-preview`, DocumentUrl?.url?.href);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching document URLs:", error);
-      }
-    };
+    for (const file of Object.keys(documentsList)) {
+      if (!documentsList[file]) continue;
 
-    fetchDocumentUrls();
-  }, [documentsList]);
+      const documentUrl = resolveS3Url(documentsList[file]);
+      if (documentUrl) {
+        setValue(`${file}-preview`, documentUrl);
+      }
+    }
+  }, [documentsList, setValue]);
 
   return (
     <Dialog

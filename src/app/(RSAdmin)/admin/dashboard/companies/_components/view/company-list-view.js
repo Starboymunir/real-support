@@ -44,6 +44,7 @@ import { RouterLink } from "@/app/(RSAdmin)/admin/routes/components";
 
 const TABLE_HEAD = [
   { id: "companyName", label: "Company" },
+  { id: "companyCode", label: "Company ID", width: 130 },
   { id: "companyPhone", label: "Phone", width: 150 },
   { id: "companyEmail", label: "Email", width: 180 },
   { id: "HMRC_RegistrationNumber", label: "HMRC Reg #", width: 150 },

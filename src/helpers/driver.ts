@@ -1,74 +1,34 @@
-import { NextResponse } from 'next/server';
-import { Driver } from '@prisma/client';
-import prisma from '@/database/prisma';
+import { apiClient } from "@/lib/ApiClient";
+import axiosInstance from "@/lib/axios";
 
 export const findDriverByCognitoId = async (id: string) => {
   try {
-    const driver = await prisma.driver.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        userInfo: true,
-        car: { include: { carDocument: true } },
-        document: true,
-      },
-    });
-
-    return driver;
+    const result = await axiosInstance.get(`/drivers/${id}`);
+    return result.data?.data || result.data;
   } catch (err) {
-    return NextResponse.json(
-      { message: 'Internal Server Error', error: err },
-      {
-        status: 500,
-      }
-    );
+    return null;
   }
 };
-
 
 export const findDriverById = async (driverId: string) => {
   try {
-    const driver = await prisma.driver.findUnique({
-      where: {
-        id: driverId,
-      },
-      include: {
-        userInfo: true,
-        car: { include: { carDocument: true } },
-        document: true,
-      },
-    });
-
-    return driver;
+    const result = await apiClient.get(`/admin/drivers/${driverId}`);
+    return result.data;
   } catch (err) {
     console.error(err);
-    return NextResponse.json(
-      { message: 'Internal Server Error', error: err },
-      {
-        status: 500,
-      }
-    );
+    return null;
   }
 };
 
-export const createDriver = async (
-  data: Partial<Driver>,
-  userId: string,
-  user: string
-) => {
+export const createDriver = async (data: any, userId: string, user: string) => {
   try {
-    const result = await prisma.driver.create({
-      data: {
-        dateOfBirth: data.dateOfBirth,
-        selfAssessmentTaxId: data.selfAssessmentTaxId as string,
-        driverUserId: user,
-      },
+    const result = await axiosInstance.post("/drivers/register", {
+      ...data,
+      driverUserId: user,
     });
-
-    return result;
+    return result.data?.data || result.data;
   } catch (error) {
-    console.error('[CREATE_DRIVER]', error);
-     return new NextResponse('Internal error', { status: 500 });
+    console.error("[CREATE_DRIVER]", error);
+    throw new Error("Internal error");
   }
 };

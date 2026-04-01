@@ -1,106 +1,43 @@
-"use server";
-
-import { NextResponse } from "next/server";
-import prisma from "@/database/prisma";
-import { Driver } from "@prisma/client";
+import { apiClient } from "@/lib/ApiClient";
+import axiosInstance from "@/lib/axios";
 
 export const findDriverByCognitoId = async (id: string) => {
   try {
-    const driver = await prisma.driver.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        userInfo: true,
-        car: { include: { carDocument: true } },
-        document: true,
-      },
-    });
-
-    return driver;
+    const result = await axiosInstance.get(`/drivers/${id}`);
+    return result.data?.data || result.data;
   } catch (err) {
-    return NextResponse.json(
-      { message: "Internal Server Error", error: err },
-      {
-        status: 500,
-      }
-    );
+    return null;
   }
 };
 
-export const EditWorkPermitDocument = async (
-  driverId: string,
-  data: { workPermitCode: string }
-) => {
+export const EditWorkPermitDocument = async (driverId: string, data: { workPermitCode: string }) => {
   try {
-    const document = await prisma.document.findUnique({
-      where: { driverId },
-    });
-
-    if (!document) {
-      return { statusCode: 400, message: "document not found." };
-    }
-    const updatedDocument = await prisma.document.update({
-      where: {
-        driverId,
-      },
-      data: {
-        workPermitCode: data.workPermitCode,
-      },
-    });
-
-    return {
-      statusCode: 200,
-      data: updatedDocument,
-      message: "successfully update",
-    };
-  } catch (err) {
+    const result = await apiClient.post("/documents/work-permit-code", { driverId, workPermitCode: data.workPermitCode });
+    return { statusCode: 200, data: result.data, message: "successfully update" };
+  } catch (err: any) {
     return { statusCode: 500, message: "Internal Server Error" };
   }
 };
 
 export const findDriverById = async (driverId: string) => {
   try {
-    const driver = await prisma.driver.findUnique({
-      where: {
-        id: driverId,
-      },
-      include: {
-        userInfo: true,
-        car: { include: { carDocument: true } },
-        document: true,
-      },
-    });
-
-    return driver;
-  } catch (err) {
+    const result = await apiClient.get(`/admin/drivers/${driverId}`);
+    return result.data;
+  } catch (err: any) {
     console.error(err);
-    return NextResponse.json(
-      { message: "Internal Server Error", error: err },
-      {
-        status: 500,
-      }
-    );
+    return null;
   }
 };
 
-export const createDriver = async (
-  data: Partial<Driver>,
-  userId: string,
-  user: string
-) => {
+export const createDriver = async (data: any, userId: string, user: string) => {
   try {
-    const result = await prisma.driver.create({
-      data: {
-        dateOfBirth: data.dateOfBirth,
-        selfAssessmentTaxId: data.selfAssessmentTaxId as string,
-        driverUserId: user,
-      },
+    const result = await axiosInstance.post("/drivers/register", {
+      ...data,
+      driverUserId: user,
     });
-
-    return result;
-  } catch (error) {
+    return result.data?.data || result.data;
+  } catch (error: any) {
     console.error("[CREATE_DRIVER]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    throw new Error("Internal error");
   }
 };

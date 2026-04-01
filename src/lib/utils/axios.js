@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // ----------------------------------------------------------------------
 
-const BACKEND_API = process.env.NEXT_PUBLIC_BACKEND_API || 'https://backend.real-support.com';
+const _raw = process.env.NEXT_PUBLIC_BACKEND_API || 'https://backend.real-support.com/api';
+const BACKEND_API = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
 const axiosInstance = axios.create({ baseURL: BACKEND_API });
 
 axiosInstance.interceptors.response.use(

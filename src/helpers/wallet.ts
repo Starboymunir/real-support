@@ -1,29 +1,13 @@
-"use server";
-import { Wallet } from '@prisma/client';
-import prisma from '@/database/prisma';
+import { apiClient } from "@/lib/ApiClient";
 
-export async function getWallet(userId: string): Promise<Wallet> {
-
-  const wallet = await prisma.wallet.findUnique({ where: { userId } });
-
-  if (!wallet) {
-    throw new Error('Wallet not found');
+export async function getWallet(userId: string) {
+  const result = await apiClient.get(`/payment-transaction/wallets/${userId}`);
+  if (!result.data) {
+    throw new Error("Wallet not found");
   }
-
-  return wallet;
+  return result.data;
 }
 
 export async function createWallet(userId: string): Promise<void> {
-  const existingWallet = await prisma.wallet.findUnique({ where: { userId } });
-  if (existingWallet) {
-    throw new Error('Wallet already exists for this user');
-  }
-
-  await prisma.wallet.create({
-    data: {
-      userId,
-      balance: 0, // Initial balance is zero
-    },
-  });
+  await apiClient.post("/payment-transaction/wallets", { userId, balance: 0 });
 }
-

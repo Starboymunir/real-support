@@ -1,117 +1,67 @@
-"use server";
+import { apiClient } from "@/lib/ApiClient";
 
-import prisma from "@/database/prisma";
-import { DiscountCoupons } from "@prisma/client";
-
-// Function to create a discount coupon
-async function createDiscountCoupon(data: DiscountCoupons) {
+async function createDiscountCoupon(data: any) {
   const { coupon, discount, expiry, useability } = data || {};
   try {
-    const newCoupon = await prisma.discountCoupons.create({
-      data: {
-        coupon,
-        discount,
-        expiry,
-        useability,
-      },
-    });
-    return { statusCode: 200, data: newCoupon };
-  } catch (error) {
+    const result = await apiClient.post("/coupons", { coupon, discount, expiry, useability });
+    return { statusCode: 200, data: result.data };
+  } catch (error: any) {
     console.log(error);
-    return { statusCode: 500, message: "Internal Server Error" };
+    return { statusCode: 500, message: error.message || "Internal Server Error" };
   }
 }
 
-// Function to update a discount coupon by ID
-async function updateDiscountCoupon(id: string, data: DiscountCoupons) {
+async function updateDiscountCoupon(id: string, data: any) {
   try {
     const { coupon, discount, expiry, useability } = data || {};
-    const updatedCoupon = await prisma.discountCoupons.update({
-      where: {
-        id,
-      },
-      data: {
-        coupon,
-        discount,
-        expiry,
-        useability,
-      },
-    });
-
-    if (!updatedCoupon) {
-      return { statusCode: 404, message: "Discount Coupon not found" };
-    }
-    return { statusCode: 200, data: updatedCoupon };
-  } catch (error) {
+    const result = await apiClient.patch(`/coupons/${id}`, { coupon, discount, expiry, useability });
+    return { statusCode: 200, data: result.data };
+  } catch (error: any) {
     console.log(error);
-    return { statusCode: 500, message: "Internal Server Error" };
+    return { statusCode: 500, message: error.message || "Internal Server Error" };
   }
 }
-// Function to update a discount coupon by ID
+
 async function updateIsActive(id: string, isActive: boolean) {
   try {
-    const updatedCoupon = await prisma.discountCoupons.update({
-      where: {
-        id,
-      },
-      data: {
-        isActive,
-      },
-    });
-
-    if (!updatedCoupon) {
-      return { statusCode: 404, message: "Discount Coupon not found" };
-    }
-    return { statusCode: 200, data: updatedCoupon };
-  } catch (error) {
+    const result = await apiClient.patch(`/coupons/${id}`, { isActive });
+    return { statusCode: 200, data: result.data };
+  } catch (error: any) {
     console.log(error);
-    return { statusCode: 500, message: "Internal Server Error" };
+    return { statusCode: 500, message: error.message || "Internal Server Error" };
   }
 }
 
-// Function to get a discount coupon by ID
 async function getDiscountCouponById(id: string) {
   try {
-    const coupon = await prisma.discountCoupons.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    if (!coupon) {
+    const result = await apiClient.get(`/coupons/${id}`);
+    if (!result.data) {
       return { statusCode: 404, message: "Discount Coupons not found" };
     }
-    return { statusCode: 200, data: coupon };
-  } catch (error) {
+    return { statusCode: 200, data: result.data };
+  } catch (error: any) {
     console.log(error);
-    return { statusCode: 500, message: "Internal Server Error" };
+    return { statusCode: 500, message: error.message || "Internal Server Error" };
   }
 }
 
-// Function to get all discount coupons
 async function getAllDiscountCoupons() {
   try {
-    const coupons = await prisma.discountCoupons.findMany();
-
-    return { statusCode: 200, data: coupons };
-  } catch (error) {
+    const result = await apiClient.get("/coupons");
+    return { statusCode: 200, data: result.data || [] };
+  } catch (error: any) {
     console.log(error);
-    return { statusCode: 500, message: "Internal Server Error" };
+    return { statusCode: 500, message: error.message || "Internal Server Error" };
   }
 }
 
-// Function to delete a discount coupon by ID
 async function deleteDiscountCoupon(id: string) {
   try {
-    const deletedCoupon = await prisma.discountCoupons.delete({
-      where: {
-        id,
-      },
-    });
-    return { statusCode: 200, data: deletedCoupon };
-  } catch (error) {
+    await apiClient.delete(`/coupons/${id}`);
+    return { statusCode: 200, message: "Coupon deleted successfully" };
+  } catch (error: any) {
     console.log(error);
-    return { statusCode: 500, message: "Internal Server Error" };
+    return { statusCode: 500, message: error.message || "Internal Server Error" };
   }
 }
 

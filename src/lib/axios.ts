@@ -2,7 +2,8 @@
 import axios from 'axios';
 import { fetchAuthSession } from 'aws-amplify/auth';
 
-const baseURL = `${process.env.NEXT_PUBLIC_BACKEND_API}/api`;
+const _raw = process.env.NEXT_PUBLIC_BACKEND_API ?? 'https://backend.real-support.com/api';
+const baseURL = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
 
 const axiosInstance = axios.create({
   baseURL,

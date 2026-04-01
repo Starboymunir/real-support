@@ -30,7 +30,7 @@ import {
 } from "@/lib/validators/yup-validators";
 // import { useDriversQuery } from "@/hooks/Drivers";
 import { usePackagesQuery } from "@/hooks/Packages";
-import { DiscountCoupons, Package } from "@prisma/client";
+import { DiscountCoupons, Package } from "@/types/prisma-types";
 import { formatNumber, parseValidDate } from "@/lib/helper-function";
 import { IRequestType, IUser } from "@/types/type";
 import { apiClient } from "@/lib/ApiClient";

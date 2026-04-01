@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { User } from "@prisma/client";
+import { User } from "@/types/prisma-types";
 import { useForm, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";

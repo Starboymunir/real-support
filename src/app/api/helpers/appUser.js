@@ -1,111 +1,82 @@
-import prisma from "@/database/prisma";
-import bcrypt from "bcrypt";
+import { apiClient } from "@/lib/ApiClient";
 
 export const checkUser = async (email, phone_number, cognitoUserName) => {
-  const user = await prisma.User.findUnique({
-    where: {
-      OR: [{ emailAddress: email }, { phone_number }, { cognitoUserName }],
-    },
-  });
-  return user;
+  try {
+    if (email) {
+      const res = await apiClient.get(`/users/lookup?query=${encodeURIComponent(email)}`);
+      if (res.data) return res.data;
+    }
+    if (phone_number) {
+      const res = await apiClient.get(`/users/lookup?query=${encodeURIComponent(phone_number)}`);
+      if (res.data) return res.data;
+    }
+    if (cognitoUserName) {
+      const res = await apiClient.get(`/users/cognito/${cognitoUserName}`);
+      if (res.data) return res.data;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 };
 
 export const checkUserByEmail = async (email) => {
-  const user = await prisma.User.findUnique({
-    where: {
-      emailAddress: email,
-    },
-    include: {
-      driver: {
-        include: {
-          document: true,
-        },
-      },
-      passenger: true,
-    },
-  });
-  return user;
+  try {
+    const res = await apiClient.get(`/users/lookup?query=${encodeURIComponent(email)}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 export const checkUserByPhone = async (phone_number) => {
-  const user = await prisma.User.findUnique({
-    where: {
-      phone_number,
-    },
-  });
-  return user;
+  try {
+    const res = await apiClient.get(`/users/lookup?query=${encodeURIComponent(phone_number)}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 export const checkUserByCognito = async (cognitoUserName) => {
-  const user = await prisma.User.findUnique({
-    where: {
-      cognitoUserName,
-    },
-    include: {
-      driver: {
-        include: {
-          document: true,
-        },
-      },
-      passenger: true,
-    },
-  });
-  return user;
+  try {
+    const res = await apiClient.get(`/users/cognito/${cognitoUserName}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 export const findUser = async (id) => {
-  const user = await prisma.User.findUnique({
-    where: {
-      id,
-    },
-  });
-  return user;
+  try {
+    const res = await apiClient.get(`/users/${id}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 export const findUserByEmail = async (email) => {
-  const user = await prisma.User.findUnique({
-    where: {
-      emailAddress: email,
-    },
-    include: {
-      driver: {
-        include: {
-          document: true,
-        },
-      },
-      passenger: true,
-    },
-  });
-  return user;
+  try {
+    const res = await apiClient.get(`/users/lookup?query=${encodeURIComponent(email)}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
-export const createUser = async (
-  firstName,
-  lastName,
-  email,
-  password,
-  phone_number
-) => {
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
-  const user = await prisma.User.create({
-    data: {
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      phone_number,
-    },
+export const createUser = async (firstName, lastName, email, password, phone_number) => {
+  const res = await apiClient.post("/auth/register", {
+    firstName,
+    lastName,
+    emailAddress: email,
+    password,
+    phone_number,
   });
-
-  return user;
+  return res.data;
 };
 
 export const updateUser = async (id, data) => {
-  const result = await prisma.User.update({
-    where: { id },
-    data,
-  });
-  return result;
+  const res = await apiClient.patch(`/users/info/${id}`, data);
+  return res.data;
 };

@@ -1,81 +1,38 @@
-"use server";
+import { apiClient } from "@/lib/ApiClient";
 
-import prisma from "@/database/prisma";
-
-// Function to create a new coupon
-export async function createCoupon(
-  coupon: string,
-  discount: number,
-  expiry: Date
-) {
-  const newCoupon = await prisma.discountCoupons.create({
-    data: {
-      coupon,
-      discount,
-      expiry,
-    },
-  });
-  return newCoupon;
+export async function createCoupon(coupon: string, discount: number, expiry: Date) {
+  const result = await apiClient.post("/coupons", { coupon, discount, expiry });
+  return result.data;
 }
+
 export const getCoupon = async (coupon: string) => {
-  const couponData = await prisma.discountCoupons.findFirst({
-    where: {
-      coupon: coupon,
-      isActive: true,
-    },
-  });
-  if (!couponData) {
+  try {
+    const result = await apiClient.post("/coupons/apply", { coupon });
+    if (!result.data) {
+      return { message: "Coupon Not found", statusCode: 404, data: null };
+    }
+    return { data: result.data, statusCode: 200, message: "Successfully fetched Coupon" };
+  } catch (err: any) {
     return { message: "Coupon Not found", statusCode: 404, data: null };
-  } else {
-    return {
-      data: couponData,
-      statusCode: 200,
-      message: "Successfully fetched Coupon",
-    };
   }
 };
 
-// Function to get all coupons
 export async function getAllCoupons() {
-  const coupons = await prisma.discountCoupons.findMany({
-    where: {
-      isActive: true,
-    },
-  });
-  return coupons;
+  const result = await apiClient.get("/coupons");
+  return result.data || [];
 }
 
-// Function to get a single coupon by ID
 export async function getCouponById(id: string) {
-  const coupon = await prisma.discountCoupons.findUnique({
-    where: {
-      id,
-      isActive: true,
-    },
-  });
-  return coupon;
+  const result = await apiClient.get(`/coupons/${id}`);
+  return result.data;
 }
 
-// Function to update a coupon
-export async function updateCoupon(
-  id: string,
-  data: { coupon?: string; discount?: number; expiry?: Date }
-) {
-  const updatedCoupon = await prisma.discountCoupons.update({
-    where: {
-      id,
-    },
-    data,
-  });
-  return updatedCoupon;
+export async function updateCoupon(id: string, data: { coupon?: string; discount?: number; expiry?: Date }) {
+  const result = await apiClient.patch(`/coupons/${id}`, data);
+  return result.data;
 }
 
-// Function to delete a coupon
 export async function deleteCoupon(id: string) {
-  const deletedCoupon = await prisma.discountCoupons.delete({
-    where: {
-      id,
-    },
-  });
-  return deletedCoupon;
+  await apiClient.delete(`/coupons/${id}`);
+  return { id };
 }

@@ -13,7 +13,7 @@ import {
   DriverSchema,
   TDriverSchemaValidator,
 } from '@/lib/validators/driver-validator';
-import { Driver } from '@prisma/client';
+import { Driver } from '@/types/prisma-types';
 
 interface IDriverUpdateForm {
   closeModal: () => void;

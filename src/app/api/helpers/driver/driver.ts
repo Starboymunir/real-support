@@ -1,36 +1,37 @@
-import prisma from '@/database/prisma';
-import { fieldsExtracter } from "../../utils/filterFields";
+import { apiClient } from "@/lib/ApiClient";
 import { uploadFile } from "@/app/api/helpers/imageUpload";
 import { convertFormData } from "../../utils/convertFormData";
-import {
-  Car,
-  CarStatus,
-  Document,
-} from "@prisma/client";
+import { fieldsExtracter } from "../../utils/filterFields";
 import { remove } from "aws-amplify/storage";
 
-const includeDriverRelations = {
-  userInfo: true,
-  car: { include: { carDocument: true } },
-  document: true,
-};
+type CarStatus = "ACTIVE" | "INACTIVE";
 
 export const findAllDrivers = async () => {
-  return await prisma.driver.findMany({ include: includeDriverRelations });
+  try {
+    const res = await apiClient.get("/admin/drivers?count=1000");
+    return res.data || [];
+  } catch {
+    return [];
+  }
 };
 
 export const findDriver = async (id: string) => {
-  return await prisma.driver.findUnique({
-    where: { id },
-    include: includeDriverRelations,
-  });
+  try {
+    const res = await apiClient.get(`/admin/drivers/${id}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 export const findDriverByUserId = async (driverUserId: string) => {
-  return await prisma.driver.findUnique({
-    where: { driverUserId },
-    include: includeDriverRelations,
-  });
+  try {
+    const res = await apiClient.get(`/admin/drivers?userId=${driverUserId}`);
+    const drivers = res.data || [];
+    return Array.isArray(drivers) ? drivers[0] || null : drivers;
+  } catch {
+    return null;
+  }
 };
 
 // Driver document operations
@@ -48,55 +49,49 @@ export const createOrUpdateDocument = async (
     fieldsExtracter(data, documentFields);
   const Files = fieldsExtracter(data, fileToExtract);
 
-  const document: Document | null = await prisma.document.findFirst({
-    where: { driverId: driverId as string },
-  });
+  // Get existing document via API
+  let document: any = null;
+  try {
+    const docRes = await apiClient.get(`/documents/driver/${driverId}`);
+    document = docRes.data;
+  } catch {
+    // no existing document
+  }
 
   for (let file in Files) {
     const fileUrl = await uploadFile(data[file] as File);
-
     dataPayload[file] = fileUrl;
 
     const documentTypeKey = documentType as keyof typeof document;
     const fileKeyInDocumentType =
-    file as keyof (typeof document)[typeof documentTypeKey];
+      file as keyof (typeof document)[typeof documentTypeKey];
 
     if (
       document &&
       document[documentTypeKey] &&
       document[documentTypeKey][fileKeyInDocumentType]
     ) {
-      await remove({key:document[documentTypeKey][fileKeyInDocumentType]})
+      await remove({ key: document[documentTypeKey][fileKeyInDocumentType] });
     }
   }
 
-  if (!document) {
-    return await prisma.document.create({
-      data: {
-        [documentType]: {
-          ...dataPayload,
-          details: {
-            isSubmitted: true,
-            status: "Pending",
-          },
-        },
-        driverId: driverId as string,
+  const payload = {
+    [documentType]: {
+      ...dataPayload,
+      details: {
+        isSubmitted: true,
+        status: "Pending",
       },
-    });
-  }
-  return await prisma.document.update({
-    where: { driverId: driverId as string },
-    data: {
-      [documentType]: {
-        ...dataPayload,
-        details: {
-          isSubmitted: true,
-          status: "Pending",
-        },
-      },
-      driverId: driverId as string,
     },
-  });
+    driverId: driverId as string,
+  };
+
+  if (!document) {
+    const res = await apiClient.post(`/documents/driving-license`, payload);
+    return res.data;
+  }
+  const res = await apiClient.patch(`/documents/driver/${driverId}`, payload);
+  return res.data;
 };
 
 // Driver Car document operations
@@ -111,80 +106,87 @@ export const createOrUpdateCarDocument = async (
   const dataPayload: Partial<Record<string, string | File | null>> =
     fieldsExtracter(data, documentFields);
   const Files = fieldsExtracter(data, fileToExtract);
-  const carDocument = await prisma.carDocument.findFirst({
-    where: { carId: carId as string },
-  });
 
+  let carDocument: any = null;
+  try {
+    const docRes = await apiClient.get(`/documents/car/${carId}`);
+    carDocument = docRes.data;
+  } catch {
+    // no existing car document
+  }
 
   for (let file in Files) {
     const fileUrl = await uploadFile(data[file] as File);
     dataPayload[file] = fileUrl;
     const documentTypeKey = documentType as keyof typeof carDocument;
     const fileKeyInDocumentType =
-    file as keyof (typeof carDocument)[typeof documentTypeKey];
+      file as keyof (typeof carDocument)[typeof documentTypeKey];
 
     if (
       carDocument &&
       carDocument[documentTypeKey] &&
       carDocument[documentTypeKey][fileKeyInDocumentType]
     ) {
-      await remove({key:carDocument[documentTypeKey][fileKeyInDocumentType]})
+      await remove({ key: carDocument[documentTypeKey][fileKeyInDocumentType] });
     }
   }
 
-  if (!carDocument) {
-    return await prisma.carDocument.create({
-      data: {
-        [documentType]: {
-          ...dataPayload,
-          details: {
-            isSubmitted: true,
-            status: "Pending",
-          },
-        },
-        carId: carId as string,
+  const payload = {
+    [documentType]: {
+      ...dataPayload,
+      details: {
+        isSubmitted: true,
+        status: "Pending",
       },
-    });
-  }
-  return await prisma.carDocument.update({
-    where: { carId: carId as string },
-    data: {
-      [documentType]: {
-        ...dataPayload,
-        details: {
-          isSubmitted: true,
-          status: "Pending",
-        },
-      },
-      carId: carId as string,
     },
-  });
+    carId: carId as string,
+  };
+
+  if (!carDocument) {
+    const res = await apiClient.post(`/documents/driver/car/insurance`, payload);
+    return res.data;
+  }
+  const res = await apiClient.patch(`/documents/car/${carId}`, payload);
+  return res.data;
 };
 
 export const findDriverDocument = async (driverId: string) => {
-  return await prisma.document.findUnique({ where: { driverId } });
+  try {
+    const res = await apiClient.get(`/documents/driver/${driverId}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 // Car-related functions
-const includeCarRelations = { include: { carDocument: true } };
-
 export const findDriverCar = async (driverId: string) => {
-  return await prisma.car.findUnique({
-    where: { driverId },
-  });
+  try {
+    const res = await apiClient.get(`/driver-cars?driverId=${driverId}`);
+    const cars = res.data;
+    return Array.isArray(cars) ? cars[0] || null : cars;
+  } catch {
+    return null;
+  }
 };
 
 export const findCarByNumberPlate = async (numberPlate: string) => {
-  return await prisma.car.findUnique({
-    where: { numberPlate },
-  });
+  try {
+    const res = await apiClient.get(`/driver-cars?numberPlate=${encodeURIComponent(numberPlate)}`);
+    const cars = res.data;
+    return Array.isArray(cars) ? cars[0] || null : cars;
+  } catch {
+    return null;
+  }
 };
 
 export const findCar = async (id: string) => {
-  return await prisma.car.findUnique({
-    ...includeCarRelations,
-    where: { id },
-  });
+  try {
+    const res = await apiClient.get(`/driver-cars/${id}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 export const createCar = async (
@@ -200,12 +202,11 @@ export const createCar = async (
   },
   fileName: string | null | undefined
 ) => {
-  return await prisma.car.create({
-    data: {
-      ...data,
-      carImage: fileName,
-    },
+  const res = await apiClient.post("/driver-cars", {
+    ...data,
+    carImage: fileName,
   });
+  return res.data;
 };
 
 export const updateCar = async (
@@ -221,12 +222,15 @@ export const updateCar = async (
     status: CarStatus | undefined;
   }
 ) => {
-  return await prisma.car.update({
-    where: { id },
-    data,
-  });
+  const res = await apiClient.patch(`/driver-cars/${id}`, data);
+  return res.data;
 };
 
 export const findCarDocument = async (carId: string) => {
-  return await prisma.carDocument.findUnique({ where: { carId } });
+  try {
+    const res = await apiClient.get(`/documents/car/${carId}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };

@@ -1,20 +1,10 @@
 import { NextResponse } from "next/server";
-import prisma from "@/database/prisma";
+import { api } from "@/lib/api";
 
 export const findUserByCognitoId = async (cognitoId: string) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        cognitoId,
-      },
-      include: {
-        driver: true,
-        Admin: true,
-        addressInfo: true,
-        SocialLink: true,
-      },
-    });
-    return user;
+    const result = await api.get(`/users/cognito/${cognitoId}`);
+    return (result as any)?.data || result;
   } catch (error) {
     return new NextResponse("Internal Error", { status: 500 });
   }

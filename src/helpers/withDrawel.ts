@@ -1,5 +1,4 @@
-"use server";
-import prisma from "@/database/prisma";
+import { apiClient } from "@/lib/ApiClient";
 import { getWallet } from "./wallet";
 
 export async function createWithdrawRequest(userId: string, amount: number) {
@@ -13,13 +12,11 @@ export async function createWithdrawRequest(userId: string, amount: number) {
       statusCode: 400,
     };
   }
-  const withdrawRequest = await prisma.withdrawRequests.create({
-    data: {
-      userId,
-      amount,
-      status: "PENDING",
-    },
+  const result = await apiClient.post("/payment-transaction/withdraw", {
+    userId,
+    amount,
   });
+  const withdrawRequest = result.data;
 
   if (!withdrawRequest) {
     return {
@@ -29,13 +26,8 @@ export async function createWithdrawRequest(userId: string, amount: number) {
     };
   }
 
-  await prisma.wallet.update({
-    where: { id: wallet.id },
-    data: {
-      balance: {
-        decrement: amount,
-      },
-    },
+  await apiClient.patch(`/payment-transaction/wallets/${userId}`, {
+    amount: -amount,
   });
 
   return {

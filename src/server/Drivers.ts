@@ -1,27 +1,11 @@
-"use server";
+import { apiClient } from "@/lib/ApiClient";
 
-import prisma from "@/database/prisma";
-import { Driver } from "@prisma/client";
-
-export const getDrivers = async (): Promise<Driver[]> => {
-  const drivers = await prisma.driver.findMany({
-    include: {
-      userInfo: true,
-    },
-  });
-  return drivers;
+export const getDrivers = async () => {
+  const result = await apiClient.get("/admin/drivers?count=1000");
+  return result.data || [];
 };
 
-export const getDriverById = async (id: string): Promise<Driver | null> => {
-  const driver = await prisma.driver.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      userInfo: true,
-      car: true,
-      document: true,
-    },
-  });
-  return driver;
+export const getDriverById = async (id: string) => {
+  const result = await apiClient.get(`/admin/drivers/${id}`);
+  return result.data;
 };

@@ -19,7 +19,7 @@ import {
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { IUser } from "@/types/type";
-import { Company, Driver, Wallet } from "@prisma/client";
+import { Company, Driver, Wallet } from "@/types/prisma-types";
 import { useSnackbar } from "notistack";
 import { useWalletQuery } from "@/hooks/Payments";
 import axiosInstance from "@/lib/axios";

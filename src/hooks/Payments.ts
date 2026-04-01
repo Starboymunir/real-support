@@ -4,7 +4,7 @@ import {
   getAllWithDrawlRequests,
   getUserWallet,
 } from "@/server/payment";
-import { Wallet } from "@prisma/client";
+import { Wallet } from "@/types/prisma-types";
 import { useQuery } from "@tanstack/react-query";
 
 export const useWalletQuery = (id: string) => {

@@ -1,150 +1,89 @@
-import prisma from "@/database/prisma";
-import { addressFieldChecker } from "../utils/addressFieldChecker";
+import { apiClient } from "@/lib/ApiClient";
 
 export const findAllBookings = async () => {
-  const result = await prisma.booking.findMany({
-    include: {
-      startFrom: true,
-      destination: true,
-      stoppages: true,
-      packageInfo: true,
-      driverInfo: {
-        include: {
-          userInfo: true,
-          document: true,
-          car: {
-            include: {
-              carDocument: true,
-            },
-          },
-        },
-      },
-      requestInfo: {
-        include: {
-          startFrom: true,
-          destination: true,
-          stoppages: true,
-          packageInfo: true,
-        },
-      },
-      riderInfo: true,
-    },
-  });
-
-  return result;
+  try {
+    const res = await apiClient.get("/admin/bookings");
+    return res.data || [];
+  } catch {
+    return [];
+  }
 };
 
 export const findAllRideRequest = async () => {
-  const result = await prisma.request.findMany({
-    include: {
-      startFrom: true,
-      destination: true,
-      stoppages: true,
-      packageInfo: true,
-      riderInfo: true,
-    },
-  });
-
-  return result;
+  try {
+    const res = await apiClient.get("/admin/requests");
+    return res.data || [];
+  } catch {
+    return [];
+  }
 };
 
 export const findBooking = async (id) => {
-  const result = await prisma.booking.findMany({
-    include: {
-      driverInfo: {
-        include: {
-          userInfo: true,
-          document: true,
-          car: true,
-        },
-      },
-      requestInfo: {
-        include: {
-          startFrom: true,
-          destination: true,
-          stoppages: true,
-        },
-      },
-      riderInfo: {
-        userInfo: true,
-      },
-    },
-    where: { id },
-  });
-  return result;
+  try {
+    const res = await apiClient.get(`/admin/bookings/${id}`);
+    return res.data ? [res.data] : [];
+  } catch {
+    return [];
+  }
 };
 
 export const createBooking = async (data) => {
-  const result = await prisma.Booking.create({ data });
-  return result;
+  const res = await apiClient.post("/admin/bookings", data);
+  return res.data;
 };
 
 export const findAllRideBidRequest = async (id) => {
-  const result = await prisma.request.findMany({
-    where: {
-      id,
-    },
-    include: {
-      requestInfo: true,
-      driverInfo: true,
-      riderInfo: true,
-    },
-  });
-
-  return result;
+  try {
+    const res = await apiClient.get(`/bids/${id}`);
+    return res.data ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
+  } catch {
+    return [];
+  }
 };
 
 export const createBidPlace = async (data) => {
-  const result = await prisma.Bidplace.create({ data });
-  return result;
+  const res = await apiClient.post("/bids", data);
+  return res.data;
 };
 
-export const findCart = async () => {
-  const result = await prisma.request.findUnique({
-    include: {
-      startFrom: true,
-      destination: true,
-      stoppages: true,
-    },
-    where: { id },
-  });
-  return result;
+export const findCart = async (id) => {
+  try {
+    const res = await apiClient.get(`/requests/${id}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 export const createCart = async (data, startFromId, destinationId) => {
   const tempData = { ...data, startFromId, destinationId };
-
   delete tempData.startAddress;
   delete tempData.destinationAddress;
   delete tempData.stoppages;
-  const cart = await prisma.request.create({
-    data: {
-      ...tempData,
-      totalBill: Number(tempData.totalBill),
-      totalDistance: Number(tempData.totalDistance),
-    },
+
+  const res = await apiClient.post("/requests", {
+    ...tempData,
+    totalBill: Number(tempData.totalBill),
+    totalDistance: Number(tempData.totalDistance),
   });
-  return cart;
+  return res.data;
 };
 
 export const createAddress = async (data) => {
-  const address = await prisma.Address.create({ data });
-  return address;
+  const res = await apiClient.post("/addresses", data);
+  return res.data;
 };
 
 export const createStopages = async (stoppages, requestId, userId) => {
   if (stoppages?.length && requestId) {
     const result = [];
     for (let i = 0; i < stoppages?.length - 1; ++i) {
-      const stopagesFields = addressFieldChecker(stoppages[i]);
-      if (stopagesFields) {
-        const newStopages = await createAddress({
-          ...stoppages[i],
-          requestId,
-          userId,
-        });
-        result.push(newStopages);
-      }
+      const newStopages = await createAddress({
+        ...stoppages[i],
+        requestId,
+        userId,
+      });
+      result.push(newStopages);
     }
     return result;
   }

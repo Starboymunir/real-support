@@ -1,123 +1,56 @@
-"use server";
-
-import { uploadFile as ImageUploadHelper } from "@/app/api/helpers/imageUpload";
-import { convertFormData } from "@/app/api/utils/convertFormData";
-import prisma from "@/database/prisma";
-import { UserStatus } from "@prisma/client";
-import { remove } from "aws-amplify/storage";
-import { revalidatePath } from "next/cache";
+import { apiClient } from "@/lib/ApiClient";
 
 const getAllPassengers = async () => {
-
   try {
-    const result = await prisma.user.findMany({
-      include: { addresses: true, bookings: true },
-    });
-    return result;
-  } catch (error: any) {
+    const result = await apiClient.get("/admin/passengers");
+    return result.data || [];
+  } catch (error) {
     console.log("Error in getAllPassengerFunction", error);
     throw { message: error.message };
   }
 };
 
-const allowGenerateInvoice = async (id: string, status: boolean) => {
+const allowGenerateInvoice = async (id, status) => {
   try {
-    const result = await prisma.booking.update({
-      where: { id },
-      data: {
-        isAllowGenerateInvoice: status,
-      },
-    });
-
+    await apiClient.patch(`/admin/bookings/${id}`, { isAllowGenerateInvoice: status });
     return { statusCode: 200, message: "Generate Invoice Successfully" };
-  } catch (err: any) {
+  } catch (err) {
     return { statusCode: 400, message: err.message };
   }
 };
 
-const getPassengerById = async (id: string) => {
+const getPassengerById = async (id) => {
   try {
-    const result = await prisma.user.findUnique({
-      where: { id },
-      include: { addresses: true, bookings: true },
-    });
-
-    return result;
-  } catch (error: any) {
+    const result = await apiClient.get(`/admin/passengers/${id}`);
+    return result.data;
+  } catch (error) {
     throw { message: error.message };
   }
 };
 
-const updatePassengerById = async (id: string, data: any) => {
+const updatePassengerById = async (id, data) => {
   try {
-    const result = await prisma.user.findUnique({
-      where: { id },
-      include: { addresses: true, bookings: true },
-    });
-
-    if (!result) {
-      throw { message: "passenger not found" };
-    }
-
-    const convertedFormData = convertFormData(data);
-
-    const updatedUser = await prisma.user.update({
-      where: {
-        id,
-      },
-      data: {
-        ...convertedFormData
-      },
-    });
-    return updatedUser;
-  } catch (error: any) {
+    const result = await apiClient.patch(`/admin/passengers/${id}`, data);
+    return result.data;
+  } catch (error) {
     throw { message: error.message };
   }
 };
-const changeStatus = async (id: string, status: UserStatus) => {
+
+const changeStatus = async (id, status) => {
   try {
-    const result = await prisma.user.findUnique({
-      where: { id },
-      include: { addresses: true, bookings: true },
-    });
-
-    if (!result) {
-      return { message: "passenger not found", statusCode: 400 };
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: {
-        id,
-      },
-      data: {
-        status,
-      },
-    });
-    revalidatePath("/admin/dashboard/passengers/list/");
-    return { data: updatedUser, statusCode: 200 };
-  } catch (error: any) {
+    const result = await apiClient.patch(`/admin/passengers/${id}/status`, { status });
+    return { data: result.data, statusCode: 200 };
+  } catch (error) {
     return { message: error.message, statusCode: 400 };
   }
 };
 
-const promoteUserToAdmin = async (id: string) => {
+const promoteUserToAdmin = async (id) => {
   try {
-    const result = await prisma.user.findUnique({ where: { id } });
-
-    if (!result) {
-      return { message: "passenger not found", statusCode: 400 };
-    }
-    console.log(result);
-
-    const admin = await prisma.admin.create({
-      data: {
-        userId: id,
-        status: true,
-      },
-    });
-
-    return { data: admin, statusCode: 200 };
-  } catch (error: any) {
+    const result = await apiClient.post("/admin/passengers/promote-user", { userId: id });
+    return { data: result.data, statusCode: 200 };
+  } catch (error) {
     console.error(error);
     return { message: error.message, statusCode: 400 };
   }

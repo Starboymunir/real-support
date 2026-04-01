@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "./TableColumnHeader";
 import { formatToLocalDate, formattedPrice } from "@/lib/utils";
 import { statuses } from "./Status";
-import { Transaction } from "@prisma/client";
+import { Transaction } from "@/types/prisma-types";
 import { TransactionRowActions } from "./TransactionRowActions";
 import { ITransaction } from "@/types/type";
 

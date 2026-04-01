@@ -1,56 +1,33 @@
-import prisma from "@/database/prisma";
-import { fieldsExtracter } from "../utils/filterFields";
-import { uploadFile as ImageUploadHelper } from "./imageUpload";
-import { v4 as uuid } from "uuid";
+import { apiClient } from "@/lib/ApiClient";
 import { remove } from "aws-amplify/storage";
 
 // Drivers
 export const findAllDrivers = async () => {
-  const result = await prisma.driver.findMany({
-    include: {
-      userInfo: true,
-      car: { include: { carDocument: true } },
-      document: true,
-      totalJobs: true,
-      packages: true,
-    },
-  });
-
-  return result;
+  try {
+    const res = await apiClient.get("/admin/drivers?count=1000");
+    return res.data || [];
+  } catch {
+    return [];
+  }
 };
 
 export const findDriver = async (id) => {
-  const result = await prisma.driver.findUnique({
-    where: { id },
-    include: {
-      userInfo: {
-        include: {
-          wallet: true,
-        },
-      },
-      car: { include: { carDocument: true } },
-      packages: true,
-      document: true,
-      totalJobs: true,
-    },
-  });
-
-  return result;
+  try {
+    const res = await apiClient.get(`/admin/drivers/${id}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
+
 export const findDriverByUserId = async (userId) => {
-  const result = await prisma.driver.findUnique({
-    where: { userId },
-    include: {
-      userInfo: true,
-      car: { include: { carDocument: true } },
-      packages: true,
-
-      document: true,
-      totalJobs: true,
-    },
-  });
-
-  return result;
+  try {
+    const res = await apiClient.get(`/admin/drivers?userId=${userId}`);
+    const drivers = res.data || [];
+    return Array.isArray(drivers) ? drivers[0] || null : drivers;
+  } catch {
+    return null;
+  }
 };
 
 export const createDriver = async (data, userId, fileName) => {
@@ -62,28 +39,18 @@ export const createDriver = async (data, userId, fileName) => {
   delete tempData.phone_number;
   delete tempData.profileImage;
 
-  const result = await prisma.driver.create({
-    data: {
-      ...tempData,
-      userId,
-      profileImage: fileName,
-      depositePaid: Boolean(tempData?.depositePaid),
-      ratings: tempData.ratings ? Number(tempData.ratings) : 0,
-      totalJobComplete: tempData.totalJobComplete
-        ? Number(tempData.totalJobComplete)
-        : 0,
-      depositeAmount: tempData.depositeAmount
-        ? Number(tempData.depositeAmount)
-        : 0,
-      commision: tempData.commision ? Number(tempData.commision) : 0,
-      currentBalance: tempData.currentBalance
-        ? Number(tempData.currentBalance)
-        : 0,
-      driverRecognitionNumber: `${uuid()}`,
-    },
+  const res = await apiClient.post("/drivers/register", {
+    ...tempData,
+    userId,
+    profileImage: fileName,
+    depositePaid: Boolean(tempData?.depositePaid),
+    ratings: tempData.ratings ? Number(tempData.ratings) : 0,
+    totalJobComplete: tempData.totalJobComplete ? Number(tempData.totalJobComplete) : 0,
+    depositeAmount: tempData.depositeAmount ? Number(tempData.depositeAmount) : 0,
+    commision: tempData.commision ? Number(tempData.commision) : 0,
+    currentBalance: tempData.currentBalance ? Number(tempData.currentBalance) : 0,
   });
-
-  return result;
+  return res.data;
 };
 
 export const updateDriver = async (id, data, prevData, fileName) => {
@@ -94,180 +61,136 @@ export const updateDriver = async (id, data, prevData, fileName) => {
   delete tempData?.emailAddress;
   delete tempData?.password;
 
-  const result = await prisma.driver.update({
-    where: { id },
-    data: {
-      ...tempData,
-      profileImage: fileName ? fileName : prevData.profileImage,
-      depositePaid: tempData.depositePaid
-        ? Boolean(tempData?.depositePaid)
-        : prevData.depositePaid,
-      ratings: tempData.ratings ? Number(tempData.ratings) : prevData.ratings,
-      totalJobComplete: tempData.totalJobComplete
-        ? Number(tempData.totalJobComplete)
-        : prevData.totalJobComplete,
-      depositeAmount: tempData.depositeAmount
-        ? Number(tempData.depositeAmount)
-        : prevData.depositeAmount,
-      commisionPercentage: tempData.commisionPercentage
-        ? Number(tempData.commisionPercentage)
-        : prevData.commisionPercentage,
-    },
+  const res = await apiClient.patch(`/admin/drivers/${id}`, {
+    ...tempData,
+    profileImage: fileName ? fileName : prevData.profileImage,
+    depositePaid: tempData.depositePaid ? Boolean(tempData?.depositePaid) : prevData.depositePaid,
+    ratings: tempData.ratings ? Number(tempData.ratings) : prevData.ratings,
+    totalJobComplete: tempData.totalJobComplete ? Number(tempData.totalJobComplete) : prevData.totalJobComplete,
+    depositeAmount: tempData.depositeAmount ? Number(tempData.depositeAmount) : prevData.depositeAmount,
+    commisionPercentage: tempData.commisionPercentage ? Number(tempData.commisionPercentage) : prevData.commisionPercentage,
   });
 
   if (fileName && prevData.profileImage) {
     await remove({ key: prevData.profileImage });
   }
 
-  return result;
+  return res.data;
 };
 
 export const deleteDriver = async (id) => {
-  const result = await prisma.driver.update({
-    where: { id },
-    data: {
-      isDeleted: true,
-    },
-  });
-  return result;
+  const res = await apiClient.patch(`/admin/drivers/${id}`, { isDeleted: true });
+  return res.data;
 };
 
 // update legal information
-
 export const updateDocumentLegalInfo = async (id, data) => {
-  const result = await prisma.Document.update({
-    where: { id },
-    data: { ...data },
-  });
-  return result;
+  const res = await apiClient.patch(`/admin/drivers/documents/${id}/legal-info`, data);
+  return res.data;
 };
+
 export const updateCarDocumentLegalInfo = async (carId, data) => {
-  const result = await prisma.CarDocument.update({
-    where: { carId },
-    data,
-  });
-  return result;
+  const res = await apiClient.patch(`/admin/drivers/car-documents/${carId}`, data);
+  return res.data;
 };
 
 // Driver Document
 export const createDocument = async (data, fieldsToExtract, driverId) => {
-  const tempData = { ...data };
-  const extractedFields = fieldsExtracter(data, fieldsToExtract);
-
-  for (const field in extractedFields) {
-    const fileName = await ImageUploadHelper(tempData[field]);
-    tempData[field] = fileName;
+  const formData = new FormData();
+  for (const key in data) {
+    formData.append(key, data[key]);
   }
-  const result = await prisma.Document.create({
-    data: { ...tempData, driverId },
-  });
-
-  return result;
+  formData.append("driverId", driverId);
+  const res = await apiClient.post("/documents/driving-license", formData);
+  return res.data;
 };
 
 export const updateDocument = async (data, driverId) => {
+  const formData = new FormData();
   for (const field in data) {
-    const fileName = await ImageUploadHelper(data[field]);
-    data[field] = fileName;
+    formData.append(field, data[field]);
   }
-
-  const result = await prisma.Document.update({
-    where: { driverId },
-    data,
-  });
-  return result;
+  formData.append("driverId", driverId);
+  const res = await apiClient.patch(`/documents/driver/${driverId}`, formData);
+  return res.data;
 };
 
 export const findDriverDocument = async (driverId) => {
-  const result = await prisma.Document.findUnique({
-    where: { driverId },
-  });
-  return result;
+  try {
+    const res = await apiClient.get(`/documents/driver/${driverId}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 // Cars
 export const findDriverCar = async (driverId) => {
-  const result = await prisma.car.findUnique({
-    include: { carDocument: true },
-    where: { driverId },
-  });
-
-  return result;
+  try {
+    const res = await apiClient.get(`/driver-cars?driverId=${driverId}`);
+    const cars = res.data;
+    return Array.isArray(cars) ? cars[0] || null : cars;
+  } catch {
+    return null;
+  }
 };
 
 export const findCar = async (id) => {
-  const result = await prisma.car.findUnique({
-    include: { carDocument: true },
-    where: { id },
-  });
-
-  return result;
+  try {
+    const res = await apiClient.get(`/driver-cars/${id}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 export const createCar = async (data, fileName, driverId) => {
-  const result = await prisma.car.create({
-    data: {
-      ...data,
-      driverId,
-      carImage: fileName,
-    },
+  const res = await apiClient.post("/driver-cars", {
+    ...data,
+    driverId,
+    carImage: fileName,
   });
-
-  return result;
+  return res.data;
 };
 
 export const updateCar = async (id, data, prevData, fileName) => {
-  const tempData = { ...data };
-
-  const result = await prisma.car.update({
-    where: { id },
-    data: {
-      ...tempData,
-      carImage: fileName ? fileName : prevData.carImage,
-    },
+  const res = await apiClient.patch(`/driver-cars/${id}`, {
+    ...data,
+    carImage: fileName ? fileName : prevData.carImage,
   });
 
   if (fileName && prevData.carImage) {
     await remove({ key: prevData.carImage });
   }
 
-  return result;
+  return res.data;
 };
 
 export const findCarDocument = async (carId) => {
-  const result = await prisma.CarDocument.findUnique({ where: { carId } });
-
-  return result;
+  try {
+    const res = await apiClient.get(`/documents/car/${carId}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 export const createCarDocument = async (data, fieldsToExtract, carId) => {
-  const tempData = { ...data };
-  const extractedFields = fieldsExtracter(data, fieldsToExtract);
-
-  for (const field in extractedFields) {
-    const fileName = await ImageUploadHelper(tempData[field]);
-    tempData[field] = fileName;
+  const formData = new FormData();
+  for (const key in data) {
+    formData.append(key, data[key]);
   }
-
-  const result = await prisma.CarDocument.create({
-    data: { ...tempData, carId },
-  });
-
-  return result;
+  formData.append("carId", carId);
+  const res = await apiClient.post("/documents/driver/car/insurance", formData);
+  return res.data;
 };
 
 export const updateCarDocument = async (data, carId) => {
-  const tempData = { ...data };
-
-  for (const field in tempData) {
-    const fileName = await ImageUploadHelper(tempData[field]);
-    tempData[field] = fileName;
+  const formData = new FormData();
+  for (const field in data) {
+    formData.append(field, data[field]);
   }
-
-  const result = await prisma.CarDocument.update({
-    where: { carId },
-    data: tempData,
-  });
-
-  return result;
+  formData.append("carId", carId);
+  const res = await apiClient.patch(`/documents/car/${carId}`, formData);
+  return res.data;
 };

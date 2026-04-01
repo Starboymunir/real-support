@@ -1,55 +1,15 @@
-"use server";
-import prisma from "@/database/prisma";
+import { apiClient } from "@/lib/ApiClient";
 
 const getAllAdminTransaction = async () => {
-  return await prisma.adminTransaction.findMany({
-    include: {
-      userInfo: true,
-    },
-  });
+  const result = await apiClient.get("/payment-transaction/admin");
+  return result.data || [];
 };
 
 const createAdminTransaction = async (userId: string, amount: number, type: string) => {
   try {
-    const userWallet = await prisma.wallet.findUnique({
-      where: {
-        userId,
-      },
-    });
-
-    if (!userWallet) {
-        return {statusCode:400,message:"user not found"}
-    }
-    const newAdminTransaction = await prisma.adminTransaction.create({
-      data: {
-        userId,
-        amount,
-        type: type == "SEND" ? "EXPENSE" : "INCOME",
-      },
-    });
-
-    const newUserTransaction = await prisma.transaction.create({
-      data: {
-        userId,
-        amount,
-        type: type == "SEND" ? "ADMIN_FUND" : "ADMIN_CHARGE",
-      },
-    });
-    const balance =
-      type == "SEND"
-        ? Number(userWallet.balance) + Number(amount)
-        : Number(userWallet.balance) - Number(amount);
-    await prisma.wallet.update({
-      where: {
-        userId,
-      },
-      data: {
-        balance: balance,
-      },
-    });
-
-    return {statusCode:200,message:"Tranasacition Successfull"}
-  } catch (err) {
+    await apiClient.post("/payment-transaction/admin/transaction", { userId, amount, type });
+    return { statusCode: 200, message: "Transaction Successful" };
+  } catch (err: any) {
     return { statusCode: 500, message: "Internal Server Error" };
   }
 };

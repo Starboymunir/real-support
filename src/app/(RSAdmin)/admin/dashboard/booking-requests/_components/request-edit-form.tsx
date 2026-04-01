@@ -34,7 +34,7 @@ import {
   BookingRequestSchema,
 } from "@/lib/validators/yup-validators";
 import { apiClient } from "@/lib/ApiClient";
-import { DiscountCoupons } from "@prisma/client";
+import { DiscountCoupons } from "@/types/prisma-types";
 import { usePackagesQuery } from "@/hooks/Packages";
 import { usePassengersQuery } from "@/hooks/Users";
 import { useOnlineDriversQuery } from "@/hooks/Drivers";

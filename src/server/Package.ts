@@ -1,21 +1,9 @@
-"use server";
-
-import { findPackage } from "@/app/api/helpers/package";
-import prisma from "@/database/prisma";
+import { apiClient } from "@/lib/ApiClient";
 
 export const activatePackage = async (id: string) => {
   try {
-    const packageExist = await findPackage(id);
-    if (!packageExist) {
-      throw { message: "Package Not Exit" };
-    }
-    const updatedPackage = await prisma.package.update({
-      where: { id },
-      data: {
-        status: true,
-      },
-    });
-    return { message: "Package active successfully", data: updatedPackage };
+    const result = await apiClient.patch(`/packages/admin/${id}`, { status: true });
+    return { message: "Package active successfully", data: result.data };
   } catch (err: any) {
     throw { message: err.message };
   }
@@ -23,11 +11,8 @@ export const activatePackage = async (id: string) => {
 
 export const getPacketById = async (id: string) => {
   try {
-    const result = await prisma.package.findUnique({
-      where: { id },
-    });
-
-    return result;
+    const result = await apiClient.get(`/admin/packages/${id}`);
+    return result.data;
   } catch (error: any) {
     throw { message: error.message };
   }

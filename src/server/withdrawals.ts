@@ -1,35 +1,15 @@
-import prisma from "@/database/prisma";
-import { RequestStatus, WithdrawRequests } from "@prisma/client";
+import { apiClient } from "@/lib/ApiClient";
 
 interface WithdrawalResponse {
   statusCode: number;
-  withdrawal?: WithdrawRequests; // You can replace `any` with the actual type if available
+  withdrawal?: any;
   message?: string;
 }
 
 export const getAllWithdrawals = async () => {
   try {
-    const withdrawals = await prisma.withdrawRequests.findMany({
-      include: {
-        userInfo: {
-          include: {
-            wallet: true,
-          },
-        },
-        proceeder: {
-          include: {
-            userProfile: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-
-      // take: 10,
-    });
-
-    return { statusCode: 200, data: withdrawals };
+    const result = await apiClient.get("/payment-transaction/admin/withdrawals");
+    return { statusCode: 200, data: result.data || [] };
   } catch (err) {
     console.log(err);
     return { statusCode: 500, message: "Internal Server Error" };
@@ -40,21 +20,8 @@ export const getWithdrawalRequestById = async (
   id: string
 ): Promise<WithdrawalResponse> => {
   try {
-    const withdrawal = await prisma.withdrawRequests.findUnique({
-      where: { id },
-      include: {
-        userInfo: {
-          include: {
-            wallet: true,
-          },
-        },
-        proceeder: {
-          include: {
-            userProfile: true,
-          },
-        },
-      },
-    });
+    const result = await apiClient.get(`/payment-transaction/admin/withdrawals/${id}`);
+    const withdrawal = result.data;
 
     if (!withdrawal) {
       return { statusCode: 404, message: "Withdrawal request not found" };
@@ -69,25 +36,26 @@ export const getWithdrawalRequestById = async (
 
 export const updateWithdrawalRequestStatus = async (
   id: string,
-  status: RequestStatus,
+  status: string,
   proceededBy: string
 ) => {
   try {
-    const withdrawal = await prisma.withdrawRequests.findUnique({
-      where: { id },
-    });
+    const existing = await apiClient.get(`/payment-transaction/admin/withdrawals/${id}`);
+    const withdrawal = existing.data;
 
     if (!withdrawal) {
       return { statusCode: 404, message: "Withdrawal request not found" };
     }
 
-    await prisma.withdrawRequests.update({
-      where: { id },
-      data: {
-        status,
+    if (status === "REJECTED") {
+      await apiClient.patch(`/payment-transaction/admin/withdrawals/${id}/reject`, {
         proceededBy,
-      },
-    });
+      });
+    } else {
+      await apiClient.patch(`/payment-transaction/admin/withdrawals/${id}/process`, {
+        proceededBy,
+      });
+    }
 
     return { statusCode: 200, message: "Withdrawal request updated" };
   } catch (err) {

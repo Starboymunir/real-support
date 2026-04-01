@@ -1,11 +1,12 @@
-import prisma from "@/database/prisma";
+import { apiClient } from "@/lib/ApiClient";
 
 export const findAllPassengers = async () => {
-  const result = await prisma.Passenger.findMany({
-    include: { userInfo: true },
-  });
-
-  return result;
+  try {
+    const res = await apiClient.get("/admin/passengers");
+    return res.data || [];
+  } catch {
+    return [];
+  }
 };
 
 export const createPassenger = async (data, fileName, userId) => {
@@ -13,74 +14,57 @@ export const createPassenger = async (data, fileName, userId) => {
   delete tempData.firstName;
   delete tempData.lastName;
   delete tempData.email;
-  2;
   delete tempData.password;
   delete tempData.phone_number;
   delete tempData.profileImage;
 
-  const result = await prisma.Passenger.create({
-    data: {
-      ...tempData,
-      userId,
-      profileImage: fileName,
-      ratings: tempData.ratings ? Number(tempData.ratings) : 0,
-      totalBookings: tempData.totalBookings
-        ? Number(tempData.totalBookings)
-        : 0,
-    },
+  const res = await apiClient.post("/admin/passengers", {
+    ...tempData,
+    userId,
+    profileImage: fileName,
+    ratings: tempData.ratings ? Number(tempData.ratings) : 0,
+    totalBookings: tempData.totalBookings ? Number(tempData.totalBookings) : 0,
   });
-
-  return result;
+  return res.data;
 };
 
 export const updatePassenger = async (id, data, fileName, prevData) => {
   const tempData = { ...data };
-
   delete tempData?.firstName;
   delete tempData?.lastName;
   delete tempData?.phone_number;
   delete tempData?.email;
   delete tempData?.password;
 
-  const result = await prisma.Passenger.update({
-    where: { id },
-    data: {
-      ...tempData,
-      profileImage: fileName ? fileName : prevData.profileImage,
-      ratings: tempData.ratings ? Number(tempData.ratings) : prevData.ratings,
-      totalBookings: tempData.totalBookings
-        ? Number(tempData.totalBookings)
-        : prevData.totalBookings,
-    },
+  const res = await apiClient.patch(`/admin/passengers/${id}`, {
+    ...tempData,
+    profileImage: fileName ? fileName : prevData.profileImage,
+    ratings: tempData.ratings ? Number(tempData.ratings) : prevData.ratings,
+    totalBookings: tempData.totalBookings ? Number(tempData.totalBookings) : prevData.totalBookings,
   });
-
-  return result;
+  return res.data;
 };
 
 export const deletePassenger = async (id) => {
-  const result = await prisma.Passenger.update({
-    where: { id },
-    data: {
-      isDeleted: true,
-    },
-  });
-
-  return result;
+  const res = await apiClient.patch(`/admin/passengers/${id}`, { isDeleted: true });
+  return res.data;
 };
 
 export const findPassenger = async (id) => {
-  const result = await prisma.Passenger.findUnique({
-    where: { id },
-    include: { userInfo: true },
-  });
-
-  return result;
+  try {
+    const res = await apiClient.get(`/admin/passengers/${id}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
-export const findPassengerByUserId = async (userId) => {
-  const result = await prisma.Passenger.findUnique({
-    where: { userId },
-    include: { userInfo: true },
-  });
 
-  return result;
+export const findPassengerByUserId = async (userId) => {
+  try {
+    const res = await apiClient.get(`/admin/passengers?userId=${userId}`);
+    const passengers = res.data || [];
+    return Array.isArray(passengers) ? passengers[0] || null : passengers;
+  } catch {
+    return null;
+  }
 };

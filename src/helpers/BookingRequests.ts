@@ -1,5 +1,11 @@
-import { Address } from "@prisma/client";
-import prisma from "@/database/prisma";
+import { apiClient } from "@/lib/ApiClient";
+
+type Address = {
+  city?: string;
+  latitude?: number | string;
+  longitude?: number | string;
+  [key: string]: any;
+};
 
 export const addressFieldChecker = (data: Address) => {
   const { city, latitude, longitude } = data || {};
@@ -24,14 +30,12 @@ export const createStopages = async (
     const stopagesFields = addressFieldChecker(stoppages[i]);
     if (stopagesFields) {
       try {
-        const newStopages = await prisma.address.create({
-          data: {
-            ...stoppages[i],
-            userId,
-            requestId,
-          },
+        const response = await apiClient.post("/addresses", {
+          ...stoppages[i],
+          userId,
+          requestId,
         });
-        result.push(newStopages);
+        result.push(response.data);
       } catch (error) {
         // Handle error from createAddress function
         console.error("Error creating address:", error);

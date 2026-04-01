@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserAddress } from "@prisma/client";
+import { UserAddress } from "@/types/prisma-types";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

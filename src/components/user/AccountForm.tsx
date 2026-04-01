@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BankAccount, UserAddress } from "@prisma/client";
+import { BankAccount, UserAddress } from "@/types/prisma-types";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

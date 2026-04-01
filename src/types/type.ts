@@ -19,7 +19,7 @@ import {
   WithdrawRequests,
   ContactUs,
   ContactUsMessage,
-} from "@prisma/client";
+} from "@/types/prisma-types";
 
 export type ApiResponse<T> = {
   success: boolean;

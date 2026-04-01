@@ -1,13 +1,10 @@
+import { apiClient } from "@/lib/ApiClient";
 
-"use server";
-import prisma from '@/database/prisma';
-import { ContentType, StaticContent } from "@prisma/client";
-
-export const fetchContentByType = async (type: ContentType) => {
-  try{
-    const content:StaticContent | null = await prisma.staticContent.findUnique({where: {contentType: type}});
-    return content;
-  }catch(err){
-    return null
+export const fetchContentByType = async (type: any) => {
+  try {
+    const result = await apiClient.get(`/admin/static-content/by-type/${type}`);
+    return result.data || null;
+  } catch (err) {
+    return null;
   }
 };

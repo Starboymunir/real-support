@@ -1,102 +1,46 @@
-"use server";
+import { apiClient } from "@/lib/ApiClient";
 
-import prisma from "@/database/prisma";
-import { ContactUs, ContactUsStatus } from "@prisma/client";
-
-type CreateContactUsInput = {
-  formValues: {
-    name: string;
-    email: string;
-    phone_number: string;
-    reason: string;
-    remarks
-    
-    : string;
-  };
-  userId: string;
-};
-
-export const createContactUs = async ({
-  formValues,
-  userId,
-}: CreateContactUsInput): Promise<ContactUs> => {
+export const createContactUs = async ({ formValues, userId }: { formValues: any; userId: string }) => {
   try {
-    const contactUs = await prisma.contactUs.create({
-      data: {
-        ...formValues,
-        status: ContactUsStatus.PENDING, // Default status
-        userId,
-      },
-    });
-
-    return contactUs;
-  } catch (error) {
+    const result = await apiClient.post("/contact-us", { ...formValues, userId });
+    return result.data;
+  } catch (error: any) {
     console.error("Error creating contact us:", error);
     throw new Error("Unable to create contact us");
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
-export const getAllContactUs = async (): Promise<ContactUs[]> => {
+export const getAllContactUs = async () => {
   try {
-    const contactUs = await prisma.contactUs.findMany();
-    console.log("Get all contact us", contactUs);
-    return contactUs;
-  } catch (error) {
+    const result = await apiClient.get("/admin/contact-us");
+    return result.data || [];
+  } catch (error: any) {
     console.error("Error getting contact us:", error);
     throw new Error("Unable to get contact us");
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
-export const getContactUsById = async (
-  id: string
-): Promise<ContactUs | null> => {
+export const getContactUsById = async (id: string) => {
   try {
-    const contactUs = await prisma.contactUs.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    return contactUs;
-  } catch (error) {
+    const result = await apiClient.get(`/admin/contact-us/${id}`);
+    return result.data;
+  } catch (error: any) {
     console.error("Error getting contact us:", error);
     throw new Error("Unable to get contact us");
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
 export const updateContactUsById = async (
-  id: string,
-  name: string,
-  email: string,
-  phone_number: string,
-  reason: string,
-  remarks: string,
-  status: ContactUsStatus
-): Promise<ContactUs> => {
+  id: string, name: string, email: string,
+  phone_number: string, reason: string, remarks: string, status: any
+) => {
   try {
-    const contactUs = await prisma.contactUs.update({
-      where: {
-        id,
-      },
-      data: {
-        name,
-        email,
-        phone_number,
-        reason,
-        status,
-      },
+    const result = await apiClient.patch(`/admin/contact-us/${id}`, {
+      name, email, phone_number, reason, remarks, status,
     });
-    return contactUs;
-  } catch (error) {
+    return result.data;
+  } catch (error: any) {
     console.error("Error updating contact us:", error);
     throw new Error("Unable to update contact us");
-  } finally {
-    await prisma.$disconnect();
   }
 };

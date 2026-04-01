@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import AwsImageRender from "./AwsImageRender";
 import { formattedPrice } from "@/lib/utils";
-import { Booking } from "@prisma/client";
+import { Booking } from "@/types/prisma-types";
 import { IBookingType } from "@/types/type";
 
 type PropsType = {

@@ -1,69 +1,50 @@
-import prisma from '@/database/prisma';
-import { User } from "@prisma/client";
+import { apiClient } from "@/lib/ApiClient";
+
+type User = {
+  id: string;
+  emailAddress: string | null;
+  phone_number: string | null;
+  cognitoId: string | null;
+  [key: string]: any;
+};
 
 export const checkUser = async (
   emailAddress: string | null,
   phone_number: string | null,
   cognitoId: string | null
 ): Promise<User | null> => {
-  if (emailAddress) {
-    const userByEmail = await prisma.user.findUnique({
-      where: { emailAddress },
-    });
-
-    if (userByEmail) {
-      return userByEmail;
+  try {
+    if (emailAddress) {
+      const res = await apiClient.get<User>(`/users/lookup?query=${encodeURIComponent(emailAddress)}`);
+      if (res.data) return res.data;
     }
-  }
-
-  if (phone_number) {
-    const userByPhone = await prisma.user.findFirst({
-      where: { phone_number },
-    });
-
-    if (userByPhone) {
-      return userByPhone;
+    if (phone_number) {
+      const res = await apiClient.get<User>(`/users/lookup?query=${encodeURIComponent(phone_number)}`);
+      if (res.data) return res.data;
     }
+    if (cognitoId) {
+      const res = await apiClient.get<User>(`/users/cognito/${cognitoId}`);
+      if (res.data) return res.data;
+    }
+    return null;
+  } catch {
+    return null;
   }
-
-  if (cognitoId) {
-    const userByCognitoId = await prisma.user.findUnique({
-      where: { cognitoId },
-    });
-
-    return userByCognitoId;
-  }
-  return null;
 };
 
-// export const createUser = async (userData: User): Promise<User> => {
-//   const { firstName, lastName, emailAddress, phone_number, cognitoId } =
-//     userData || {};
-//   const user = await prisma.user.create({
-//     data: {
-//       firstName,
-//       lastName,
-//       emailAddress,
-//       phone_number,
-//       cognitoId,
-//     },
-//   });
-//   return user;
-// };
-
 export const findUser = async (id: string): Promise<User | null> => {
-  return await prisma.user.findUnique({ where: { id } });
+  try {
+    const res = await apiClient.get<User>(`/users/${id}`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 export const updateUser = async (
   id: string,
   data: Partial<User>
 ): Promise<User> => {
-  const result = await prisma.user.update({
-    where: { id },
-    data: {
-      ...data,
-    },
-  });
-  return result;
+  const res = await apiClient.patch<User>(`/users/info/${id}`, data);
+  return res.data;
 };

@@ -10,6 +10,9 @@ export interface CreateContactUsDto {
   email: string;
   phone_number: string;
   reason: string;
+  initialMessage: string;
+  status?: string;
+  userId?: string;
 }
 
 export const contactApi = {

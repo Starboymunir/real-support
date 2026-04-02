@@ -436,18 +436,20 @@ export default function DriverRidesPage() {
                               {nextStatusLabels[nextStatus] || nextStatus}
                             </Button>
                           )}
-                          <button
-                            onClick={(e) => handleOpenChat(e, booking.id)}
-                            disabled={chatLoading === booking.id}
-                            className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-white/40 hover:text-secondary hover:border-secondary/30 transition-all disabled:opacity-50"
-                          >
-                            {chatLoading === booking.id ? (
-                              <Loader2 size={18} className="animate-spin" />
-                            ) : (
-                              <MessageSquare size={18} />
-                            )}
-                          </button>
-                          {booking.riderPhone && (
+                          {tab === 'active' && (
+                            <>
+                              <button
+                                onClick={(e) => handleOpenChat(e, booking.id)}
+                                disabled={chatLoading === booking.id}
+                                className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-white/40 hover:text-secondary hover:border-secondary/30 transition-all disabled:opacity-50"
+                              >
+                                {chatLoading === booking.id ? (
+                                  <Loader2 size={18} className="animate-spin" />
+                                ) : (
+                                  <MessageSquare size={18} />
+                                )}
+                              </button>
+                              {booking.riderPhone && (
                             <a
                               href={`tel:${booking.riderPhone}`}
                               onClick={(e) => e.stopPropagation()}
@@ -455,6 +457,8 @@ export default function DriverRidesPage() {
                             >
                               <Phone size={18} />
                             </a>
+                          )}
+                            </>
                           )}
                         </div>
                       </div>

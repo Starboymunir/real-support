@@ -62,12 +62,13 @@ export default function ContactPage() {
       name: formData.name,
       email: formData.email,
       phone_number: formData.phone,
-      reason: `${formData.subject}: ${formData.message}`,
+      reason: formData.subject || 'General Inquiry',
+      initialMessage: formData.message,
+      status: 'PENDING',
     }).then(() => {
       setSubmitted(true);
     }).catch((err) => {
-      // Show success anyway for demo UX
-      setSubmitted(true);
+      setError(err?.message || 'Something went wrong. Please try again.');
       console.warn('Contact form error:', err);
     }).finally(() => {
       setSubmitting(false);

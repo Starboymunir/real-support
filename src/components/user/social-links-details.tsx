@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Configurations from "@/app/constant/constants";
-import { SocialLink } from "@/types/prisma-types";
+import { SocialLink } from "@/lib/types";
 import Image from "next/image";
 import { ProfileSectionTitle } from "./profile-section";
 import SocialLinkForm from "./social-link-from";

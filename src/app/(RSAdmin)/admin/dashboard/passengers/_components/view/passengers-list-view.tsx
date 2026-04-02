@@ -34,7 +34,7 @@ import { alpha, Tab } from "@mui/material";
 import Label from "@/app/(RSAdmin)/admin/common/label";
 import Tabs from "@mui/material/Tabs";
 import { useUsersQuery } from "@/hooks/Users";
-import { UserStatus } from "@/types/prisma-types";
+import { UserStatus } from "@/lib/types";
 import { IUser } from "@/types/type";
 
 const PASSENGER_STATUS_OPTIONS = [

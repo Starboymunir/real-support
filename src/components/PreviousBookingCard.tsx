@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import BookingItem from "./BookingCard";
 import { Separator } from "@/components/ui/separator";
-import { Booking } from "@/types/prisma-types";
+import { Booking } from "@/lib/types";
 
 type CardProps = {
   tableData: Booking[];

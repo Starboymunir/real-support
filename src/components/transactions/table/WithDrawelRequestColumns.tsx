@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "./TableColumnHeader";
 import { formatToLocalDate, formattedPrice } from "@/lib/utils";
 import { statuses } from "./PaymentRequestsStatus";
-import { WithdrawRequests } from "@/types/prisma-types";
+import { WithdrawRequests } from "@/lib/types";
 
 export const columns: ColumnDef<WithdrawRequests>[] = [
   {

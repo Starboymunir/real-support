@@ -6,7 +6,7 @@ import { DataTableColumnHeader } from "./TableColumnHeader";
 import { SendRequestRowActions } from "./SendRequestRowActions";
 import { formatToLocalDate, formattedPrice } from "@/lib/utils";
 import { statuses } from "./PaymentRequestsStatus";
-import { PaymentRequests } from "@/types/prisma-types";
+import { PaymentRequests } from "@/lib/types";
 
 export const columns: ColumnDef<PaymentRequests>[] = [
   // {

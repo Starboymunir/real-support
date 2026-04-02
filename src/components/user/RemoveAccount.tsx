@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "@/types/prisma-types";
+import { User } from "@/lib/types";
 import React, { useState } from "react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";

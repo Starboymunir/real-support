@@ -4,7 +4,7 @@ import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import Stack, { StackProps } from "@mui/material/Stack";
 import Iconify from "@/components/iconify/iconify";
-import { BookingStatus } from "@/types/prisma-types";
+import { BookingStatus } from "@/lib/types";
 
 interface Filters {
   search: string;

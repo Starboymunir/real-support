@@ -1,7 +1,7 @@
 import { IBookingType, IRequestType } from "@/types/type";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Package, Transaction } from "@/types/prisma-types";
+import { Package, Transaction } from "@/lib/types";
 import { monthNames } from "./data";
 import { fDate } from "@/lib/utils/format-time";
 import jwt from "jsonwebtoken";

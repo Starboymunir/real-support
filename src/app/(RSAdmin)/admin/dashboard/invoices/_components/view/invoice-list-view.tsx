@@ -37,7 +37,7 @@ import axiosInstance from "@/lib/admin-axios";
 import { Tab, Tabs, alpha } from "@mui/material";
 import Label from "@/app/(RSAdmin)/admin/common/label";
 import { allowGenerateInvoice } from "@/server/Passenger";
-import { BookingStatus } from "@/types/prisma-types";
+import { BookingStatus } from "@/lib/types";
 
 const TABLE_HEAD = [
   { id: "bookingDate", label: "Date" },

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   RS CAB — Shared TypeScript types (mirrors Prisma schema)
+   RS CAB — Shared TypeScript types (mirrors DB schema)
    ═══════════════════════════════════════════════════════════ */
 
 // ── Enums ──
@@ -12,10 +12,17 @@ export type RideRequestStatus = 'PENDING' | 'CANCELLED' | 'ACCEPTED';
 export type BidStatus = 'PENDING' | 'REJECTED' | 'ACCEPTED';
 export type RequestType = 'ADJUSTABLE' | 'FIXED';
 export type UserMode = 'DRIVER' | 'PASSENGER';
-export type BookingStatus =
-  | 'ACCEPTED' | 'REJECTED' | 'CANCELLED'
-  | 'WAY_TO_PICKUP' | 'ARRIVED' | 'PICKED_UP'
-  | 'WAY_TO_DESTINATION' | 'COMPLETED';
+export const BookingStatus = {
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED',
+  WAY_TO_PICKUP: 'WAY_TO_PICKUP',
+  ARRIVED: 'ARRIVED',
+  PICKED_UP: 'PICKED_UP',
+  WAY_TO_DESTINATION: 'WAY_TO_DESTINATION',
+  COMPLETED: 'COMPLETED',
+} as const;
+export type BookingStatus = (typeof BookingStatus)[keyof typeof BookingStatus];
 export type ContactUsStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED';
 export type TransactionType =
   | 'TOPUP' | 'EXPENSE' | 'WITHDRAW' | 'P2P_WALLET'
@@ -706,4 +713,59 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   message: string;
+}
+
+// ── Name aliases (backward compat) ──
+
+export type Payment = PaymentType;
+export type Request = RideRequest;
+export type PaymentRequests = PaymentRequest;
+export type WithdrawRequests = WithdrawRequest;
+export type DiscountCoupons = DiscountCoupon;
+
+// ── Missing types ──
+
+export type SocialProvider =
+  | 'facebook' | 'twitter' | 'instagram' | 'linkedin'
+  | 'youtube' | 'pinterest' | 'snapchat' | 'tiktok' | 'whatsapp';
+
+export type ContentType = 'aboutUs' | 'termsAndCondition' | 'privacyPolicy';
+
+export interface SocialLink {
+  id: string;
+  userId: string;
+  type: SocialProvider;
+  link: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminTransaction {
+  id: string;
+  amount: number;
+  userId: string;
+  type: AdminTransactionType;
+  narration?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StaticContent {
+  id: string;
+  contentType: ContentType;
+  title?: string;
+  content?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Passenger {
+  id: string;
+  userId: string;
+  profileImage?: string;
+  ratings: number;
+  totalBookings: number;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import RequestCard from "./RequestCard";
 import axiosInstance from "@/lib/axios";
-import { Request } from "@/types/prisma-types";
+import { Request } from "@/lib/types";
 import { useSnackbar } from "notistack";
 import { useAuthContext } from "@/providers/auth-providers";
 import { Separator } from "../ui/separator";

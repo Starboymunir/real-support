@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/admin-axios";
-import { DiscountCoupons } from "@/types/prisma-types";
+import { DiscountCoupons } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetAllDiscountCoupons = () => {

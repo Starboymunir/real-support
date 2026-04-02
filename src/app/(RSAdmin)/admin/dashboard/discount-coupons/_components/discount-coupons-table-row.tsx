@@ -14,7 +14,7 @@ import CustomPopover, {
 import { ConfirmDialog } from "@/app/(RSAdmin)/admin/common/custom-dialog";
 import { Button, MenuItem } from "@mui/material";
 import Label from "../../../common/label";
-import { DiscountCoupons } from "@/types/prisma-types";
+import { DiscountCoupons } from "@/lib/types";
 
 export default function DiscountCouponsTableRow({
   row,

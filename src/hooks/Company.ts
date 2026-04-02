@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/admin-axios";
-import { Company } from "@/types/prisma-types";
+import { Company } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 
 export const useCompaniesQuery = () => {

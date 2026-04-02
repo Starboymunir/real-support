@@ -34,7 +34,7 @@ import { useRouter } from "next/navigation";
 import { useBoolean } from "@/app/(RSAdmin)/admin/hooks/use-boolean";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { useGetAllDiscountCoupons } from "@/hooks/Coupons";
-import { DiscountCoupons } from "@/types/prisma-types";
+import { DiscountCoupons } from "@/lib/types";
 
 const TABLE_HEAD = [
   { id: "coupon", label: "Coupon" },

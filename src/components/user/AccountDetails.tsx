@@ -1,6 +1,6 @@
 "use client";
 
-import { Address, BankAccount, UserAddress } from "@/types/prisma-types";
+import { Address, BankAccount, UserAddress } from "@/lib/types";
 import Link from "next/link";
 import { ProfileSection, ProfileSectionTitle } from "./profile-section";
 import { AuthContextType, useAuthContext } from "@/providers/auth-providers";

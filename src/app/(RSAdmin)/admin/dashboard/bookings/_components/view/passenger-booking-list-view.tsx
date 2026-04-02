@@ -7,7 +7,7 @@ import { Divider, Stack } from "@mui/material";
 import RideAnalytic from "@/app/(RSAdmin)/admin/common/InvoiceAnalytics";
 import { useTheme } from "@mui/material/styles";
 import { useUserBookings } from "@/hooks/Bookings";
-import { BookingStatus } from "@/types/prisma-types";
+import { BookingStatus } from "@/lib/types";
 import { IBookingType } from "@/types/type";
 
 export default function PassengerBookingListView({

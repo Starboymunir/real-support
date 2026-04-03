@@ -87,6 +87,7 @@ export default function DriverProfilePage() {
   const { user } = useRequireAuth();
   const [driver, setDriver] = useState<Driver | null>(null);
   const [loading, setLoading] = useState(true);
+  const [imgError, setImgError] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     if (!user?.driver?.id) { setLoading(false); return; }
@@ -157,8 +158,8 @@ export default function DriverProfilePage() {
           <div className="relative flex flex-col sm:flex-row sm:items-center gap-6">
             {/* Avatar */}
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center shrink-0 overflow-hidden">
-              {(userInfo?.coverImage || userInfo?.profileImageUrl) ? (
-                <img src={resolveImageUrl(userInfo.coverImage || userInfo.profileImageUrl) ?? undefined} alt="Profile" className="w-full h-full object-cover" />
+              {(userInfo?.coverImage || userInfo?.profileImageUrl) && !imgError ? (
+                <img src={resolveImageUrl(userInfo.coverImage || userInfo.profileImageUrl) ?? undefined} alt="Profile" onError={() => setImgError(true)} className="w-full h-full object-cover" />
               ) : (
                 <User size={32} className="text-white/30" />
               )}
@@ -280,7 +281,7 @@ export default function DriverProfilePage() {
               <div key={car.id} className="flex flex-col md:flex-row gap-6 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
               {car.carImage && (
                 <div className="w-full md:w-48 h-36 rounded-xl overflow-hidden bg-white/[0.04] shrink-0">
-                  <img src={resolveImageUrl(car.carImage) ?? undefined} alt="Vehicle" className="w-full h-full object-cover" />
+                  <img src={resolveImageUrl(car.carImage) ?? undefined} alt="Vehicle" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-4">

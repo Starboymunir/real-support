@@ -241,7 +241,7 @@ export default function VehiclePage() {
               {ec.carImage && (
                 <div className="w-full md:w-40 h-28 rounded-xl overflow-hidden bg-white/[0.04] shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={resolveImageUrl(ec.carImage) ?? undefined} alt="Vehicle" className="w-full h-full object-cover" />
+                  <img src={resolveImageUrl(ec.carImage) ?? undefined} alt="Vehicle" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">

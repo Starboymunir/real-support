@@ -178,7 +178,7 @@ export default function DashboardLayout({
 
   // Use real user name if available
   const displayName = userName ?? (user ? `${user.firstName} ${user.lastName}` : 'Guest');
-  const avatarUrl = resolveImageUrl(user?.profileImageUrl);
+  const avatarUrl = resolveImageUrl(user?.coverImage || user?.profileImageUrl);
   const [avatarError, setAvatarError] = useState(false);
   const showAvatar = !!avatarUrl && !avatarError;
 

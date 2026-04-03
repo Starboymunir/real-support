@@ -47,7 +47,8 @@ function getInitials(name: string) {
 }
 
 function getOtherParticipant(chat: Chat, userId: string) {
-  if (chat.isAdminChat) {
+  // Booking chats are peer-to-peer — always show the other participant
+  if (!chat.bookingId && chat.isAdminChat) {
     return chat.adminId
       ? { name: 'RS CAB Admin', id: 'admin-dm', coverImage: null as string | null }
       : { name: 'RS CAB Support', id: 'support-admin', coverImage: null as string | null };
@@ -58,7 +59,7 @@ function getOtherParticipant(chat: Chat, userId: string) {
     return {
       name: `${other.user.firstName} ${other.user.lastName}`.trim(),
       id: other.userId,
-      coverImage: (other.user as any).coverImage || null,
+      coverImage: (other.user as any).coverImage || (other.user as any).profileImageUrl || null,
     };
   }
   return { name: 'Unknown User', id: other?.userId || '', coverImage: null as string | null };
@@ -68,7 +69,7 @@ function getLastMessage(chat: Chat, currentUserId: string): string {
   if (!chat.messages || chat.messages.length === 0) return 'No messages yet';
   const last = chat.messages[chat.messages.length - 1];
   const content = last.content || (last.attachments?.length > 0 ? 'Attachment' : 'No messages yet');
-  const isAdminMessage = chat.isAdminChat && last.senderId !== currentUserId && (last.senderType === 'ADMIN' || !chat.participants.some((participant) => participant.userId === last.senderId));
+  const isAdminMessage = !chat.bookingId && chat.isAdminChat && last.senderId !== currentUserId && (last.senderType === 'ADMIN' || !chat.participants.some((participant) => participant.userId === last.senderId));
   return isAdminMessage ? `Admin: ${content}` : content;
 }
 
@@ -353,7 +354,7 @@ export default function RiderChatPage() {
                     }`}
                   >
                     {/* Avatar */}
-                    {chat.isAdminChat ? (
+                    {!chat.bookingId && chat.isAdminChat ? (
                       <div className={`w-11 h-11 rounded-full overflow-hidden shrink-0 ${
                         isActive ? 'ring-2 ring-secondary/30' : ''
                       }`}>
@@ -453,7 +454,7 @@ export default function RiderChatPage() {
                 </button>
 
                 <div className="w-10 h-10 rounded-full bg-secondary/15 flex items-center justify-center text-secondary text-xs font-bold overflow-hidden">
-                  {activeChat.isAdminChat ? (
+                  {!activeChat.bookingId && activeChat.isAdminChat ? (
                     <Image src={RS_CAB_LOGO} alt="RS CAB" width={40} height={40} className="w-full h-full object-cover" />
                   ) : resolveS3Url(getOtherParticipant(activeChat, user?.id || '').coverImage) ? (
                     <Image src={resolveS3Url(getOtherParticipant(activeChat, user?.id || '').coverImage)!} alt="Avatar" width={40} height={40} className="w-full h-full object-cover" />
@@ -468,9 +469,9 @@ export default function RiderChatPage() {
                   </p>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-[11px] text-white/30">
-                      {activeChat.isAdminChat ? (activeChat.adminId ? 'Admin direct message' : 'Support conversation') : activeChat.bookingId ? `Ride ${activeChat.bookingId.slice(-6)}` : 'Direct message'}
+                      {!activeChat.bookingId && activeChat.isAdminChat ? (activeChat.adminId ? 'Admin direct message' : 'Support conversation') : activeChat.bookingId ? `Ride ${activeChat.bookingId.slice(-6)}` : 'Direct message'}
                     </p>
-                    {activeChat.isAdminChat && (
+                    {!activeChat.bookingId && activeChat.isAdminChat && (
                       <span className="inline-flex items-center gap-1 rounded-full border border-secondary/30 bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold text-secondary">
                         <Shield size={10} /> Admin
                       </span>
@@ -509,7 +510,7 @@ export default function RiderChatPage() {
                         {/* Messages */}
                         {group.messages.map((msg) => {
                           const isMine = msg.senderId === user?.id;
-                          const isAdminMessage = activeChat.isAdminChat && !isMine && (msg.senderType === 'ADMIN' || !activeChat.participants.some((participant) => participant.userId === msg.senderId));
+                          const isAdminMessage = !activeChat.bookingId && activeChat.isAdminChat && !isMine && (msg.senderType === 'ADMIN' || !activeChat.participants.some((participant) => participant.userId === msg.senderId));
                           return (
                             <motion.div
                               key={msg.id}

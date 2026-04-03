@@ -157,8 +157,8 @@ export default function DriverProfilePage() {
           <div className="relative flex flex-col sm:flex-row sm:items-center gap-6">
             {/* Avatar */}
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center shrink-0 overflow-hidden">
-              {userInfo?.profileImageUrl ? (
-                <img src={resolveImageUrl(userInfo.profileImageUrl) ?? undefined} alt="Profile" className="w-full h-full object-cover" />
+              {(userInfo?.coverImage || userInfo?.profileImageUrl) ? (
+                <img src={resolveImageUrl(userInfo.coverImage || userInfo.profileImageUrl) ?? undefined} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <User size={32} className="text-white/30" />
               )}

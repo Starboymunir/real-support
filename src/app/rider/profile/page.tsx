@@ -182,9 +182,9 @@ export default function RiderProfilePage() {
               className="hidden"
               onChange={handlePhotoUpload}
             />
-            {(localPreview || resolveImageUrl(user?.profileImageUrl)) && !imgError ? (
+            {(localPreview || resolveImageUrl(user?.coverImage || user?.profileImageUrl)) && !imgError ? (
               <img
-                src={localPreview || resolveImageUrl(user?.profileImageUrl)!}
+                src={localPreview || resolveImageUrl(user?.coverImage || user?.profileImageUrl)!}
                 alt="Profile"
                 onError={() => { setLocalPreview(null); setImgError(true); }}
                 className="w-24 h-24 rounded-full object-cover ring-4 ring-secondary/20"

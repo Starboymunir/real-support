@@ -444,6 +444,8 @@ export interface Chat {
   isAdminChat: boolean;
   adminId?: string | null;
   bookingId?: string;
+  ticketStatus?: TicketStatus;
+  ticketPriority?: TicketPriority;
   participants: ChatParticipant[];
   messages: ChatMessage[];
   unreadCount?: number;

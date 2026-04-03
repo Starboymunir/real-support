@@ -18,6 +18,8 @@ import {
   Shield,
   Megaphone,
   X,
+  Lock,
+  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -233,6 +235,19 @@ export default function DriverChatPage() {
     socket.on(SOCKET_EVENTS.MESSAGE_RECEIVED_EVENT, handleNewMessage);
     socket.on(SOCKET_EVENTS.NEW_CHAT_EVENT, fetchChats);
 
+    const handleChatUpdate = (data: any) => {
+      if (data?.id) {
+        if (data.ticketStatus) {
+          setChats(prev => prev.map(c => c.id === data.id ? { ...c, ticketStatus: data.ticketStatus } : c));
+          setActiveChat(prev => prev?.id === data.id ? { ...prev, ticketStatus: data.ticketStatus } : prev);
+        } else {
+          setChats(prev => prev.filter(c => c.id !== data.id));
+          setActiveChat(prev => prev?.id === data.id ? null : prev);
+        }
+      }
+    };
+    socket.on(SOCKET_EVENTS.CHAT_DELETE_EVENT, handleChatUpdate);
+
     const handleBroadcast = (data: any) => {
       if (data?.id && data?.content) {
         setBroadcasts(prev => [data, ...prev]);
@@ -243,6 +258,7 @@ export default function DriverChatPage() {
     return () => {
       socket.off(SOCKET_EVENTS.MESSAGE_RECEIVED_EVENT, handleNewMessage);
       socket.off(SOCKET_EVENTS.NEW_CHAT_EVENT, fetchChats);
+      socket.off(SOCKET_EVENTS.CHAT_DELETE_EVENT, handleChatUpdate);
       socket.off(SOCKET_EVENTS.BROADCAST_MESSAGE, handleBroadcast);
     };
   }, [socket, activeChat, scrollToBottom, fetchChats]);
@@ -355,9 +371,16 @@ export default function DriverChatPage() {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className={`text-sm font-semibold truncate ${hasUnread ? 'text-white' : 'text-white/70'}`}>
-                          {other.name}
-                        </p>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <p className={`text-sm font-semibold truncate ${hasUnread ? 'text-white' : 'text-white/70'}`}>
+                            {other.name}
+                          </p>
+                          {(chat.ticketStatus === 'CLOSED' || chat.ticketStatus === 'RESOLVED') && (
+                            <span className="inline-flex items-center gap-1 shrink-0 rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[9px] font-medium text-white/30">
+                              <Lock size={8} /> {chat.ticketStatus === 'CLOSED' ? 'Closed' : 'Resolved'}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[10px] text-white/25 shrink-0">{lastTime}</span>
                       </div>
                       <p className={`text-xs mt-0.5 truncate ${hasUnread ? 'text-white/60 font-medium' : 'text-white/30'}`}>
@@ -527,6 +550,27 @@ export default function DriverChatPage() {
               </div>
 
               <div className="p-4 border-t border-white/[0.06] bg-white/[0.02]">
+                {activeChat.ticketStatus === 'CLOSED' || activeChat.ticketStatus === 'RESOLVED' ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-white/40">
+                      <Lock size={14} />
+                      <span className="text-sm">This conversation has been {activeChat.ticketStatus === 'CLOSED' ? 'closed' : 'resolved'} by support.</span>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await chatApi.deleteChat(activeChat.id);
+                          setChats(prev => prev.filter(c => c.id !== activeChat.id));
+                          setActiveChat(null);
+                          setShowMobileList(true);
+                        } catch {}
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-medium transition-colors"
+                    >
+                      <Trash2 size={12} /> Delete
+                    </button>
+                  </div>
+                ) : (
                 <div className="flex items-center gap-3">
                   <input
                     ref={inputRef}
@@ -554,6 +598,7 @@ export default function DriverChatPage() {
                     {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                   </button>
                 </div>
+                )}
               </div>
             </>
           ) : (

@@ -62,6 +62,9 @@ export default function DriversTableRow({
 
   const vehiclesCount = (() => {
     const anyRow = row as any;
+    if (typeof anyRow?.carsCount === "number") return anyRow.carsCount;
+    if (typeof anyRow?._count?.cars === "number") return anyRow._count.cars;
+
     const cars = anyRow?.cars;
 
     if (Array.isArray(cars)) return cars.length;

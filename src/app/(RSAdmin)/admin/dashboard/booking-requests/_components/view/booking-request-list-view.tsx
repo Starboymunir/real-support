@@ -47,6 +47,7 @@ const TABLE_HEAD = [
   { id: "totalDuration", label: "Total Duration", width: 200 },
   { id: "totalBill", label: "Total Bill", width: 200 },
   { id: "phone_number", label: "Phone Number", width: 180 },
+  { id: "status", label: "Status", width: 120 },
   { id: "", width: 88 },
 ];
 

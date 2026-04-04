@@ -14,6 +14,7 @@ import CustomPopover, {
 } from "@/app/(RSAdmin)/admin/common/custom-popover";
 import { ConfirmDialog } from "@/app/(RSAdmin)/admin/common/custom-dialog";
 import AwsImageAvatar from "../../../common/aws-image-avatar/Avatar";
+import Label from "../../../common/label";
 import dynamic from "next/dynamic";
 const PDFDownloadLink = dynamic(
   () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
@@ -126,6 +127,25 @@ export default function BookingsTableRow({
       </TableCell>
       <TableCell sx={{ whiteSpace: "nowrap" }}>
         {row?.riderInfo?.phone_number}
+      </TableCell>
+      <TableCell>
+        <Label
+          variant="soft"
+          color={
+            (row?.status === "COMPLETED" && "success") ||
+            (row?.status === "ACCEPTED" && "success") ||
+            (row?.status === "CANCELLED" && "error") ||
+            (row?.status === "REJECTED" && "error") ||
+            (row?.status === "WAY_TO_PICKUP" && "info") ||
+            (row?.status === "WAY_TO_DESTINATION" && "info") ||
+            (row?.status === "ARRIVED" && "warning") ||
+            (row?.status === "PICKED_UP" && "warning") ||
+            (row?.status === "PENDING" && "warning") ||
+            "default"
+          }
+        >
+          {row?.status?.replace(/_/g, " ")}
+        </Label>
       </TableCell>
       <TableCell align="right" sx={{ px: 1, whiteSpace: "nowrap" }}>
         <IconButton

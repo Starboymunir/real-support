@@ -15,6 +15,7 @@ import { ConfirmDialog } from "@/app/(RSAdmin)/admin/common/custom-dialog";
 import AwsImageAvatar from "../../../common/aws-image-avatar/Avatar";
 import AssignQuickEditForm from "./assign-driver-from";
 import { formatDistance, formatDuration } from "@/lib/utils";
+import Label from "../../../common/label";
 
 export default function BookingsTableRow({
   row,
@@ -100,6 +101,19 @@ export default function BookingsTableRow({
 
       <TableCell sx={{ wordWrap: "normal" }}>
         {row?.clientNumber || row?.riderInfo?.phone_number}
+      </TableCell>
+      <TableCell>
+        <Label
+          variant="soft"
+          color={
+            (row?.status === "ACCEPTED" && "success") ||
+            (row?.status === "PENDING" && "warning") ||
+            (row?.status === "CANCELLED" && "error") ||
+            "default"
+          }
+        >
+          {row?.status}
+        </Label>
       </TableCell>
       <TableCell align="right" sx={{ wordWrap: "normal" }}>
         <IconButton

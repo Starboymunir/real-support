@@ -37,7 +37,7 @@ import { apiClient } from "@/lib/ApiClient";
 import { DiscountCoupons } from "@/lib/types";
 import { usePackagesQuery } from "@/hooks/Packages";
 import { usePassengersQuery } from "@/hooks/Users";
-import { useOnlineDriversQuery } from "@/hooks/Drivers";
+import { useDriversQuery } from "@/hooks/Drivers";
 import { formattedDateTime, getChangedFields } from "@/lib/helper-function";
 
 const statusOptions = [
@@ -73,8 +73,9 @@ export default function BookingNewEditForm({
     usePackagesQuery();
   const { data: passengers = [], isPending: isLoadingPassengers } =
     usePassengersQuery();
-  const { data: drivers = [], isPending: isLoadingDrivers } =
-    useOnlineDriversQuery(currentData.packageId);
+  const { data: allDrivers = [], isPending: isLoadingDrivers } =
+    useDriversQuery();
+  const drivers = allDrivers.filter((d: any) => d.status === 'ACTIVE');
   const [stoppages, setStopages] = useState(currentData?.stoppages || []);
   const [inputFields, setInputFields] = useState(
     currentData?.stoppages ? currentData?.stoppages?.map(() => " ") : []

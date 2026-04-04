@@ -17,7 +17,7 @@ import {
   DialogTitle,
   ListItemText,
 } from "@mui/material";
-import { useOnlineDriversQuery } from "@/hooks/Drivers";
+import { useDriversQuery } from "@/hooks/Drivers";
 import { IBookingType, IDriver } from "@/types/type";
 import { apiClient } from "@/lib/ApiClient";
 import { useRouter } from "@/app/(RSAdmin)/admin/routes/hook";
@@ -36,7 +36,8 @@ export default function AssignQuickEditForm({
 }) {
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
-  const { data: drivers = [], isPending } = useOnlineDriversQuery();
+  const { data: allDrivers = [], isPending } = useDriversQuery();
+  const drivers = allDrivers.filter((d: IDriver) => (d as any).status === 'ACTIVE');
   const router = useRouter();
 
   const schema = Yup.object().shape({

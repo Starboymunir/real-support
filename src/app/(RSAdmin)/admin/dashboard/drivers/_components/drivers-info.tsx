@@ -57,7 +57,6 @@ const generateDocumentAccordionData = (document: any, latestCarDocument: any) =>
     documentsList: {
       insuranceDoc: latestCarDocument?.insuranceDocument?.insuranceDoc,
     },
-    showActions: false,
   },
   {
     documentTitle: "motDocument",
@@ -65,7 +64,6 @@ const generateDocumentAccordionData = (document: any, latestCarDocument: any) =>
     documentsList: {
       motDoc: latestCarDocument?.motDocument?.motDoc,
     },
-    showActions: false,
   },
 ];
 

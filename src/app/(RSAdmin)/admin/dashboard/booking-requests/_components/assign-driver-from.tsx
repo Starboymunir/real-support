@@ -73,7 +73,6 @@ export default function AssignQuickEditForm({
       enqueueSnackbar("Driver assigned successfully");
       onClose();
       router.push("/admin/dashboard/bookings");
-    } catch (error) {
     } catch (error: any) {
       console.error(error);
       const msg = error?.response?.data?.message || error?.message || "Failed to assign driver";
@@ -111,15 +110,13 @@ export default function AssignQuickEditForm({
                 sm: `repeat(1, 1fr)`,
               }}
             >
+              {drivers.length === 0 && !isPending && (
+                <Box sx={{ py: 1, color: "warning.main", fontSize: 14 }}>
+                  No eligible drivers for this package. Make sure at least one active driver has this package assigned.
+                </Box>
+              )}
               <RHFAutocomplete
                 name="driverId"
-                              {drivers.length === 0 && !isPending && (
-                                <Box sx={{ py: 1, color: "warning.main", fontSize: 14 }}>
-                                  No eligible drivers for this package. Make sure at least one active driver has this package assigned.
-                                </Box>
-                              )}
-                              <RHFAutocomplete
-                                name="driverId"
                 label="Driver"
                 placeholder="Select driver"
                 options={drivers}

@@ -170,7 +170,7 @@ export default function BookingListView() {
         const response: AllowGenerateInvoiceResponse =
           await allowGenerateInvoice(id, status);
         if (response.statusCode == 200) {
-          enqueueSnackbar("update status successfully");
+          enqueueSnackbar("Status updated successfully");
           setChangeFlag(!changeFlag);
         } else {
           enqueueSnackbar(response.message, { variant: "error" });
@@ -391,7 +391,7 @@ export default function BookingListView() {
             title="Delete"
             content={
               <>
-                Are you sure want to delete
+                Are you sure you want to delete
                 <strong> {table.selected.length} </strong> items?
               </>
             }

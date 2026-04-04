@@ -35,7 +35,7 @@ export default function CarDetailsToolbar({
       setLoading(false);
       const { message, statusCode } = await changeCarStatus(car.id, "ACTIVE");
       if (statusCode === 200) {
-        enqueueSnackbar("Car Active Sucessfully");
+        enqueueSnackbar("Car activated successfully");
         setChangeFlag((prevValue: boolean) => !prevValue);
       } else {
         enqueueSnackbar(message, { variant: "error" });
@@ -52,7 +52,7 @@ export default function CarDetailsToolbar({
       setLoading(false);
       const { message, statusCode } = await changeCarStatus(car.id, "INACTIVE");
       if (statusCode === 200) {
-        enqueueSnackbar("Car In Active Sucessfully");
+        enqueueSnackbar("Car deactivated successfully");
         setChangeFlag((prevValue: boolean) => !prevValue);
       } else {
         enqueueSnackbar(message, { variant: "error" });
@@ -129,7 +129,7 @@ export default function CarDetailsToolbar({
             onClick={handleInActiveCar}
             disabled={car.status == "INACTIVE"}
           >
-            In Active Car
+            Deactivate Car
           </Button>
           <Button
             color="inherit"

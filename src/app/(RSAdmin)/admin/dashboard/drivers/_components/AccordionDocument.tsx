@@ -83,7 +83,7 @@ const AccordionDocument = ({
     try {
       if (isCarDocument && carDocumentId) {
         await carDocumentApprovalOrRejection(carDocumentId, documentType, true);
-        enqueueSnackbar("Approve Document Successfully");
+        enqueueSnackbar("Document approved successfully");
         setStatus("Approved");
       } else {
         const { data } = await axiosInstance.patch(
@@ -97,7 +97,7 @@ const AccordionDocument = ({
         );
 
         if (data.success === true) {
-          enqueueSnackbar("Approve Document Successfully");
+          enqueueSnackbar("Document approved successfully");
           setStatus("Approved");
         }
       }
@@ -115,7 +115,7 @@ const AccordionDocument = ({
     try {
       if (isCarDocument && carDocumentId) {
         await carDocumentApprovalOrRejection(carDocumentId, documentType, false);
-        enqueueSnackbar("Reject Document Successfully");
+        enqueueSnackbar("Document rejected successfully");
         setStatus("Rejected");
       } else {
         const { data } = await axiosInstance.patch(
@@ -129,7 +129,7 @@ const AccordionDocument = ({
         );
 
         if (data.success === true) {
-          enqueueSnackbar("Reject Document Successfully");
+          enqueueSnackbar("Document rejected successfully");
           setStatus("Rejected");
         }
       }

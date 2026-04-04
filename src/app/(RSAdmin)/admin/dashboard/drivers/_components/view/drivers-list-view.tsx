@@ -134,7 +134,7 @@ export default function DriversListView() {
         if (response?.data?.success === false) {
           enqueueSnackbar(response?.data?.message || "Failed to suspend driver", { variant: "error" });
         } else {
-          enqueueSnackbar("Driver suspend successfully");
+          enqueueSnackbar("Driver suspended successfully");
         }
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });
@@ -174,7 +174,7 @@ export default function DriversListView() {
         if (response?.data?.success === false) {
           enqueueSnackbar(response?.data?.message || "Failed to activate driver", { variant: "error" });
         } else {
-          enqueueSnackbar("Driver active successfully");
+          enqueueSnackbar("Driver activated successfully");
         }
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });
@@ -194,7 +194,7 @@ export default function DriversListView() {
         if (response?.data?.success === false) {
           enqueueSnackbar(response?.data?.message || "Failed to set driver on hold", { variant: "error" });
         } else {
-          enqueueSnackbar("Driver hold successfully");
+          enqueueSnackbar("Driver set on hold successfully");
         }
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });
@@ -214,7 +214,7 @@ export default function DriversListView() {
         if (response?.data?.success === false) {
           enqueueSnackbar(response?.data?.message || "Failed to set driver pending", { variant: "error" });
         } else {
-          enqueueSnackbar("Driver pending successfully");
+          enqueueSnackbar("Driver set to pending successfully");
         }
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });

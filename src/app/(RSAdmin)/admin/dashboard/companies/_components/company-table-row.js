@@ -141,14 +141,14 @@ export default function CompaniesTableRow({
           sx={{ color: "error.main" }}
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
-          In Active
+          Deactivate
         </MenuItem>
       </CustomPopover>
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
-        content={<>Are you sure want to In Active package {row.name}</>}
+        title="Deactivate Company"
+        content={<>Are you sure you want to deactivate {row.name}?</>}
         action={
           <Button
             variant="contained"
@@ -158,7 +158,7 @@ export default function CompaniesTableRow({
               confirm.onFalse();
             }}
           >
-            Delete
+            Deactivate
           </Button>
         }
       />

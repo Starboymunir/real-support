@@ -63,7 +63,7 @@ const AccordionDocument = ({
     try {
       await carDocumentApprovalOrRejection(info.id, documentType, true);
       setStatus("Approved");
-      enqueueSnackbar("Approve Document Successfully");
+      enqueueSnackbar("Document approved successfully");
     } catch (error: any) {
       console.log("error ", error);
       enqueueSnackbar(error.message, { variant: "error" });
@@ -77,7 +77,7 @@ const AccordionDocument = ({
     try {
       await carDocumentApprovalOrRejection(info.id, documentType, false);
       setStatus("Rejected");
-      enqueueSnackbar("Reject Document Successfully");
+      enqueueSnackbar("Document rejected successfully");
     } catch (error: any) {
       enqueueSnackbar(error.message, { variant: "error" });
     } finally {

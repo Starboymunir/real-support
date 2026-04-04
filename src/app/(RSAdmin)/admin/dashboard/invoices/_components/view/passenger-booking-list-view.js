@@ -135,7 +135,7 @@ export default function PassengerBookingListView({ passengerId }) {
     try {
       const response = await allowGenerateInvoice(id, status);
       if (response.statusCode == 200) {
-        enqueueSnackbar("update status successfully");
+        enqueueSnackbar("Status updated successfully");
         setChangeFlag(!changeFlag);
       } else {
         enqueueSnackbar(response.message, { variant: "error" });

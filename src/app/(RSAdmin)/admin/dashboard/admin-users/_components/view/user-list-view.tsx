@@ -113,7 +113,7 @@ export default function UserListView() {
           return;
         }
         enqueueSnackbar(
-          `user ${status ? "Active" : "In Active"}  successfully.`
+          `User ${status ? "activated" : "deactivated"} successfully`
         );
       } catch (err) {
         console.log(err);

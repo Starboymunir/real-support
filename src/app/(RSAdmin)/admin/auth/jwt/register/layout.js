@@ -11,7 +11,7 @@ import AuthClassicLayout from '@/app/(RSAdmin)/admin/layouts/auth/classic';
 export default function Layout({ children }) {
   return (
     <GuestGuard>
-      <AuthClassicLayout title="Manage the job more effectively with Minimal">
+      <AuthClassicLayout title="Real Support Admin">
         {children}
       </AuthClassicLayout>
     </GuestGuard>

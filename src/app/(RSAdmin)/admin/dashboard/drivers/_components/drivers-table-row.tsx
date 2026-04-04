@@ -319,10 +319,10 @@ export default function DriversTableRow({
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
+        title="Suspend Driver"
         content={
           <>
-            Are you sure want to suspend driver {row?.userInfo?.firstName}{" "}
+            Are you sure you want to suspend driver {row?.userInfo?.firstName}{" "}
             {row?.userInfo?.lastName}?
           </>
         }

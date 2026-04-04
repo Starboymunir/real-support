@@ -122,7 +122,7 @@ export default function DiscountCouponsListView() {
         const { statusCode, message } = await updateIsActive(id, isActive);
         if (statusCode === 200) {
           enqueueSnackbar(
-            isActive ? "Active Successfully" : "InActive Successfully"
+            isActive ? "Activated successfully" : "Deactivated successfully"
           );
           setChangeFlag((prev) => !prev);
         } else {

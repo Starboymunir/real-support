@@ -43,8 +43,8 @@ const TABLE_HEAD = [
   { id: "cardPay", label: "Wallet/Card Pay", width: 180 },
   { id: "cashPay", label: "Cash Pay", width: 150 },
   { id: "tip", label: "Tip", width: 90 },
-  { id: "commission", label: "Commision", width: 90 },
-  { id: "totalAfterCommission", label: "Total After Commision", width: 90 },
+  { id: "commission", label: "Commission", width: 90 },
+  { id: "totalAfterCommission", label: "Total After Commission", width: 90 },
   { id: "", width: 50 },
 ];
 

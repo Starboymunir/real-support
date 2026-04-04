@@ -53,7 +53,7 @@ const TABLE_HEAD = [
   { id: "amount", label: "Request Amount" },
   { id: "createdAt", label: "Requested At" },
   { id: "updatedAt", label: "Updated At" },
-  { id: "proceededBy", label: "Proceeded By" },
+  { id: "proceededBy", label: "Processed By" },
   { id: "status", label: "Status" },
   { id: "", label: "Action" },
 ];
@@ -203,11 +203,11 @@ export default function WithDrawalListView() {
         <>
           <Container maxWidth="xl">
             <CustomBreadcrumbs
-              heading="WithDrawal Requests"
+              heading="Withdrawal Requests"
               links={[
                 { name: "Dashboard", href: paths.dashboard.root },
                 {
-                  name: "WithDrawal Requests",
+                  name: "Withdrawal Requests",
                   href: paths.dashboard.wallet.withDrawalRequests.root,
                 },
                 { name: "List" },

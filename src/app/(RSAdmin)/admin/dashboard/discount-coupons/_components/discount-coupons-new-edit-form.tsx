@@ -33,7 +33,7 @@ export default function DiscountCouponsNewEditForm({
   const DiscountCouponSchema = Yup.object().shape({
     coupon: Yup.string().required("Coupon code is required"),
     discount: Yup.number().required("Discount amount is required"),
-    useability: Yup.number().required("useability is required"),
+    useability: Yup.number().required("Usage limit is required"),
     expiry: Yup.date().required("Expiry date is required"),
   });
 
@@ -116,7 +116,7 @@ export default function DiscountCouponsNewEditForm({
               <RHFTextField
                 type="number"
                 name="Useability"
-                label="useability"
+                label="Usage Limit"
               />
               <Controller
                 name="expiry"

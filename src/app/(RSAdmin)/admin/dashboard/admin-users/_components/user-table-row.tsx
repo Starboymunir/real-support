@@ -77,7 +77,7 @@ export default function UserTableRow({
               (row.status && "success") || (!row.status && "error") || "default"
             }
           >
-            {row.status ? "Active" : "In Active"}
+            {row.status ? "Active" : "Inactive"}
           </Label>
         </TableCell>
 
@@ -114,7 +114,7 @@ export default function UserTableRow({
           }}
         >
           <Iconify icon="mdi:account-reactivate-outline" />
-          Active User
+          Activate User
         </MenuItem>
 
         <MenuItem
@@ -125,17 +125,17 @@ export default function UserTableRow({
           sx={{ color: "error.main" }}
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
-          In Active User
+          Deactivate User
         </MenuItem>
       </CustomPopover>
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
+        title="Deactivate User"
         content={
           <>
-            Are you sure want to inActive user {row.firstName}{" "}
-            {row.lastName}
+            Are you sure you want to deactivate user {row.firstName}{" "}
+            {row.lastName}?
           </>
         }
         action={
@@ -147,7 +147,7 @@ export default function UserTableRow({
               confirm.onFalse();
             }}
           >
-            In Active
+            Deactivate
           </Button>
         }
       />

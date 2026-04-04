@@ -25,12 +25,10 @@ import {
 } from "@/app/(RSAdmin)/admin/common/table";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
-import axios from "axios";
-import { endpoints } from "@/lib/utils/axios";
 import PackagesTableToolbar from "../packages-table-toolbar";
 import PackagesTableFiltersResult from "../packages-table-filters-result";
 import PackagesTableRow from "../packages-table-row";
-import { activatePackage } from "@/server/Package";
+import { activatePackage, deactivatePackage } from "@/server/Package";
 import { useAdminPackagesQuery } from "@/hooks/Packages";
 import Iconify from "@/components/iconify/iconify";
 import { AdminPackage } from "@/types/package";
@@ -39,10 +37,10 @@ import { AdminPackage } from "@/types/package";
 
 const TABLE_HEAD = [
   { id: "name", label: "Name" },
-  { id: "pricePerMilage", label: "Price/Milage", width: 150 },
+  { id: "pricePerMilage", label: "Price/Mileage", width: 150 },
   { id: "serviceFee", label: "Service Fee", width: 120 },
-  { id: "drivingProMin", label: "Driving Pro Min", width: 150 },
-  { id: "waitingProMin", label: "Waiting Pro Min", width: 150 },
+  { id: "drivingProMin", label: "Driving Rate/Min", width: 150 },
+  { id: "waitingProMin", label: "Waiting Rate/Min", width: 150 },
   { id: "status", label: "Status", width: 90 },
   { id: "", label: "Actions", width: 50 },
 ];
@@ -111,14 +109,9 @@ export const PackagesListView = () => {
     async (id: string): Promise<void> => {
       try {
         setLoading(true);
-        const { status }: { status: number } = await axios.delete(
-          endpoints.packages.delete(id)
-        );
-
-        if (status === 200) {
-          enqueueSnackbar("Delete Successfully");
-          refetch();
-        }
+        await deactivatePackage(id);
+        enqueueSnackbar("Package deactivated successfully");
+        refetch();
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });
       } finally {
@@ -137,7 +130,7 @@ export const PackagesListView = () => {
       setLoading(true);
       try {
         await activatePackage(id);
-        enqueueSnackbar("Package Activate Sucessfully");
+        enqueueSnackbar("Package activated successfully");
         refetch();
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });

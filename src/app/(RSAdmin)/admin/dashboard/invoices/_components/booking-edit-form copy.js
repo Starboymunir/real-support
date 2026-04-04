@@ -86,7 +86,7 @@ export default function BookingNewEditForm({ currentData }) {
       "National Insurance Number is required"
     ),
     selfAssessmentTaxId: Yup.string().required(
-      "Self Assesment Tax Id is required"
+      "Self Assessment Tax ID is required"
     ),
     vehicleNumberPlate: Yup.string().required(
       "Vehicle Number Plate is required"
@@ -331,7 +331,7 @@ export default function BookingNewEditForm({ currentData }) {
                   />
                   <RHFTextField
                     name="selfAssessmentTaxId"
-                    label="Self Assesment Tax Id"
+                    label="Self Assessment Tax ID"
                   />
                   <RHFTextField
                     name="vehicleNumberPlate"

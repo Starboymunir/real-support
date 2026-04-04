@@ -40,8 +40,8 @@ import { IUser } from "@/types/type";
 const PASSENGER_STATUS_OPTIONS = [
   { value: "", label: "All" },
   { value: "ACTIVE", label: "Active" },
-  { value: "ONHOLD", label: "In Active" },
-  { value: "SUSPEND", label: "Suspend" },
+  { value: "ONHOLD", label: "Inactive" },
+  { value: "SUSPEND", label: "Suspended" },
 ];
 
 const TABLE_HEAD = [
@@ -145,7 +145,7 @@ export default function PassengersListView() {
       if (response?.statusCode == 400) {
         enqueueSnackbar(response.message, { variant: "error" });
       } else {
-        enqueueSnackbar("User suspend successfully");
+        enqueueSnackbar("User suspended successfully");
       }
     } catch (error: any) {
       enqueueSnackbar(error.message, { variant: "error" });
@@ -163,7 +163,7 @@ export default function PassengersListView() {
         if (response?.statusCode === 400) {
           enqueueSnackbar(response.message, { variant: "error" });
         } else {
-          enqueueSnackbar("User suspend successfully");
+          enqueueSnackbar("User promoted successfully");
           router.push(paths.dashboard.user.root);
         }
       } catch (error: any) {
@@ -184,7 +184,7 @@ export default function PassengersListView() {
         if (response?.statusCode == 400) {
           enqueueSnackbar(response.message, { variant: "error" });
         } else {
-          enqueueSnackbar("User active successfully");
+          enqueueSnackbar("User activated successfully");
         }
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });

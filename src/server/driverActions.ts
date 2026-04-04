@@ -13,7 +13,7 @@ export const findDriverByCognitoId = async (id: string) => {
 export const EditWorkPermitDocument = async (driverId: string, data: { workPermitCode: string }) => {
   try {
     const result = await apiClient.post("/documents/work-permit-code", { driverId, workPermitCode: data.workPermitCode });
-    return { statusCode: 200, data: result.data, message: "successfully update" };
+    return { statusCode: 200, data: result.data, message: "Updated successfully" };
   } catch (err: any) {
     return { statusCode: 500, message: "Internal Server Error" };
   }

@@ -85,7 +85,7 @@ export default function PackagesTableRow({
               "default"
             }
           >
-            {row?.status ? "Active" : "In Active"}
+            {row?.status ? "Active" : "Inactive"}
           </Label>
         </TableCell>
 
@@ -132,14 +132,14 @@ export default function PackagesTableRow({
           sx={{ color: "error.main" }}
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
-          In Active
+          Deactivate
         </MenuItem>
       </CustomPopover>
       <ConfirmDialog
         open={confirmActivate.value}
         onClose={confirmActivate.onFalse}
-        title="Active"
-        content={<>Are you sure want to Active package {row.name}</>}
+        title="Activate"
+        content={<>Are you sure you want to activate package {row.name}?</>}
         action={
           <Button
             variant="contained"
@@ -149,15 +149,15 @@ export default function PackagesTableRow({
               confirmActivate.onFalse();
             }}
           >
-            Active
+            Activate
           </Button>
         }
       />
       <ConfirmDialog
         open={confirmInActive.value}
         onClose={confirmInActive.onFalse}
-        title="Inactivate"
-        content={<>Are you sure want to In Active package {row.name}</>}
+        title="Deactivate"
+        content={<>Are you sure you want to deactivate package {row.name}?</>}
         action={
           <Button
             variant="contained"
@@ -167,7 +167,7 @@ export default function PackagesTableRow({
               confirmInActive.onFalse();
             }}
           >
-            Inactivate
+            Deactivate
           </Button>
         }
       />

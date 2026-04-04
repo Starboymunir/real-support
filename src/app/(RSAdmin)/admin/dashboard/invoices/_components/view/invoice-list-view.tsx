@@ -202,7 +202,7 @@ export default function InvoiceListView() {
       try {
         const response = await allowGenerateInvoice(id, status);
         if (response.statusCode === 200) {
-          enqueueSnackbar("update status successfully");
+          enqueueSnackbar("Status updated successfully");
           setChangeFlag((prev) => !prev);
         } else {
           enqueueSnackbar(response.message, { variant: "error" });
@@ -414,7 +414,7 @@ export default function InvoiceListView() {
             title="Delete"
             content={
               <>
-                Are you sure want to delete
+                Are you sure you want to delete
                 <strong> {table.selected.length} </strong> items?
               </>
             }

@@ -58,7 +58,7 @@ export default function DiscountCouponsTableRow({
               "default"
             }
           >
-            {row?.isActive ? "Active" : "In Active"}
+            {row?.isActive ? "Active" : "Inactive"}
           </Label>
         </TableCell>
         <TableCell align="right">
@@ -93,7 +93,7 @@ export default function DiscountCouponsTableRow({
           }}
         >
           <Iconify icon="mdi:account-reactivate-outline" />
-          Active
+          Activate
         </MenuItem>
 
         <MenuItem
@@ -104,14 +104,14 @@ export default function DiscountCouponsTableRow({
           sx={{ color: "error.main" }}
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
-          In Active
+          Deactivate
         </MenuItem>
       </CustomPopover>
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="In Active"
-        content={<>Are you sure want to inActive coupon {row.coupon}</>}
+        title="Deactivate"
+        content={<>Are you sure you want to deactivate coupon {row.coupon}?</>}
         action={
           <Button
             variant="contained"
@@ -121,7 +121,7 @@ export default function DiscountCouponsTableRow({
               confirm.onFalse();
             }}
           >
-            In Active
+            Deactivate
           </Button>
         }
       />

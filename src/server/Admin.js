@@ -5,7 +5,7 @@ const changeAdminStatus = async (id, status) => {
     const result = await apiClient.patch(`/admin/adminUsers/${id}`, { status });
     return {
       data: result.data,
-      message: "user updated successfully",
+      message: "User updated successfully",
       statusCode: 200,
     };
   } catch (err) {

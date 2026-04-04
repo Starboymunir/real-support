@@ -174,10 +174,10 @@ export default function PassengersTableRow({
       <ConfirmDialog
         open={confirm.value}
         onClose={confirm.onFalse}
-        title="Delete"
+        title="Suspend User"
         content={
           <>
-            Are you sure want to suspend user {row.firstName} {row.lastName}
+            Are you sure you want to suspend user {row.firstName} {row.lastName}?
           </>
         }
         action={

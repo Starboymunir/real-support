@@ -50,9 +50,9 @@ export default function PackagesNewEditForm({
     description: z.string().min(2).max(500).nonempty("Description is required"),
     summary: z.string().min(2).max(500).nonempty("Summary is required"),
     serviceFee: z.coerce.number().min(0, "Service Fee is required"),
-    pricePerMilage: z.coerce.number().min(0, "Price Per Milage is required"),
-    drivingProMin: z.coerce.number().min(0, "Driving Pro minute is required"),
-    waitingProMin: z.coerce.number().min(0, "Waiting Pro minute is required"),
+    pricePerMilage: z.coerce.number().min(0, "Price per mileage is required"),
+    drivingProMin: z.coerce.number().min(0, "Driving rate per minute is required"),
+    waitingProMin: z.coerce.number().min(0, "Waiting rate per minute is required"),
     minBill: z.coerce.number().min(0, "Min Bill is required"),
     vat: z.coerce.number().min(0, "Vat is required"),
   });
@@ -249,7 +249,7 @@ export default function PackagesNewEditForm({
               <RHFTextField
                 type="number"
                 name="pricePerMilage"
-                label="Price Per Milage"
+                label="Price Per Mileage"
               />
             </Box>
 
@@ -266,12 +266,12 @@ export default function PackagesNewEditForm({
               <RHFTextField
                 type="number"
                 name="drivingProMin"
-                label="Driving Pro Min"
+                label="Driving Rate/Min"
               />
               <RHFTextField
                 type="number"
                 name="waitingProMin"
-                label="Waiting Pro Min"
+                label="Waiting Rate/Min"
               />
               <RHFTextField type="number" name="vat" label="Vat" />
               <RHFTextField type="number" name="minBill" label="Min Bill" />

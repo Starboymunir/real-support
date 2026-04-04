@@ -13,7 +13,7 @@ const getAllPassengers = async () => {
 const allowGenerateInvoice = async (id, status) => {
   try {
     await apiClient.patch(`/admin/bookings/${id}`, { isAllowGenerateInvoice: status });
-    return { statusCode: 200, message: "Generate Invoice Successfully" };
+    return { statusCode: 200, message: "Invoice generation updated successfully" };
   } catch (err) {
     return { statusCode: 400, message: err.message };
   }

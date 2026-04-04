@@ -84,9 +84,6 @@ export function useNavData() {
       { title: "Support", path: paths.dashboard.chat.root, icon: ICONS.support },
       { title: "Work Summary", path: paths.dashboard.workSummary.root, icon: ICONS.workSummary },
       ...(isSuperAdmin || isAdmin
-        ? [{ title: "Feedbacks", path: paths.dashboard.userFeedbacks.list, icon: ICONS.feedbacks }]
-        : []),
-      ...(isSuperAdmin || isAdmin
         ? [
             {
               title: "Content",

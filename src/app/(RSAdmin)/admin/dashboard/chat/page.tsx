@@ -6,6 +6,7 @@ import { alpha } from "@mui/material/styles";
 import AdminChatView from "./_components/AdminChatView";
 import AdminDirectMessages from "./_components/AdminDirectMessages";
 import AdminBroadcasts from "./_components/AdminBroadcasts";
+import AdminWebsiteInquiries from "./_components/AdminWebsiteInquiries";
 import Loader from "@/components/loader";
 import Iconify from "@/components/iconify/iconify";
 
@@ -15,6 +16,12 @@ const CHAT_SECTIONS = [
     title: "Support",
     subtitle: "Messages created from the rider and driver support pages.",
     icon: "solar:chat-round-dots-bold-duotone",
+  },
+  {
+    key: "inquiries",
+    title: "Website Inquiries",
+    subtitle: "Messages from the public contact form.",
+    icon: "solar:letter-bold-duotone",
   },
   {
     key: "dm",
@@ -34,6 +41,7 @@ export default function ChatPage() {
   const [activeSection, setActiveSection] = useState<(typeof CHAT_SECTIONS)[number]["key"]>("support");
 
   const activeView = useMemo(() => {
+    if (activeSection === "inquiries") return <AdminWebsiteInquiries />;
     if (activeSection === "dm") return <AdminDirectMessages />;
     if (activeSection === "channels") return <AdminBroadcasts />;
     return <AdminChatView />;

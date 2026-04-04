@@ -30,8 +30,10 @@ export default function AdminLoginPage() {
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+    const trimmedEmail = (email || '').trim();
+    if (!trimmedEmail || !password) return;
     try {
-      await adminLogin({ emailAddress: email, password });
+      await adminLogin({ emailAddress: trimmedEmail, password });
     } catch {
       // error set in context
     }

@@ -51,10 +51,10 @@ export const authApi = {
     api.post<LoginResponse>('/auth/company-login', dto),
 
   /** Password login — returns tokens directly */
-  adminLogin: (dto: LoginDto) =>
+  adminLogin: ({ emailAddress, password }: LoginDto) =>
     api.post<AdminLoginResponse>('/admin/adminUsers/login', {
-      email: dto.emailAddress,
-      password: dto.password,
+      email: emailAddress || '',
+      password: password || '',
     }),
 
   /** OTP login step 1 — sends OTP to email */

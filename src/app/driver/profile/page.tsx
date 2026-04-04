@@ -132,6 +132,10 @@ export default function DriverProfilePage() {
   const activeCar = cars.find(c => c.status === 'ACTIVE');
   const doc = driver.document;
   const carDoc = activeCar?.carDocument;
+  const assignedPackages = Array.isArray(driver.packageInfos)
+    ? driver.packageInfos.map((pkg) => pkg.name).filter(Boolean)
+    : [];
+  const assignedCompany = driver.companyInfo?.companyName;
 
   const personalDocs = [
     { name: 'Driving License', details: doc?.drivingLicense?.details, hasDoc: !!doc?.drivingLicense?.licenseDocFront },
@@ -249,6 +253,18 @@ export default function DriverProfilePage() {
                 <div className="flex items-center justify-between py-2">
                   <span className="text-white/40 text-sm">Total Rides</span>
                   <span className="text-white/80 text-sm font-semibold">{driver.totalJobComplete}</span>
+                </div>
+                <div className="flex items-center justify-between py-2 gap-4">
+                  <span className="text-white/40 text-sm">Assigned Company</span>
+                  <span className="text-white/80 text-sm font-semibold text-right break-words">
+                    {assignedCompany || 'Not assigned'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-2 gap-4">
+                  <span className="text-white/40 text-sm">Assigned Packages</span>
+                  <span className="text-white/80 text-sm font-semibold text-right break-words">
+                    {assignedPackages.length ? assignedPackages.join(', ') : 'None'}
+                  </span>
                 </div>
               </div>
             </div>

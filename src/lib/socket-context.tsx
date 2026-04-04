@@ -38,6 +38,8 @@ export const SOCKET_EVENTS = {
   // Withdrawal
   WITHDRAWAL_REQUESTED: 'WITHDRAWAL_REQUESTED',
   WITHDRAWAL_PROCESSED: 'WITHDRAWAL_PROCESSED',
+  // Driver
+  DRIVER_PROFILE_UPDATED: 'DRIVER_PROFILE_UPDATED',
   // Bid
   BID_CREATED: 'BID_CREATED',
   BID_UPDATED: 'BID_UPDATED',
@@ -145,6 +147,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       SOCKET_EVENTS.WITHDRAWAL_PROCESSED,
       SOCKET_EVENTS.BID_CREATED,
       SOCKET_EVENTS.BID_UPDATED,
+      SOCKET_EVENTS.DRIVER_PROFILE_UPDATED,
     ];
 
     notifEvents.forEach((event) => {

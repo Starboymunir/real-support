@@ -108,6 +108,18 @@ export interface Driver {
   cars?: Car[];
   document?: Document;
   packageIDs: string[];
+  packageInfos?: Array<{
+    id: string;
+    name: string;
+    coverImage?: string;
+    summary?: string;
+  }>;
+  companyInfo?: {
+    id: string;
+    companyName?: string;
+    companyEmail?: string;
+    companyPhone?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }

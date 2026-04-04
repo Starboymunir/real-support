@@ -451,14 +451,14 @@ export default function BookRide() {
 
               {/* Date & Time */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
-                <div>
+                <div className="min-w-0">
                   <label className="block text-white/50 text-sm font-medium mb-2">Date</label>
                   <div className="relative">
                     <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25 pointer-events-none" />
                     <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input-dark w-full pl-12" />
                   </div>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <label className="block text-white/50 text-sm font-medium mb-2">Time</label>
                   <div className="relative">
                     <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25 pointer-events-none" />

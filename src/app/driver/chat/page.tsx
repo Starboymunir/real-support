@@ -509,9 +509,9 @@ export default function DriverChatPage() {
                                     <Image src={RS_CAB_LOGO} alt="Admin" width={28} height={28} className="w-full h-full object-cover" />
                                   ) : (() => {
                                     const sender = activeChat.participants.find(p => p.userId === msg.senderId);
-                                    const senderImage = resolveS3Url((sender?.user as any)?.coverImage);
+                                    const senderImage = resolveS3Url((sender?.user as any)?.coverImage || (sender?.user as any)?.profileImageUrl);
                                     return senderImage
-                                      ? <Image src={senderImage} alt="User" width={28} height={28} className="w-full h-full object-cover" />
+                                      ? <Image src={senderImage} alt="User" width={28} height={28} className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                                       : <User size={12} />;
                                   })()}
                                 </div>

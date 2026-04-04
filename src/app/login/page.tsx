@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
@@ -17,8 +17,19 @@ function LoginContent() {
   const [socialLoading, setSocialLoading] = useState(false);
   const [otpStep, setOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
+  const [oauthError, setOauthError] = useState<string | null>(null);
   const { login, confirmEmail, resendOtp, loading, error, clearError, user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Show OAuth error if redirected back from failed social login
+  useEffect(() => {
+    const oauthErr = searchParams.get('error');
+    const oauthMsg = searchParams.get('message');
+    if (oauthErr) {
+      setOauthError(oauthMsg || 'Social login failed. Please try again.');
+    }
+  }, [searchParams]);
 
   // If already logged in, redirect to dashboard
   useEffect(() => {
@@ -157,6 +168,13 @@ function LoginContent() {
               </div>
             ) : (
             <>
+            {/* OAuth error banner */}
+            {oauthError && (
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-400 text-sm mb-6">
+                {oauthError}
+              </div>
+            )}
+
             {/* Social buttons */}
             <div className="flex gap-3 mb-6">
               <button

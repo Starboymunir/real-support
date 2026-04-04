@@ -26,7 +26,7 @@ import {
 type NotificationType = 'ride' | 'payment' | 'promo' | 'system';
 
 interface Notification {
-  id: number;
+  id: string;
   type: NotificationType;
   title: string;
   description: string;
@@ -70,20 +70,20 @@ function mapApiNotification(n: ApiNotification, idx: number): Notification {
   const time = days > 0 ? `${days} day${days > 1 ? 's' : ''} ago` : hours > 0 ? `${hours} hour${hours > 1 ? 's' : ''} ago` : 'Just now';
 
   return {
-    id: idx + 1000,
+    id: n.id,
     type,
     title,
     description: n.remarks || '',
     detail: n.remarks,
     time,
-    read: n.isRead ?? true,
+    read: n.isRead ?? false,
   };
 }
 
 export default function NotificationsPage() {
   const { user } = useRequireAuth();
   const [notifications, setNotifications] = useState(initialNotifications);
-  const [expanded, setExpanded] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState('all');
 
   const fetchNotifications = useCallback(async () => {
@@ -117,11 +117,15 @@ export default function NotificationsPage() {
     }
   };
 
-  const toggleExpand = (id: number) => {
+  const toggleExpand = (id: string) => {
     setExpanded((prev) => (prev === id ? null : id));
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+    const n = notifications.find(n => n.id === id);
+    if (n && !n.read) {
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      );
+      notificationsApi.markAsRead(id).catch(() => {});
+    }
   };
 
   return (

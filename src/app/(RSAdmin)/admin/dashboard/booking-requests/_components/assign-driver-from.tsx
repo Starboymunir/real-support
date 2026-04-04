@@ -37,7 +37,13 @@ export default function AssignQuickEditForm({
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const { data: allDrivers = [], isPending } = useDriversQuery();
-  const drivers = allDrivers.filter((d: IDriver) => (d as any).status === 'ACTIVE');
+  // Only show ACTIVE drivers who have the request's package assigned
+  const drivers = allDrivers.filter((d: IDriver) => {
+    const dr = d as any;
+    if (dr.status !== 'ACTIVE') return false;
+    if (!row?.packageId) return true;
+    return Array.isArray(dr.packageIDs) && dr.packageIDs.includes(row.packageId);
+  });
   const router = useRouter();
 
   const schema = Yup.object().shape({
@@ -60,16 +66,18 @@ export default function AssignQuickEditForm({
       };
 
       const response = await apiClient.post<IBookingType>("/bookings", payload);
-
       if (!response.success) {
-        enqueueSnackbar(response.message, { variant: "error" });
+        enqueueSnackbar(response.message || "Failed to assign driver", { variant: "error" });
+        return;
       }
       enqueueSnackbar("Driver assigned successfully");
       onClose();
       router.push("/admin/dashboard/bookings");
     } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      enqueueSnackbar("Failed to assign driver", { variant: "error" });
+      const msg = error?.response?.data?.message || error?.message || "Failed to assign driver";
+      enqueueSnackbar(msg, { variant: "error" });
     } finally {
       setLoading(false);
     }
@@ -105,6 +113,13 @@ export default function AssignQuickEditForm({
             >
               <RHFAutocomplete
                 name="driverId"
+                              {drivers.length === 0 && !isPending && (
+                                <Box sx={{ py: 1, color: "warning.main", fontSize: 14 }}>
+                                  No eligible drivers for this package. Make sure at least one active driver has this package assigned.
+                                </Box>
+                              )}
+                              <RHFAutocomplete
+                                name="driverId"
                 label="Driver"
                 placeholder="Select driver"
                 options={drivers}

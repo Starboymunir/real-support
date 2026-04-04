@@ -56,19 +56,27 @@ const AccordionDocument = ({
   const [status, setStatus] = useState("Pending");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const safeDocumentsList = documentsList ?? {};
+  const uploadedEntries = Object.entries(safeDocumentsList).filter(([, value]) => Boolean(value));
+  const hasUploadedDocuments = uploadedEntries.length > 0;
 
   useEffect(() => {
     const detail = isCarDocument
       ? carDocument?.[documentTitle]?.details
       : info?.document?.[documentTitle]?.details;
-    let approveStatus = detail?.isVerified
+
+    if (!hasUploadedDocuments) {
+      setStatus("Not Uploaded");
+      return;
+    }
+
+    const approveStatus = detail?.isVerified
       ? "Approved"
-      : !detail?.isVerified && !detail?.isReturned
-      ? "Pending"
-      : "Rejected";
+      : detail?.isReturned
+      ? "Rejected"
+      : "Pending";
 
     setStatus(approveStatus);
-  }, [info?.document, documentTitle, isCarDocument, carDocument]);
+  }, [info?.document, documentTitle, isCarDocument, carDocument, hasUploadedDocuments]);
 
   const acceptDocument = async (documentType: string) => {
     setIsAccepting(true);
@@ -133,8 +141,6 @@ const AccordionDocument = ({
     }
   };
 
-  console.log("documentsList info", info);
-
   return (
     <Accordion expanded={expanded} onChange={handleChange(name)}>
       <AccordionSummary
@@ -176,30 +182,32 @@ const AccordionDocument = ({
               >
                 Edit
               </Button>
-              <LoadingButton
-                loading={isAccepting}
-                color="success"
-                variant="contained"
-                disabled={status == "Approved"}
-                onClick={() => acceptDocument(documentTitle)}
-              >
-                Approve
-              </LoadingButton>
-              <LoadingButton
-                loading={isRejecting}
-                color="error"
-                disabled={status == "Rejected"}
-                variant="contained"
-                onClick={() => rejectDocument(documentTitle)}
-              >
-                Reject
-              </LoadingButton>
+              {hasUploadedDocuments && (
+                <>
+                  <LoadingButton
+                    loading={isAccepting}
+                    color="success"
+                    variant="contained"
+                    disabled={status == "Approved"}
+                    onClick={() => acceptDocument(documentTitle)}
+                  >
+                    Approve
+                  </LoadingButton>
+                  <LoadingButton
+                    loading={isRejecting}
+                    color="error"
+                    disabled={status == "Rejected"}
+                    variant="contained"
+                    onClick={() => rejectDocument(documentTitle)}
+                  >
+                    Reject
+                  </LoadingButton>
+                </>
+              )}
             </Stack>
           )}
           <Grid container spacing={2}>
-            {Object.entries(safeDocumentsList)
-              .filter(([, value]) => Boolean(value))
-              .map(([document, fileKey], i) => {
+            {uploadedEntries.map(([document, fileKey], i) => {
               const extension = fileKey?.split(".").pop()?.toLowerCase();
               const isImage = fileKey && !["pdf", "heic", "heif"].includes(extension || "");
               const resolved = resolveS3Url(fileKey);
@@ -236,8 +244,13 @@ const AccordionDocument = ({
                   />
                 </Grid>
               );
-              })}
+            })}
           </Grid>
+          {!hasUploadedDocuments && (
+            <Typography variant="body2" color="text.secondary" sx={{ px: 2, pt: 1 }}>
+              No document uploaded yet.
+            </Typography>
+          )}
         </Stack>
 
         {/* Image preview dialog */}

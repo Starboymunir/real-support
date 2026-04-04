@@ -455,14 +455,14 @@ export default function BookRide() {
                   <label className="block text-white/50 text-sm font-medium mb-2">Date</label>
                   <div className="relative">
                     <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25 pointer-events-none" />
-                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input-dark w-full pl-12" />
+                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input-dark w-full max-w-full pl-12 pr-3 overflow-hidden" />
                   </div>
                 </div>
                 <div className="min-w-0">
                   <label className="block text-white/50 text-sm font-medium mb-2">Time</label>
                   <div className="relative">
                     <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25 pointer-events-none" />
-                    <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="input-dark w-full pl-12" />
+                    <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="input-dark w-full max-w-full pl-12 pr-3 overflow-hidden" />
                   </div>
                 </div>
               </div>

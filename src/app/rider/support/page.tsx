@@ -308,7 +308,7 @@ export default function SupportPage() {
                   if (!user?.id || chatLoading) return;
                   setChatLoading(true);
                   try {
-                    const chat = await chatApi.getOneOnOneAdmin(user.id);
+                    const chat = await chatApi.getOneOnOneAdmin();
                     const chatId = chat?.id;
                     router.push(chatId ? `/rider/chat?chatId=${chatId}` : '/rider/chat');
                   } catch {

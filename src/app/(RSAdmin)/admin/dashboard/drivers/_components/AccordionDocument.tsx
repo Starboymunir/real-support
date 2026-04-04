@@ -20,6 +20,7 @@ import Label from "@/app/(RSAdmin)/admin/common/label";
 import axiosInstance from "@/lib/admin-axios";
 import { AxiosError } from "axios";
 import { resolveS3Url } from '@/lib/api';
+import { carDocumentApprovalOrRejection } from "@/server/Document";
 
 interface AccordionDocumentProps {
   name: string;
@@ -31,6 +32,9 @@ interface AccordionDocumentProps {
   info: any;
   refetch: any;
   showActions?: boolean;
+  isCarDocument?: boolean;
+  carDocumentId?: string;
+  carDocument?: any;
 }
 
 const AccordionDocument = ({
@@ -43,6 +47,9 @@ const AccordionDocument = ({
   info,
   refetch,
   showActions = true,
+  isCarDocument = false,
+  carDocumentId,
+  carDocument,
 }: AccordionDocumentProps) => {
   const [isRejecting, setIsRejecting] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
@@ -51,7 +58,9 @@ const AccordionDocument = ({
   const safeDocumentsList = documentsList ?? {};
 
   useEffect(() => {
-    const detail = info?.document?.[documentTitle]?.details;
+    const detail = isCarDocument
+      ? carDocument?.[documentTitle]?.details
+      : info?.document?.[documentTitle]?.details;
     let approveStatus = detail?.isVerified
       ? "Approved"
       : !detail?.isVerified && !detail?.isReturned
@@ -59,24 +68,30 @@ const AccordionDocument = ({
       : "Rejected";
 
     setStatus(approveStatus);
-  }, [info?.document, documentTitle]);
+  }, [info?.document, documentTitle, isCarDocument, carDocument]);
 
   const acceptDocument = async (documentType: string) => {
     setIsAccepting(true);
     try {
-      const { data } = await axiosInstance.patch(
-        `/documents/admin/${info.id}/approvedorreject`,
-        {
-          documentType,
-          isVerified: true,
-          status: "Approved",
-          isReturned: false,
-        }
-      );
-
-      if (data.success === true) {
+      if (isCarDocument && carDocumentId) {
+        await carDocumentApprovalOrRejection(carDocumentId, documentType, true);
         enqueueSnackbar("Approve Document Successfully");
         setStatus("Approved");
+      } else {
+        const { data } = await axiosInstance.patch(
+          `/documents/admin/${info.id}/approvedorreject`,
+          {
+            documentType,
+            isVerified: true,
+            status: "Approved",
+            isReturned: false,
+          }
+        );
+
+        if (data.success === true) {
+          enqueueSnackbar("Approve Document Successfully");
+          setStatus("Approved");
+        }
       }
     } catch (error: AxiosError | any) {
       console.log("error ", error);
@@ -90,19 +105,25 @@ const AccordionDocument = ({
   const rejectDocument = async (documentType: string) => {
     setIsRejecting(true);
     try {
-      const { data } = await axiosInstance.patch(
-        `/documents/admin/${info.id}/approvedorreject`,
-        {
-          documentType,
-          isVerified: false,
-          status: "Rejected",
-          isReturned: true,
-        }
-      );
-
-      if (data.success === true) {
+      if (isCarDocument && carDocumentId) {
+        await carDocumentApprovalOrRejection(carDocumentId, documentType, false);
         enqueueSnackbar("Reject Document Successfully");
         setStatus("Rejected");
+      } else {
+        const { data } = await axiosInstance.patch(
+          `/documents/admin/${info.id}/approvedorreject`,
+          {
+            documentType,
+            isVerified: false,
+            status: "Rejected",
+            isReturned: true,
+          }
+        );
+
+        if (data.success === true) {
+          enqueueSnackbar("Reject Document Successfully");
+          setStatus("Rejected");
+        }
       }
     } catch (error: AxiosError | any) {
       enqueueSnackbar(error.message, { variant: "error" });

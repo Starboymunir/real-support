@@ -7,7 +7,6 @@ import IconButton from "@mui/material/IconButton";
 import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
 import Rating from "@mui/material/Rating";
 import {
   useBoolean,
@@ -62,8 +61,11 @@ export default function DriversTableRow({
 
   const vehiclesCount = (() => {
     const anyRow = row as any;
-    if (typeof anyRow?.carsCount === "number") return anyRow.carsCount;
-    if (typeof anyRow?._count?.cars === "number") return anyRow._count.cars;
+    const directCount = Number(anyRow?.carsCount);
+    if (Number.isFinite(directCount) && directCount >= 0) return directCount;
+
+    const aggregateCount = Number(anyRow?._count?.cars);
+    if (Number.isFinite(aggregateCount) && aggregateCount >= 0) return aggregateCount;
 
     const cars = anyRow?.cars;
 
@@ -71,11 +73,14 @@ export default function DriversTableRow({
     if (cars && typeof cars === "object") {
       if (Array.isArray(cars.data)) return cars.data.length;
       if (Array.isArray(cars.items)) return cars.items.length;
+      if (Array.isArray(cars.results)) return cars.results.length;
       if (typeof cars.count === "number") return cars.count;
+      return Object.keys(cars).length;
     }
 
     const metaCount = anyRow?._count?.cars ?? anyRow?.carsCount ?? anyRow?.vehicleCount;
-    return typeof metaCount === "number" ? metaCount : 0;
+    const parsedMetaCount = Number(metaCount);
+    return Number.isFinite(parsedMetaCount) && parsedMetaCount >= 0 ? parsedMetaCount : 0;
   })();
 
   return (
@@ -132,13 +137,12 @@ export default function DriversTableRow({
 
         {/* Vehicles */}
         <TableCell align="center">
-          <Chip
-            icon={<Iconify icon="mdi:car" width={16} />}
-            label={vehiclesCount}
-            size="small"
-            variant="outlined"
-            color={vehiclesCount ? "primary" : "default"}
-          />
+          <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="center">
+            <Iconify icon="mdi:car" width={16} sx={{ color: vehiclesCount > 0 ? "info.main" : "text.disabled" }} />
+            <Box component="span" sx={{ typography: "subtitle2", color: "text.primary", minWidth: 10 }}>
+              {vehiclesCount}
+            </Box>
+          </Stack>
         </TableCell>
 
         {/* Subscription */}

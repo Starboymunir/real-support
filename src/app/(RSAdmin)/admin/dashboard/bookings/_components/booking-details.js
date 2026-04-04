@@ -1,6 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { getBookingById } from "@/server/Bookings";
+import React from "react";
+import { useBookingQuery } from "@/hooks/Bookings";
 import {
   Box,
   Card,
@@ -79,25 +79,8 @@ function StarRating({ value }) {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const BookingDetails = ({ id }) => {
-  const [data, setData] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const { data, isPending: isLoading } = useBookingQuery(id);
   const settings = useSettingsContext();
-
-  const getBooking = async () => {
-    setIsLoading(true);
-    try {
-      const response = await getBookingById(id);
-      setData(response?.data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    getBooking();
-  }, []);
 
   if (isLoading) return <LoadingScreen />;
 

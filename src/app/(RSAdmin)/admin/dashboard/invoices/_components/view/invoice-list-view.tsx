@@ -137,7 +137,7 @@ export default function InvoiceListView() {
 
   const handleViewRow = useCallback(
     (id: string) => {
-      router.push(paths.dashboard.bookings.details(id));
+      router.push(paths.dashboard.invoices.details(id));
     },
     [router]
   );

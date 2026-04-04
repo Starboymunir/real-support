@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/ApiClient";
 
 export const activatePackage = async (id: string) => {
   try {
-    const result = await apiClient.patch(`/packages/admin/${id}`, { status: true });
+    const result = await apiClient.patch(`/packages/${id}`, { status: true });
     return { message: "Package activated successfully", data: result.data };
   } catch (err: any) {
     throw { message: err.message };
@@ -11,7 +11,7 @@ export const activatePackage = async (id: string) => {
 
 export const deactivatePackage = async (id: string) => {
   try {
-    const result = await apiClient.patch(`/packages/admin/${id}`, { status: false });
+    const result = await apiClient.patch(`/packages/${id}`, { status: false });
     return { message: "Package deactivated successfully", data: result.data };
   } catch (err: any) {
     throw { message: err.message };

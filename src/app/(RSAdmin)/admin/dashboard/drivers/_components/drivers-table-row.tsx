@@ -60,6 +60,21 @@ export default function DriversTableRow({
 
   const popover = usePopover();
 
+  const vehiclesCount = (() => {
+    const anyRow = row as any;
+    const cars = anyRow?.cars;
+
+    if (Array.isArray(cars)) return cars.length;
+    if (cars && typeof cars === "object") {
+      if (Array.isArray(cars.data)) return cars.data.length;
+      if (Array.isArray(cars.items)) return cars.items.length;
+      if (typeof cars.count === "number") return cars.count;
+    }
+
+    const metaCount = anyRow?._count?.cars ?? anyRow?.carsCount ?? anyRow?.vehicleCount;
+    return typeof metaCount === "number" ? metaCount : 0;
+  })();
+
   return (
     <>
       <TableRow hover selected={selected} sx={{ cursor: "pointer" }} onClick={onViewRow}>
@@ -116,10 +131,10 @@ export default function DriversTableRow({
         <TableCell align="center">
           <Chip
             icon={<Iconify icon="mdi:car" width={16} />}
-            label={row.cars?.length || 0}
+            label={vehiclesCount}
             size="small"
             variant="outlined"
-            color={row.cars?.length ? "primary" : "default"}
+            color={vehiclesCount ? "primary" : "default"}
           />
         </TableCell>
 

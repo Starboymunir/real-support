@@ -180,6 +180,8 @@ export default function RiderChatPage() {
     try {
       const full = await chatApi.getById(chat.id);
       setMessages(full.messages || []);
+      // Sync activeChat with latest data (e.g. ticketStatus) from server
+      setActiveChat(prev => prev?.id === full.id ? { ...prev, ...full, messages: prev!.messages } as Chat : prev);
       // Mark as read
       await chatApi.markAsRead(chat.id);
       setUnreadChats(prev => Math.max(0, prev - 1));
@@ -260,8 +262,8 @@ export default function RiderChatPage() {
     const handleChatUpdate = (data: any) => {
       if (data?.id) {
         if (data.ticketStatus) {
-          setChats(prev => prev.map(c => c.id === data.id ? { ...c, ticketStatus: data.ticketStatus } : c));
-          setActiveChat(prev => prev?.id === data.id ? { ...prev, ticketStatus: data.ticketStatus } : prev);
+          setChats(prev => prev.map(c => c.id === data.id ? { ...c, ticketStatus: data.ticketStatus } as Chat : c));
+          setActiveChat(prev => prev?.id === data.id ? { ...prev, ticketStatus: data.ticketStatus } as Chat : prev);
         } else {
           setChats(prev => prev.filter(c => c.id !== data.id));
           setActiveChat(prev => prev?.id === data.id ? null : prev);

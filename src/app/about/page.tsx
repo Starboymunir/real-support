@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -15,6 +13,8 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { fetchPublicContent } from '@/app/api/helpers/StaticContent';
+import { resolveImageUrl } from '@/lib/api';
 
 /* â”€â”€ data â”€â”€ */
 const stats = [
@@ -37,7 +37,10 @@ const leaders = [
   { name: 'David Chen', role: 'CTO', bio: 'Full-stack architect & ML engineer. Building the tech stack that powers the next generation of rides.', image: '/images/team/david.jpg' },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const content = await fetchPublicContent('aboutUs');
+  const hasDbContent = !!(content?.description);
+
   return (
     <>
       <Navbar />
@@ -50,9 +53,9 @@ export default function AboutPage() {
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-5">Our Story</p>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[-0.03em] text-white leading-[1.05]">
-              Driving the future of
+              {content?.title || <>Driving the future of
               <br />
-              <span className="text-white/25">urban mobility.</span>
+              <span className="text-white/25">urban mobility.</span></>}
             </h1>
             <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
               RS CAB was built with one purpose â€” to make every journey safe, comfortable, and effortless. We&apos;re creating the ride-sharing experience the UK deserves.
@@ -62,7 +65,7 @@ export default function AboutPage() {
           {/* Hero image */}
           <div className="mt-16 relative rounded-2xl overflow-hidden max-w-5xl mx-auto border border-white/[0.06]">
             <Image
-              src="/images/unsplash/team-collab.jpg"
+              src={content?.coverImage ? (resolveImageUrl(content.coverImage) || "/images/unsplash/team-collab.jpg") : "/images/unsplash/team-collab.jpg"}
               alt="RS CAB team collaborating"
               width={1200}
               height={500}
@@ -80,18 +83,24 @@ export default function AboutPage() {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Our Mission</p>
-              <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em] leading-[1.1] mb-6">
-                Moving cities forward,
-                <br />
-                <span className="text-white/25">one ride at a time.</span>
-              </h2>
-              <p className="text-white/35 text-lg leading-relaxed mb-4">
-                We believe mobility is a right, not a luxury. RS CAB connects riders and drivers through cutting-edge tech, fair pricing, and an uncompromising commitment to safety.
-              </p>
-              <p className="text-white/35 text-lg leading-relaxed mb-8">
-                From airport transfers to cross-city commutes, our goal is to become the most trusted name in ride-sharing across the United Kingdom.
-              </p>
-              <div className="flex flex-wrap gap-3">
+              {hasDbContent ? (
+                <div className="prose prose-invert max-w-none prose-p:text-white/35 prose-headings:text-white" dangerouslySetInnerHTML={{ __html: content.description }} />
+              ) : (
+                <>
+                  <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em] leading-[1.1] mb-6">
+                    Moving cities forward,
+                    <br />
+                    <span className="text-white/25">one ride at a time.</span>
+                  </h2>
+                  <p className="text-white/35 text-lg leading-relaxed mb-4">
+                    We believe mobility is a right, not a luxury. RS CAB connects riders and drivers through cutting-edge tech, fair pricing, and an uncompromising commitment to safety.
+                  </p>
+                  <p className="text-white/35 text-lg leading-relaxed mb-8">
+                    From airport transfers to cross-city commutes, our goal is to become the most trusted name in ride-sharing across the United Kingdom.
+                  </p>
+                </>
+              )}
+              <div className="flex flex-wrap gap-3 mt-8">
                 <Link href="/services" className="inline-flex items-center gap-2 bg-white text-black font-semibold text-sm px-6 py-3 rounded-full hover:shadow-[0_0_30px_rgba(255,255,255,0.12)] transition-all">
                   Explore Services <ArrowRight size={14} />
                 </Link>

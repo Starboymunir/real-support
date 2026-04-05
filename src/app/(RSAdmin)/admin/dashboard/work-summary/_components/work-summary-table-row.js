@@ -21,7 +21,7 @@ export default function DriverWorkSummaryTableRow({
       <TableRow hover selected={selected}>
         <TableCell sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <AwsImageAvatar
-            imageKey={row?.driverName?.profileImage}
+            imageKey={row?.driverName?.userInfo?.profileImageUrl}
             alt={row?.driverName?.userInfo?.firstName}
             width={50}
             height={50}

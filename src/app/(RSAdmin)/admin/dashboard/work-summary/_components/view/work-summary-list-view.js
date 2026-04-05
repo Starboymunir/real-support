@@ -283,7 +283,7 @@ export default function DriverSummaryListView() {
           renderOption={(props, d) => (
             <li {...props} key={d.id}>
               <Stack direction="row" spacing={1.5} alignItems="center">
-                <AwsImageAvatar imageKey={d.userInfo?.profileImageUrl} alt={d.userInfo?.firstName} width={32} height={32} />
+                <AwsImageAvatar imageKey={d.userInfo?.profileImageUrl || d.userInfo?.coverImage} alt={d.userInfo?.firstName} width={32} height={32} />
                 <ListItemText
                   primary={`${d.userInfo?.firstName || ""} ${d.userInfo?.lastName || ""}`}
                   secondary={d.userInfo?.emailAddress}
@@ -443,7 +443,7 @@ function DriverRow({ row, onSelect }) {
       <TableCell>
         <Stack direction="row" spacing={1.5} alignItems="center">
           <AwsImageAvatar
-            imageKey={row.driver?.userInfo?.profileImageUrl}
+            imageKey={row.driver?.userInfo?.profileImageUrl || row.driver?.userInfo?.coverImage}
             alt={row.driverName}
             width={36}
             height={36}

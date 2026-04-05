@@ -1,9 +1,8 @@
-import DriverSummaryListView from "../_components/view/driver-work-summary-list-view";
+import { redirect } from "next/navigation";
+import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 
-const Page = async (props: any) => {
-  const params = await props.params;
-  const { driverId } = params;
-  return <DriverSummaryListView driverId={driverId} />;
+const Page = async () => {
+  redirect(paths.dashboard.workSummary.root);
 };
 
 export default Page;

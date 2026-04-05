@@ -12,8 +12,6 @@ import { companyApi } from '@/lib/services/company';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from '@/lib/toast';
 import type { Driver } from '@/lib/types';
-import { resolveImageUrl } from '@/lib/api';
-import Image from 'next/image';
 import {
   User,
   Car,
@@ -73,7 +71,6 @@ export default function DriverRegistrationPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [dbContent, setDbContent] = useState<{ title?: string; description?: string; coverImage?: string } | null>(null);
 
   const existingDriver = user?.driver;
 
@@ -129,14 +126,6 @@ export default function DriverRegistrationPage() {
       }));
     }
   }, [user, existingDriver]);
-
-  useEffect(() => {
-    const BASE = process.env.NEXT_PUBLIC_API_URL || 'https://pssl-backend-nest-b25x.onrender.com/api';
-    fetch(`${BASE}/static-content/by-type/driverPage`)
-      .then(r => r.json())
-      .then(json => { if (json?.data?.description) setDbContent(json.data); })
-      .catch(() => {});
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -239,29 +228,6 @@ export default function DriverRegistrationPage() {
           })}
         </div>
       </section>
-
-      {/* DB Content Section */}
-      {dbContent && (
-        <section className="py-20 lg:py-28" style={{ background: '#0A1628' }}>
-          <div className="mx-auto max-w-4xl px-6 sm:px-8">
-            {dbContent.coverImage && (
-              <div className="mb-10 rounded-2xl overflow-hidden border border-white/[0.06]">
-                <Image
-                  src={resolveImageUrl(dbContent.coverImage) || dbContent.coverImage}
-                  alt={dbContent.title || 'Drive with RS CAB'}
-                  width={1200}
-                  height={500}
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-            )}
-            {dbContent.title && (
-              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-[-0.02em] mb-6">{dbContent.title}</h2>
-            )}
-            <div className="prose prose-invert max-w-none prose-p:text-white/40 prose-headings:text-white prose-a:text-secondary" dangerouslySetInnerHTML={{ __html: dbContent.description! }} />
-          </div>
-        </section>
-      )}
 
       <section id="register" className="py-24" style={{ background: '#0A1628' }}>
         <div className="max-w-4xl mx-auto px-6">

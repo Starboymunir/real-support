@@ -101,9 +101,6 @@ export const paths = {
       termsAndConditions: `${ROOTS.DASHBOARD}/static-content/terms-and-conditions`,
       privacyPolicy: `${ROOTS.DASHBOARD}/static-content/privacy-policy`,
       services: `${ROOTS.DASHBOARD}/static-content/services`,
-      homePage: `${ROOTS.DASHBOARD}/static-content/home-page`,
-      contactPage: `${ROOTS.DASHBOARD}/static-content/contact-page`,
-      driverPage: `${ROOTS.DASHBOARD}/static-content/driver-page`,
     },
     drivers: {
       root: `${ROOTS.DASHBOARD}/drivers`,

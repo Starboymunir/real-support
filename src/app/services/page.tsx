@@ -143,26 +143,6 @@ export default async function ServicesPage() {
           </div>
         </section>
       )}
-
-      {/* DB Content Section */}
-      {hasDbContent && (
-        <section className="py-20 lg:py-28" style={{ background: '#0A1628' }}>
-          <div className="mx-auto max-w-4xl px-6 sm:px-8">
-            {content.coverImage && (
-              <div className="mb-10 rounded-2xl overflow-hidden border border-white/[0.06]">
-                <Image
-                  src={resolveImageUrl(content.coverImage) || content.coverImage}
-                  alt={content.title || 'Services'}
-                  width={1200}
-                  height={500}
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-            )}
-            <div className="prose prose-invert max-w-none prose-p:text-white/40 prose-headings:text-white prose-a:text-secondary" dangerouslySetInnerHTML={{ __html: content.description }} />
-          </div>
-        </section>
-      )}
       {/* â•â•â•â•â•â•â• SERVICES â€” Alternating rows â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">

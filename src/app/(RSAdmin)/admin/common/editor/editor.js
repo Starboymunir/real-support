@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import '@/lib/utils/highlight';
-import 'react-quill/dist/quill.snow.css';
-import ReactQuill from 'react-quill';
+import 'react-quill-new/dist/quill.snow.css';
+import ReactQuill from 'react-quill-new';
 //
 import { StyledEditor } from './styles';
 import EditorToolbar, { formats } from './EditorToolbar';

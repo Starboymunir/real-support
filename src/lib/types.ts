@@ -452,6 +452,7 @@ export interface Notification {
 
 export interface Chat {
   id: string;
+  chatName?: string;
   isGroupChat: boolean;
   isAdminChat: boolean;
   adminId?: string | null;

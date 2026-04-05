@@ -51,9 +51,10 @@ function getInitials(name: string) {
 function getOtherParticipant(chat: Chat, userId: string) {
   // Booking chats are peer-to-peer — always show the other participant
   if (!chat.bookingId && chat.isAdminChat) {
-    return chat.adminId
-      ? { name: 'RS CAB Admin', id: 'admin-dm', coverImage: null as string | null }
-      : { name: 'RS CAB Support', id: 'support-admin', coverImage: null as string | null };
+    const name = chat.adminId
+      ? 'RS CAB Admin'
+      : (chat.chatName || 'RS CAB Support');
+    return { name, id: chat.adminId ? 'admin-dm' : 'support-admin', coverImage: null as string | null };
   }
 
   const other = chat.participants.find(p => p.userId !== userId);
@@ -494,7 +495,7 @@ export default function RiderChatPage() {
                   </p>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-[11px] text-white/30">
-                      {!activeChat.bookingId && activeChat.isAdminChat ? (activeChat.adminId ? 'Admin direct message' : 'Support conversation') : activeChat.bookingId ? `Ride ${activeChat.bookingId.slice(-6)}` : 'Direct message'}
+                      {!activeChat.bookingId && activeChat.isAdminChat ? (activeChat.adminId ? 'Admin direct message' : 'RS CAB Support') : activeChat.bookingId ? `Ride ${activeChat.bookingId.slice(-6)}` : 'Direct message'}
                     </p>
                     {!activeChat.bookingId && activeChat.isAdminChat && (
                       <span className="inline-flex items-center gap-1 rounded-full border border-secondary/30 bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold text-secondary">

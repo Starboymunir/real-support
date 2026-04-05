@@ -130,6 +130,11 @@ export default function DocQuickEditForm({
         pcoDocuments: '/documents/pco',
         passport: '/documents/passport',
         addressProfDocs: '/documents/address',
+        // Car document types
+        insuranceDocument: '/documents/driver/car/insurance',
+        motDocument: '/documents/driver/car/mot',
+        pcoDocument: '/documents/driver/car/car_pco_document',
+        vehicleLogBook: '/documents/driver/car/vehicleLogBook',
       };
 
       const endpoint = endpointMap[docType];

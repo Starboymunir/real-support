@@ -10,6 +10,7 @@ export default function Table(theme) {
       styleOverrides: {
         root: {
           position: 'relative',
+          overflowX: 'auto',
         },
       },
     },

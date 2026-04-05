@@ -18,6 +18,7 @@ import {
   Loader2,
   Wallet,
   AlertTriangle,
+  Tag,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -27,7 +28,8 @@ import { requestsApi } from '@/lib/services/bookings';
 import { packagesApi } from '@/lib/services/packages';
 import { othersApi } from '@/lib/services/others';
 import { walletApi } from '@/lib/services/wallet';
-import type { Package } from '@/lib/types';
+import { couponsApi } from '@/lib/services/coupons';
+import type { Package, DiscountCoupon } from '@/lib/types';
 import AddressAutocomplete, { type PlaceResult } from '@/components/maps/AddressAutocomplete';
 import dynamic from 'next/dynamic';
 const MapView = dynamic(() => import('@/components/maps/MapView'), { ssr: false });
@@ -105,7 +107,19 @@ export default function BookRide() {
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [loadingWallet, setLoadingWallet] = useState(false);
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+
   const selectedPackage = packages.find((p) => p.id === selectedPackageId);
+
+  // Coupon discount calculation
+  const discountAmount = appliedCoupon && fareEstimate
+    ? parseFloat(((fareEstimate * appliedCoupon.discount) / 100).toFixed(2))
+    : 0;
+  const finalFare = fareEstimate ? parseFloat((fareEstimate - discountAmount).toFixed(2)) : null;
 
   // Fetch packages once user is authenticated
   useEffect(() => {
@@ -200,6 +214,32 @@ export default function BookRide() {
       .finally(() => setLoadingWallet(false));
   }, [user]);
 
+  // Apply coupon
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setApplyingCoupon(true);
+    setCouponError('');
+    try {
+      const result = await couponsApi.apply(couponCode.trim());
+      if (result) {
+        setAppliedCoupon(result);
+        setCouponError('');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Invalid coupon code';
+      setCouponError(msg);
+      setAppliedCoupon(null);
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
+
   // Build map markers
   const markers = [];
   if (pickupPlace) {
@@ -242,7 +282,7 @@ export default function BookRide() {
 
     // Wallet balance check
     if (paymentMethod === 'wallet') {
-      const needed = fareEstimate ?? 0;
+      const needed = finalFare ?? 0;
       if (walletBalance === null || walletBalance < needed) {
         toast.error(
           'Insufficient wallet balance',
@@ -287,7 +327,7 @@ export default function BookRide() {
         paymentType: paymentTypeMap[paymentMethod],
         totalDistance: routeInfo ? Math.round(routeInfo.distance) : 0,
         totalDuration: routeInfo ? Math.round(routeInfo.duration) : 0,
-        totalBill: parseFloat(fareEstimate.toFixed(2)),
+        totalBill: parseFloat((finalFare ?? fareEstimate).toFixed(2)),
         totalPersons: passengers,
         totalLuggage: 0,
         notes: note || undefined,
@@ -298,7 +338,12 @@ export default function BookRide() {
         clientEmail: user.emailAddress || '',
         clientPhone: user.phone_number || '',
         serviceCharge: selectedPackage ? selectedPackage.serviceFee : 0,
-        discountAmount: 0,
+        discountAmount: discountAmount,
+        ...(appliedCoupon && {
+          couponCode: appliedCoupon.coupon,
+          couponPercentage: appliedCoupon.discount,
+          couponExpiryDate: appliedCoupon.expiry,
+        }),
         cashCollected: 0,
         walletCollected: 0,
       });
@@ -313,7 +358,7 @@ export default function BookRide() {
     } finally {
       setSubmitting(false);
     }
-  }, [user, pickupPlace, dropoffPlace, date, time, selectedPackageId, selectedPackage, fareEstimate, paymentMethod, passengers, note, stops, routeInfo, router, walletBalance]);
+  }, [user, pickupPlace, dropoffPlace, date, time, selectedPackageId, selectedPackage, fareEstimate, finalFare, discountAmount, appliedCoupon, paymentMethod, passengers, note, stops, routeInfo, router, walletBalance]);
 
   return (
     <DashboardLayout role="rider" pageTitle="Book a Ride">
@@ -593,16 +638,74 @@ export default function BookRide() {
               </div>
 
               {/* Wallet insufficient balance warning */}
-              {paymentMethod === 'wallet' && walletBalance !== null && fareEstimate !== null && walletBalance < fareEstimate && (
+              {paymentMethod === 'wallet' && walletBalance !== null && finalFare !== null && walletBalance < finalFare && (
                 <div className="mt-4 p-4 rounded-xl bg-amber-500/[0.08] border border-amber-500/20 text-amber-400 text-sm flex items-start gap-2">
                   <AlertTriangle size={16} className="shrink-0 mt-0.5" />
                   <div>
-                    <p>Insufficient balance. You need £{fareEstimate.toFixed(2)} but only have £{walletBalance.toFixed(2)}.</p>
+                    <p>Insufficient balance. You need £{finalFare.toFixed(2)} but only have £{walletBalance.toFixed(2)}.</p>
                     <Link href="/rider/wallet/topup" className="text-secondary underline font-medium mt-1 inline-block">
                       Top up your wallet →
                     </Link>
                   </div>
                 </div>
+              )}
+            </motion.div>
+
+            {/* ── Coupon Code ── */}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              custom={4.5}
+              variants={fadeUp}
+              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6"
+            >
+              <h2 className="text-lg font-semibold text-white mb-4">Promo Code</h2>
+
+              {appliedCoupon ? (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/[0.08] border border-secondary/20">
+                  <Tag size={18} className="text-secondary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white">{appliedCoupon.coupon}</p>
+                    <p className="text-xs text-secondary">{appliedCoupon.discount}% discount applied</p>
+                  </div>
+                  {fareEstimate && (
+                    <span className="text-sm font-bold text-secondary">-£{discountAmount.toFixed(2)}</span>
+                  )}
+                  <button
+                    onClick={handleRemoveCoupon}
+                    className="p-1.5 rounded-lg text-white/40 hover:text-error hover:bg-error/10 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/25 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Enter promo code"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponError('');
+                      }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyCoupon(); } }}
+                      className="input-dark w-full pl-12"
+                    />
+                  </div>
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={applyingCoupon || !couponCode.trim()}
+                    className="px-5 py-2.5 rounded-xl bg-secondary/10 text-secondary font-semibold text-sm hover:bg-secondary/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    {applyingCoupon ? <Loader2 size={16} className="animate-spin" /> : 'Apply'}
+                  </button>
+                </div>
+              )}
+
+              {couponError && (
+                <p className="mt-3 text-sm text-error">{couponError}</p>
               )}
             </motion.div>
 
@@ -692,11 +795,23 @@ export default function BookRide() {
                   {loadingRoute ? (
                     <Loader2 size={14} className="text-secondary animate-spin" />
                   ) : fareEstimate ? (
-                    <span className="font-bold text-white">£{fareEstimate.toFixed(2)}</span>
+                    <span className={`font-bold ${appliedCoupon ? 'text-white/40 line-through' : 'text-white'}`}>£{fareEstimate.toFixed(2)}</span>
                   ) : (
                     <span className="text-white/30">—</span>
                   )}
                 </div>
+                {appliedCoupon && fareEstimate && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-secondary flex items-center gap-2"><Tag size={15} /> Discount ({appliedCoupon.discount}%)</span>
+                      <span className="font-semibold text-secondary">-£{discountAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm pt-2 border-t border-white/[0.06]">
+                      <span className="text-white font-semibold">Total</span>
+                      <span className="font-bold text-white text-base">£{finalFare?.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-white/40 flex items-center gap-2"><Users size={15} /> Passengers</span>
                   <div className="flex items-center gap-2">

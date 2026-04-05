@@ -744,7 +744,7 @@ export type SocialProvider =
   | 'facebook' | 'twitter' | 'instagram' | 'linkedin'
   | 'youtube' | 'pinterest' | 'snapchat' | 'tiktok' | 'whatsapp';
 
-export type ContentType = 'aboutUs' | 'termsAndCondition' | 'privacyPolicy';
+export type ContentType = 'aboutUs' | 'termsAndCondition' | 'privacyPolicy' | 'services';
 
 export interface SocialLink {
   id: string;

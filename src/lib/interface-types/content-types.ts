@@ -1,4 +1,4 @@
-type ContentType='aboutUs'| 'termsAndCondition' |'privacyPolicy'
+type ContentType='aboutUs'| 'termsAndCondition' |'privacyPolicy' | 'services'
 interface Content {
     title:string,
     description:string,

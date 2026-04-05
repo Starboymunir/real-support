@@ -434,6 +434,20 @@ body {
   color: rgba(255, 255, 255, 0.35);
 }
 
+/* Date / time inputs – force full width on iOS Safari */
+input[type="date"].input-dark,
+input[type="time"].input-dark {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 52px;
+}
+input[type="date"].input-dark::-webkit-date-and-time-value {
+  text-align: left;
+}
+input[type="time"].input-dark::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 /* ═══════════════ BADGE ═══════════════ */
 .badge-green {
   display: inline-flex;

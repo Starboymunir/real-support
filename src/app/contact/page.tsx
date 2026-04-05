@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -20,6 +20,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { contactApi } from '@/lib/services';
 import { useAuth } from '@/lib/auth-context';
+import { resolveImageUrl } from '@/lib/api';
 
 /* â”€â”€ data â”€â”€ */
 const contactCards = [
@@ -42,6 +43,7 @@ export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [, setError] = useState('');
+  const [dbContent, setDbContent] = useState<{ title?: string; description?: string; coverImage?: string } | null>(null);
   const [formData, setFormData] = useState({
     name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '',
     email: user?.emailAddress || '',
@@ -53,6 +55,14 @@ export default function ContactPage() {
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
+
+  useEffect(() => {
+    const BASE = process.env.NEXT_PUBLIC_API_URL || 'https://pssl-backend-nest-b25x.onrender.com/api';
+    fetch(`${BASE}/static-content/by-type/contactPage`)
+      .then(r => r.json())
+      .then(json => { if (json?.data?.description) setDbContent(json.data); })
+      .catch(() => {});
+  }, []);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -98,6 +108,22 @@ export default function ContactPage() {
 
       {/* â•â•â•â•â•â•â• CONTACT CARDS â•â•â•â•â•â•â• */}
       <section className="border-y border-white/[0.04]" style={{ background: '#060B14' }}>
+        {dbContent && (
+          <div className="mx-auto max-w-4xl px-6 sm:px-8 pt-14">
+            {dbContent.coverImage && (
+              <div className="mb-8 rounded-2xl overflow-hidden border border-white/[0.06]">
+                <Image
+                  src={resolveImageUrl(dbContent.coverImage) || dbContent.coverImage}
+                  alt={dbContent.title || 'Contact'}
+                  width={1200}
+                  height={500}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            )}
+            <div className="prose prose-invert max-w-none prose-p:text-white/40 prose-headings:text-white prose-a:text-secondary mb-10" dangerouslySetInnerHTML={{ __html: dbContent.description! }} />
+          </div>
+        )}
         <div className="mx-auto max-w-7xl px-6 sm:px-8 py-14">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {contactCards.map((c) => {

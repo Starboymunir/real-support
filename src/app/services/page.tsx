@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -15,6 +13,8 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { fetchPublicContent } from '@/app/api/helpers/StaticContent';
+import { resolveImageUrl } from '@/lib/api';
 
 /* â”€â”€ data â”€â”€ */
 const services = [
@@ -98,7 +98,10 @@ const cities = [
   'Liverpool', 'Bristol', 'Sheffield', 'Cardiff', 'Nottingham', 'Newcastle',
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const content = await fetchPublicContent('services');
+  const hasDbContent = !!(content?.description);
+
   return (
     <>
       <Navbar />
@@ -110,9 +113,9 @@ export default function ServicesPage() {
         <div className="relative mx-auto max-w-7xl px-6 sm:px-8 pt-36 pb-20 lg:pt-44 lg:pb-28 text-center">
           <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-5">What We Offer</p>
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[-0.03em] text-white leading-[1.05]">
-            Every ride,
+            {content?.title || <>Every ride,
             <br />
-            <span className="text-white/25">tailored to you.</span>
+            <span className="text-white/25">tailored to you.</span></>}
           </h1>
           <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
             From quick city hops to luxury airport transfers â€” RS CAB offers a complete suite of ride-sharing services designed around your needs.
@@ -120,6 +123,46 @@ export default function ServicesPage() {
         </div>
       </section>
 
+
+      {/* DB Content Section */}
+      {hasDbContent && (
+        <section className="py-20 lg:py-28" style={{ background: '#0A1628' }}>
+          <div className="mx-auto max-w-4xl px-6 sm:px-8">
+            {content.coverImage && (
+              <div className="mb-10 rounded-2xl overflow-hidden border border-white/[0.06]">
+                <Image
+                  src={resolveImageUrl(content.coverImage) || content.coverImage}
+                  alt={content.title || 'Services'}
+                  width={1200}
+                  height={500}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            )}
+            <div className="prose prose-invert max-w-none prose-p:text-white/40 prose-headings:text-white prose-a:text-secondary" dangerouslySetInnerHTML={{ __html: content.description }} />
+          </div>
+        </section>
+      )}
+
+      {/* DB Content Section */}
+      {hasDbContent && (
+        <section className="py-20 lg:py-28" style={{ background: '#0A1628' }}>
+          <div className="mx-auto max-w-4xl px-6 sm:px-8">
+            {content.coverImage && (
+              <div className="mb-10 rounded-2xl overflow-hidden border border-white/[0.06]">
+                <Image
+                  src={resolveImageUrl(content.coverImage) || content.coverImage}
+                  alt={content.title || 'Services'}
+                  width={1200}
+                  height={500}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            )}
+            <div className="prose prose-invert max-w-none prose-p:text-white/40 prose-headings:text-white prose-a:text-secondary" dangerouslySetInnerHTML={{ __html: content.description }} />
+          </div>
+        </section>
+      )}
       {/* â•â•â•â•â•â•â• SERVICES â€” Alternating rows â•â•â•â•â•â•â• */}
       <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">

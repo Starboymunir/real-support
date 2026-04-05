@@ -11,6 +11,8 @@ const quickLinks = [
   { label: 'Services', href: '/services' },
   { label: 'Contact', href: '/contact' },
   { label: 'Book a Ride', href: '/rider/book' },
+  { label: 'Terms & Conditions', href: '/terms' },
+  { label: 'Privacy Policy', href: '/privacy' },
 ];
 
 const driverLinks = [

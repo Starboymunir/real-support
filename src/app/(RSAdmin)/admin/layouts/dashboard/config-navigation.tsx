@@ -93,6 +93,10 @@ export function useNavData() {
                 { title: "About Us", path: paths.dashboard.staticContent.about },
                 { title: "Terms & Conditions", path: paths.dashboard.staticContent.termsAndConditions },
                 { title: "Privacy Policy", path: paths.dashboard.staticContent.privacyPolicy },
+                { title: "Services", path: paths.dashboard.staticContent.services },
+                { title: "Home Page", path: paths.dashboard.staticContent.homePage },
+                { title: "Contact Page", path: paths.dashboard.staticContent.contactPage },
+                { title: "Driver Page", path: paths.dashboard.staticContent.driverPage },
               ],
             },
           ]

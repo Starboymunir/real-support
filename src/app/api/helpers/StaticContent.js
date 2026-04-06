@@ -14,9 +14,13 @@ const findContentByType = async (type) => {
 
 export const fetchPublicContent = async (type) => {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(`${BASE}/static-content/by-type/${type}`, {
       next: { revalidate: 60 },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     if (!res.ok) return null;
     const json = await res.json();
     return json?.data || json || null;

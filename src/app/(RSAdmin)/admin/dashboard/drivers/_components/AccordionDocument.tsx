@@ -177,7 +177,7 @@ const AccordionDocument = ({
             >
               <Button
                 variant="contained"
-                onClick={() => handleForEdit({ documentsList, documentTitle })}
+                onClick={() => handleForEdit({ documentsList, documentTitle, isCarDocument })}
                 startIcon={<Iconify icon="solar:pen-bold" />}
               >
                 Edit

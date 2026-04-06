@@ -19,11 +19,12 @@ import axiosInstance from "@/lib/admin-axios";
 
 interface DocQuickEditFormProps {
   title: string;
-  currentData: { documentsList?: Record<string, any>; documentTitle?: string } | null;
+  currentData: { documentsList?: Record<string, any>; documentTitle?: string; isCarDocument?: boolean } | null;
   open: boolean;
   onClose: () => void;
   documentId: string;
   driverId?: string;
+  carId?: string;
   refetch: () => void;
 }
 
@@ -34,6 +35,7 @@ export default function DocQuickEditForm({
   onClose,
   documentId,
   driverId,
+  carId,
   refetch,
 }: DocQuickEditFormProps): JSX.Element {
   const { enqueueSnackbar } = useSnackbar();
@@ -118,8 +120,8 @@ export default function DocQuickEditForm({
       }
 
       const docType = currentData?.documentTitle;
-      if (!docType || !driverId) {
-        enqueueSnackbar('Missing document type or driver ID', { variant: 'error' });
+      if (!docType) {
+        enqueueSnackbar('Missing document type', { variant: 'error' });
         return;
       }
 
@@ -143,8 +145,20 @@ export default function DocQuickEditForm({
         return;
       }
 
-      // Build payload with driverId + uploaded file URLs
-      const payload: Record<string, any> = { driverId, ...uploadedFields };
+      // Car documents need carId, driver documents need driverId
+      const isCarDoc = currentData?.isCarDocument;
+      if (isCarDoc && !carId) {
+        enqueueSnackbar('Missing car ID', { variant: 'error' });
+        return;
+      }
+      if (!isCarDoc && !driverId) {
+        enqueueSnackbar('Missing driver ID', { variant: 'error' });
+        return;
+      }
+
+      const payload: Record<string, any> = isCarDoc
+        ? { carId, ...uploadedFields }
+        : { driverId, ...uploadedFields };
 
       await axiosInstance.post(endpoint, payload);
       refetch();

@@ -333,6 +333,7 @@ export default function DriverInfo({ info, refetch }: { info: any; refetch: any 
         currentData={forEdit}
         documentId={info?.document?.id}
         driverId={info?.id}
+        carId={info?.cars?.[info?.cars?.length - 1]?.id}
         open={quickEdit.value}
         onClose={quickEdit.onFalse}
         refetch={refetch}

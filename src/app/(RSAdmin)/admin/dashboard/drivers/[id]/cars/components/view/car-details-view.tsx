@@ -12,8 +12,7 @@ import { Card, CardHeader, IconButton } from "@mui/material";
 import Iconify from "@/components/iconify/iconify";
 import CarDocQuickEditForm from "../car-document-quick-edit";
 import { useBoolean } from "@/app/(RSAdmin)/admin/hooks/use-boolean";
-import axios from "axios";
-import { endpoints } from "@/lib/utils/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { generateCarDocumentAccordionData } from "@/lib/utils";
 import AwsImageRender from "@/app/(RSAdmin)/admin/common/aws-image-avatar/ImageRender";
 import AccordionDocument from "../AccordionDocument";
@@ -49,13 +48,14 @@ export default function CarDetailsView({ driverId, id }: CarDetailsViewProps) {
   const fetch = async (): Promise<void> => {
     setLoading(true);
     try {
-      const { data, status } = await axios.get<Car>(
-        endpoints.cars.byId(driverId, id)
+      const { data, status } = await axiosInstance.get(
+        `/driver-cars/${id}`
       );
       if (status === 200) {
-        setCurrentCar(data as Car);
+        const car = data?.data ?? data;
+        setCurrentCar(car as Car);
         const accordenceData = generateCarDocumentAccordionData(
-          data?.carDocument
+          car?.carDocument
         ) as DocumentAccordionItem[];
         setPaperDoc(accordenceData);
         setLoading(false);

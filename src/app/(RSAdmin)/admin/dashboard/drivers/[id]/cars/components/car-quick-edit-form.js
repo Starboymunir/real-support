@@ -19,8 +19,7 @@ import FormProvider, {
 } from "@/app/(RSAdmin)/admin/common/hook-form";
 import { CAR_STATUS_OPTIONS } from "@/_mock/_drivers";
 import { MenuItem, Typography } from "@mui/material";
-import axios from "axios";
-import { endpoints } from "@/lib/utils/axios";
+import axiosInstance from "@/lib/admin-axios";
 import { fData } from "@/lib/utils/format-number";
 import { resolveS3Url } from '@/lib/api';
 
@@ -76,8 +75,8 @@ export default function CarsQuickEditForm({
       }
     }
     try {
-      const response = await axios.put(
-        endpoints.cars.update("null", currentCar?.id),
+      const response = await axiosInstance.patch(
+        `/driver-cars/${currentCar?.id}`,
         formData
       );
 

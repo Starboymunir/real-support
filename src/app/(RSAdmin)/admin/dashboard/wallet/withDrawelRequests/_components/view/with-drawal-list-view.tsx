@@ -141,16 +141,18 @@ export default function WithDrawalListView() {
         if (statusCode == 200) {
           enqueueSnackbar(message);
           setChangeFlag((prev) => !prev);
+          refetch();
           socket?.emit("admin-process-withdrawal-request", row);
+        } else {
+          enqueueSnackbar(message, { variant: "error" });
         }
-        enqueueSnackbar(message, { variant: "error" });
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });
       } finally {
         setLoading(false);
       }
     },
-    [dataInPage.length, table, tableData]
+    [dataInPage.length, table, tableData, refetch]
   );
 
   const handleProcessRequest = useCallback(
@@ -165,16 +167,18 @@ export default function WithDrawalListView() {
         if (statusCode == 200) {
           enqueueSnackbar(message);
           setChangeFlag((prev) => !prev);
+          refetch();
           socket?.emit("admin-process-withdrawal-request", row);
+        } else {
+          enqueueSnackbar(message, { variant: "error" });
         }
-        enqueueSnackbar(message, { variant: "error" });
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });
       } finally {
         setLoading(false);
       }
     },
-    [dataInPage.length, table, tableData]
+    [dataInPage.length, table, tableData, refetch]
   );
 
   const handleResetFilters = useCallback(() => {

@@ -434,7 +434,7 @@ export default function RideDetail() {
               <Button href="/rider/book" variant="green" className="w-full">
                 <RotateCcw size={16} /> Book Again
               </Button>
-              <Button variant="outline" className="w-full">
+              <Button href="/rider/support" variant="outline" className="w-full">
                 <AlertTriangle size={16} /> Report Issue
               </Button>
             </motion.div>

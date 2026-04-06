@@ -86,8 +86,8 @@ export default function RequestsPage() {
     setError('');
     try {
       await walletApi.createPaymentRequest({
-        payeeId: user.id,
-        recipientId: recipientEmail.trim(),
+        recipientId: user.id,
+        payeeId: recipientEmail.trim(),
         amount: parseFloat(amount),
         onAccountOf: onAccountOf.trim(),
         remarks: remarks.trim() || undefined,
@@ -210,8 +210,8 @@ export default function RequestsPage() {
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-white truncate">
                           {tab === 'received'
-                            ? (req.payee?.firstName ? `${req.payee.firstName} ${req.payee.lastName || ''}` : req.payeeId)
-                            : (req.recipient?.firstName ? `${req.recipient.firstName} ${req.recipient.lastName || ''}` : req.recipientId)
+                            ? (req.recipient?.firstName ? `${req.recipient.firstName} ${req.recipient.lastName || ''}` : req.recipientId)
+                            : (req.payee?.firstName ? `${req.payee.firstName} ${req.payee.lastName || ''}` : req.payeeId)
                           }
                         </p>
                         <p className="text-xs text-white/30 mt-0.5">{req.onAccountOf}</p>

@@ -16,7 +16,7 @@ export const userInfoApi = {
     api.get<User>(`/users/${id}`),
 
   lookupByEmail: (email: string) =>
-    api.get<{ id: string; firstName: string; lastName: string; emailAddress: string; phone_number: string; profileImageUrl: string } | null>(`/users/lookup?email=${encodeURIComponent(email)}`),
+    api.get<{ id: string; firstName: string; lastName: string; emailAddress: string; phone_number: string; profileImageUrl: string; coverImage: string } | null>(`/users/lookup?email=${encodeURIComponent(email)}`),
 };
 
 export const userAddressApi = {

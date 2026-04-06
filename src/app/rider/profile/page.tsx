@@ -126,7 +126,7 @@ export default function RiderProfilePage() {
       const res = await documentsApi.uploadFile(file) as { fileUrl?: string };
       const fileUrl = res?.fileUrl;
       if (!fileUrl) throw new Error('Upload failed');
-      await authApi.updateCurrentUser({ profileImageUrl: fileUrl });
+      await authApi.updateCurrentUser({ coverImage: fileUrl });
       await refreshUser();
       setSaveMsg('Photo updated successfully!');
     } catch (err) {

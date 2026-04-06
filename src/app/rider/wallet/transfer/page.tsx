@@ -226,9 +226,9 @@ export default function TransferPage() {
               <div className="p-5 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-6">
                 <p className="text-xs text-white/30 uppercase tracking-wider font-semibold mb-3">Sending to</p>
                 <div className="flex items-center gap-4">
-                  {resolveS3Url(recipient.profileImageUrl || recipient.coverImage) ? (
+                  {resolveS3Url(recipient.coverImage || recipient.profileImageUrl) ? (
                     <Image
-                      src={resolveS3Url(recipient.profileImageUrl || recipient.coverImage)!}
+                      src={resolveS3Url(recipient.coverImage || recipient.profileImageUrl)!}
                       alt={recipient.firstName}
                       width={56}
                       height={56}
@@ -373,9 +373,9 @@ export default function TransferPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center gap-3 p-4 rounded-xl bg-secondary/[0.06] border border-secondary/20"
                   >
-                    {resolveS3Url(recipient.profileImageUrl || recipient.coverImage) ? (
+                    {resolveS3Url(recipient.coverImage || recipient.profileImageUrl) ? (
                       <Image
-                        src={resolveS3Url(recipient.profileImageUrl || recipient.coverImage)!}
+                        src={resolveS3Url(recipient.coverImage || recipient.profileImageUrl)!}
                         alt={recipient.firstName}
                         width={40}
                         height={40}

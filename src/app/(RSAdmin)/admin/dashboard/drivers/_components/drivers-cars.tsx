@@ -13,12 +13,14 @@ import { Car } from "@/lib/interface-types/driver-types";
 
 interface DriverCarsProps {
   cars: Car[];
+  driverId: string;
   searchCars: string;
   onSearchCars: any;
 }
 
 export default function DriverCars({
   cars,
+  driverId,
   searchCars,
   onSearchCars,
 }: DriverCarsProps) {
@@ -32,10 +34,10 @@ export default function DriverCars({
   const router = useRouter();
 
   const handleClick = useCallback(
-    (driverId: string, id: string) => {
+    (_driverId: string, id: string) => {
       router.push(paths.dashboard.drivers.carDetail(driverId, id));
     },
-    [router]
+    [router, driverId]
   );
 
   const notFound = !dataFiltered.length && !!searchCars;

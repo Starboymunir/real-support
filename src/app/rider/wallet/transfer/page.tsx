@@ -79,19 +79,25 @@ export default function TransferPage() {
     setRecipient(null);
     setLookupError('');
 
-    // Debounced lookup when it looks like an email
+    // Debounced lookup
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const trimmed = corrected.trim();
-    if (trimmed.includes('@') && trimmed.includes('.') && trimmed.length > 5) {
+    const isEmail = trimmed.includes('@') && trimmed.includes('.') && trimmed.length > 5;
+    const digits = trimmed.replace(/\D/g, '');
+    const isPhone = digits.length >= 8;
+    if (isEmail || isPhone) {
       debounceRef.current = setTimeout(() => lookupRecipient(trimmed), 600);
     }
   };
 
-  const lookupRecipient = async (emailOrId: string) => {
+  const lookupRecipient = async (input: string) => {
     setLookingUp(true);
     setLookupError('');
     try {
-      const result = await userInfoApi.lookupByEmail(emailOrId);
+      const isEmail = input.includes('@');
+      const result = isEmail
+        ? await userInfoApi.lookupByEmail(input)
+        : await userInfoApi.lookupByPhone(input);
       if (result && 'id' in result) {
         if (result.id === user?.id) {
           setLookupError('You cannot transfer to yourself');
@@ -100,7 +106,7 @@ export default function TransferPage() {
           setRecipient(result as RecipientInfo);
         }
       } else {
-        setLookupError('No user found with this email');
+        setLookupError('No user found with this email or phone number');
         setRecipient(null);
       }
     } catch {
@@ -336,17 +342,21 @@ export default function TransferPage() {
               <div className="space-y-5">
                 {/* Recipient */}
                 <div>
-                  <label className="block text-sm font-medium text-white/50 mb-2">Recipient Email</label>
+                  <label className="block text-sm font-medium text-white/50 mb-2">Recipient Email or Phone</label>
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="Enter recipient email address"
+                      placeholder="Enter email address or last 8 digits of phone"
                       value={recipientInput}
                       onChange={handleRecipientChange}
                       onBlur={() => {
                         const trimmed = recipientInput.trim();
-                        if (trimmed && !recipient && !lookingUp && trimmed.includes('@')) {
-                          lookupRecipient(trimmed);
+                        if (trimmed && !recipient && !lookingUp) {
+                          const isEmail = trimmed.includes('@');
+                          const digits = trimmed.replace(/\D/g, '');
+                          if (isEmail || digits.length >= 8) {
+                            lookupRecipient(trimmed);
+                          }
                         }
                       }}
                       className="input-dark w-full pr-10"

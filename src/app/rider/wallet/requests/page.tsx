@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowLeft,
   FileCheck,
@@ -13,14 +14,29 @@ import {
   ChevronRight,
   Clock,
   Plus,
+  Search,
+  Mail,
+  Phone,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi } from '@/lib/services/wallet';
+import { userInfoApi } from '@/lib/services/user';
 import { toast } from '@/lib/toast';
+import { resolveS3Url } from '@/lib/api';
 import type { PaymentRequest } from '@/lib/types';
+
+type RecipientInfo = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  emailAddress: string;
+  phone_number: string;
+  profileImageUrl: string;
+  coverImage?: string;
+};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -54,12 +70,18 @@ export default function RequestsPage() {
 
   // New request form
   const [showForm, setShowForm] = useState(false);
-  const [recipientEmail, setRecipientEmail] = useState('');
+  const [recipientInput, setRecipientInput] = useState('');
   const [amount, setAmount] = useState('');
   const [onAccountOf, setOnAccountOf] = useState('');
   const [remarks, setRemarks] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Recipient lookup state
+  const [payee, setPayee] = useState<RecipientInfo | null>(null);
+  const [lookingUp, setLookingUp] = useState(false);
+  const [lookupError, setLookupError] = useState('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchRequests = useCallback(async () => {
     if (!user?.id) return;
@@ -80,21 +102,70 @@ export default function RequestsPage() {
 
   useEffect(() => { fetchRequests(); }, [fetchRequests]);
 
+  const handleRecipientChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const corrected = raw.trimStart().toLowerCase();
+    setRecipientInput(corrected);
+    setPayee(null);
+    setLookupError('');
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const trimmed = corrected.trim();
+    const isEmail = trimmed.includes('@') && trimmed.includes('.') && trimmed.length > 5;
+    const digits = trimmed.replace(/\D/g, '');
+    const isPhone = digits.length >= 8;
+    if (isEmail || isPhone) {
+      debounceRef.current = setTimeout(() => lookupPayee(trimmed), 600);
+    }
+  };
+
+  const lookupPayee = async (input: string) => {
+    setLookingUp(true);
+    setLookupError('');
+    try {
+      const isEmail = input.includes('@');
+      const result = isEmail
+        ? await userInfoApi.lookupByEmail(input)
+        : await userInfoApi.lookupByPhone(input);
+      if (result && 'id' in result) {
+        if (result.id === user?.id) {
+          setLookupError('You cannot request from yourself');
+          setPayee(null);
+        } else {
+          setPayee(result as RecipientInfo);
+        }
+      } else {
+        setLookupError('No user found with this email or phone number');
+        setPayee(null);
+      }
+    } catch {
+      setLookupError('Could not find user');
+      setPayee(null);
+    } finally {
+      setLookingUp(false);
+    }
+  };
+
+  const payeeInitials = payee
+    ? `${payee.firstName?.[0] || ''}${payee.lastName?.[0] || ''}`.toUpperCase()
+    : '';
+
   const handleSendRequest = useCallback(async () => {
-    if (!user?.id || !recipientEmail.trim() || !amount || !onAccountOf.trim()) return;
+    if (!user?.id || !payee || !amount || !onAccountOf.trim()) return;
     setSubmitting(true);
     setError('');
     try {
       await walletApi.createPaymentRequest({
         recipientId: user.id,
-        payeeId: recipientEmail.trim(),
+        payeeId: payee.emailAddress,
         amount: parseFloat(amount),
         onAccountOf: onAccountOf.trim(),
         remarks: remarks.trim() || undefined,
       });
       toast.success('Request sent!', 'Payment request has been sent successfully.');
       setShowForm(false);
-      setRecipientEmail('');
+      setRecipientInput('');
+      setPayee(null);
       setAmount('');
       setOnAccountOf('');
       setRemarks('');
@@ -106,7 +177,7 @@ export default function RequestsPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [user?.id, recipientEmail, amount, onAccountOf, remarks, fetchRequests]);
+  }, [user?.id, payee, amount, onAccountOf, remarks, fetchRequests]);
 
   const handleAction = useCallback(async (id: string, action: 'confirm' | 'decline') => {
     setActionLoading(id);
@@ -272,15 +343,77 @@ export default function RequestsPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-white/50 mb-2">Request From (Email or ID)</label>
-                    <input
-                      type="text"
-                      placeholder="Enter recipient email or user ID"
-                      value={recipientEmail}
-                      onChange={(e) => setRecipientEmail(e.target.value)}
-                      className="input-dark w-full"
-                    />
+                    <label className="block text-sm font-medium text-white/50 mb-2">Request From (Email or Phone)</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Enter email address or last 8 digits of phone"
+                        value={recipientInput}
+                        onChange={handleRecipientChange}
+                        onBlur={() => {
+                          const trimmed = recipientInput.trim();
+                          if (trimmed && !payee && !lookingUp) {
+                            const isEmail = trimmed.includes('@');
+                            const digits = trimmed.replace(/\D/g, '');
+                            if (isEmail || digits.length >= 8) {
+                              lookupPayee(trimmed);
+                            }
+                          }
+                        }}
+                        className="input-dark w-full pr-10"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {lookingUp ? (
+                          <Loader2 size={16} className="text-white/30 animate-spin" />
+                        ) : payee ? (
+                          <Check size={16} className="text-secondary" />
+                        ) : (
+                          <Search size={16} className="text-white/20" />
+                        )}
+                      </div>
+                    </div>
+                    {lookupError && (
+                      <p className="text-red-400 text-xs mt-1.5">{lookupError}</p>
+                    )}
                   </div>
+
+                  {/* Payee Preview */}
+                  {payee && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-3 p-4 rounded-xl bg-secondary/[0.06] border border-secondary/20"
+                    >
+                      {resolveS3Url(payee.coverImage || payee.profileImageUrl) ? (
+                        <Image
+                          src={resolveS3Url(payee.coverImage || payee.profileImageUrl)!}
+                          alt={payee.firstName}
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-full object-cover border border-white/10"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-sm">
+                          {payeeInitials}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-white font-semibold text-sm">{payee.firstName} {payee.lastName}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <Mail size={11} className="text-white/30" />
+                          <span className="text-white/40 text-xs truncate">{payee.emailAddress}</span>
+                        </div>
+                        {payee.phone_number && (
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <Phone size={11} className="text-white/30" />
+                            <span className="text-white/40 text-xs">{payee.phone_number}</span>
+                          </div>
+                        )}
+                      </div>
+                      <Check size={16} className="text-secondary shrink-0" />
+                    </motion.div>
+                  )}
+
                   <div>
                     <label className="block text-sm font-medium text-white/50 mb-2">Amount</label>
                     <div className="flex items-center gap-2 p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]">
@@ -332,7 +465,7 @@ export default function RequestsPage() {
                     size="lg"
                     className="flex-1"
                     onClick={handleSendRequest}
-                    disabled={submitting || !recipientEmail.trim() || !amount || !onAccountOf.trim()}
+                    disabled={submitting || !payee || !amount || !onAccountOf.trim()}
                   >
                     {submitting ? (
                       <><Loader2 size={16} className="animate-spin" /> Sending...</>

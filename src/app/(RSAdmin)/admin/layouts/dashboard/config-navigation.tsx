@@ -91,7 +91,7 @@ export function useNavData() {
               icon: ICONS.content,
               children: [
                 { title: "About Us", path: paths.dashboard.staticContent.about },
-                { title: "Terms & Conditions", path: paths.dashboard.staticContent.termsAndConditions },
+                { title: "Terms of Service", path: paths.dashboard.staticContent.termsAndConditions },
                 { title: "Privacy Policy", path: paths.dashboard.staticContent.privacyPolicy },
               ],
             },

@@ -25,6 +25,8 @@ import {
 } from "@/app/(RSAdmin)/admin/common/table";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
+import Button from "@mui/material/Button";
+import { RouterLink } from "@/app/(RSAdmin)/admin/routes/components";
 import PackagesTableToolbar from "../packages-table-toolbar";
 import PackagesTableFiltersResult from "../packages-table-filters-result";
 import PackagesTableRow from "../packages-table-row";
@@ -172,6 +174,16 @@ export const PackagesListView = () => {
                 { name: "Packages", href: paths.dashboard.packages.root },
                 { name: "List" },
               ]}
+              action={
+                <Button
+                  component={RouterLink}
+                  href={paths.dashboard.packages.new}
+                  variant="contained"
+                  startIcon={<Iconify icon="mingcute:add-line" />}
+                >
+                  New Package
+                </Button>
+              }
               sx={{
                 mb: { xs: 3, md: 5 },
               }}

@@ -121,11 +121,11 @@ const TermsAndCondition = () => {
       ) : (
         <Container maxWidth={themeStretch ? false : "xl"}>
           <CustomBreadcrumbs
-            heading="Terms and Conditions"
+            heading="Terms of Service"
             links={[
               { name: "Dashboard" },
               { name: "Content" },
-              { name: "Terms and Conditions" },
+              { name: "Terms of Service" },
             ]}
           />
 

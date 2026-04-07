@@ -1,5 +1,5 @@
 import * as Yup from "yup";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 // @mui
@@ -21,6 +21,7 @@ import { fData } from "@/lib/utils/format-number";
 import { IAdmin } from "@/types/type";
 import { useQueryClient } from "@tanstack/react-query";
 import { resolveS3Url } from '@/lib/api';
+import { fetchCompanies } from "@/server/Company";
 
 const ROLE_OPTIONS = [
   { value: "ADMIN", label: "Admin" },
@@ -35,6 +36,16 @@ export default function UserNewEditForm({
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
+  const [companies, setCompanies] = useState<{ id: string; companyName: string }[]>([]);
+
+  useEffect(() => {
+    fetchCompanies()
+      .then((data: any) => {
+        const list = Array.isArray(data) ? data : data?.data || [];
+        setCompanies(list);
+      })
+      .catch(() => {});
+  }, []);
 
   const NewUserSchema = Yup.object().shape({
     profileImage: Yup.mixed(),
@@ -50,6 +61,11 @@ export default function UserNewEditForm({
       ? Yup.string().required("Password is required")
       : Yup.string(),
     role: Yup.string(),
+    companyId: Yup.string().when('role', {
+      is: 'COMPANY_ADMIN',
+      then: (schema) => schema.required('Company is required for Company Admin'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
   });
 
   const defaultValues = useMemo(
@@ -61,6 +77,7 @@ export default function UserNewEditForm({
       phone_number: currentUser?.phone_number || "",
       password: "",
       secretNumber: currentUser?.secretNumber || "",
+      companyId: (currentUser as any)?.companyId || "",
     }),
     [currentUser]
   );
@@ -75,9 +92,12 @@ export default function UserNewEditForm({
   const {
     reset,
     setValue,
+    watch,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
+
+  const selectedRole = watch('role');
 
   const onSubmit = handleSubmit(async (data) => {
     const payload: Record<string, any> = {};
@@ -90,6 +110,9 @@ export default function UserNewEditForm({
 
     if (currentUser) {
       delete payload.password;
+    }
+    if (payload.role !== 'COMPANY_ADMIN') {
+      delete payload.companyId;
     }
     delete payload.filePreview;
     delete payload.profileImage;
@@ -257,6 +280,29 @@ export default function UserNewEditForm({
                   }}
                 />
               </Box>
+
+              {selectedRole === 'COMPANY_ADMIN' && (
+                <Box sx={{ mt: 3 }}>
+                  <RHFAutocomplete
+                    name="companyId"
+                    label="Company"
+                    options={companies.map((c) => c.id)}
+                    getOptionLabel={(option) => {
+                      const found = companies.find((c) => c.id === option);
+                      return found?.companyName || option;
+                    }}
+                    isOptionEqualToValue={(option, value) => option === value}
+                    renderOption={(props, option) => {
+                      const found = companies.find((c) => c.id === option);
+                      return (
+                        <li {...props} key={option}>
+                          {found?.companyName || option}
+                        </li>
+                      );
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
 
             <Stack alignItems="flex-end" sx={{ mt: 3 }}>

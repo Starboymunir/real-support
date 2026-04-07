@@ -122,7 +122,7 @@ export default function UserNewEditForm({
         const uploadRes = await axiosInstance.post('/documents/upload_file', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        payload.profileImageUrl = uploadRes.data?.fileUrl || uploadRes.data;
+        payload.profileImageUrl = uploadRes.data?.data?.fileUrl || uploadRes.data?.fileUrl || uploadRes.data;
       } catch (uploadErr) {
         console.error('Image upload failed:', uploadErr);
         enqueueSnackbar('Failed to upload profile image', { variant: 'error' });

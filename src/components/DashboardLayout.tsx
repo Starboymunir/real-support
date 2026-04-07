@@ -186,10 +186,10 @@ export default function DashboardLayout({
   useEffect(() => {
     if (!user?.id) return;
     // Notification count
-    notificationsApi.getAll({ userId: user.id, isRead: false })
+    notificationsApi.getAll({ userId: user.id })
       .then((res) => {
         const list = Array.isArray(res) ? res : (res as { data?: unknown[] }).data || [];
-        setUnreadNotifications(list.length);
+        setUnreadNotifications(list.filter((n: any) => !n.isRead).length);
       })
       .catch(() => {});
     // Chat unread count

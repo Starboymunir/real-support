@@ -14,12 +14,14 @@ import {
   RotateCcw,
   Loader2,
   Inbox,
+  XCircle,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bookingsApi, requestsApi } from '@/lib/services/bookings';
+import { toast } from '@/lib/toast';
 import type { Booking, RideRequest } from '@/lib/types';
 import dynamic from 'next/dynamic';
 const MapView = dynamic(() => import('@/components/maps/MapView'), { ssr: false });
@@ -72,6 +74,7 @@ export default function RideDetail() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [request, setRequest] = useState<RideRequest | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
   const [fareBreakdown, setFareBreakdown] = useState<FareItem[]>([]);
   const [timeline, setTimeline] = useState<TimelineStep[]>([]);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
@@ -191,6 +194,26 @@ export default function RideDetail() {
       </DashboardLayout>
     );
   }
+
+  const isPending = data.status === 'PENDING' || data.status === 'BIDDING';
+
+  const handleCancel = async () => {
+    if (!data || !isPending) return;
+    setCancelling(true);
+    try {
+      if (isRequest) {
+        await requestsApi.cancel(data.id);
+      } else {
+        await bookingsApi.update(data.id, { status: 'CANCELLED' });
+      }
+      toast.success('Ride cancelled', 'Your ride has been cancelled successfully.');
+      fetchData();
+    } catch (err) {
+      toast.error('Cancel failed', err instanceof Error ? err.message : 'Could not cancel this ride.');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   const pickup = data.startFrom?.name || data.startFrom?.city || data.startFrom?.postCode || '—';
   const dropoff = data.destination?.name || data.destination?.city || data.destination?.postCode || '—';
@@ -431,6 +454,17 @@ export default function RideDetail() {
               variants={fadeUp}
               className="space-y-3"
             >
+              {isPending && (
+                <Button
+                  variant="danger"
+                  className="w-full"
+                  onClick={handleCancel}
+                  disabled={cancelling}
+                >
+                  {cancelling ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
+                  {cancelling ? 'Cancelling...' : 'Cancel Ride'}
+                </Button>
+              )}
               <Button href="/rider/book" variant="green" className="w-full">
                 <RotateCcw size={16} /> Book Again
               </Button>

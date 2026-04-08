@@ -2,7 +2,7 @@ name: PR Check
 
 on:
   pull_request:
-    branches: ["Deploy1"]
+    branches: ["dev"]
     types: [opened, synchronize, reopened] # ignores merged events
 
 jobs:

@@ -3,17 +3,16 @@ name: Node.js Deploy
 on:
   push:
     branches:
-      - Deploy
+      - dev
   pull_request:
     branches:
-      - Deploy
+      - dev
 
 jobs:
   deploy:
     runs-on: self-hosted
 
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       NEXT_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY }}
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
       NEXT_PUBLIC_STRIPE_SECRET_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_SECRET_KEY }}
@@ -63,7 +62,6 @@ jobs:
       - name: Create .env file
         run: |
           sudo tee /var/www/html/rs-web-admin/app/.env > /dev/null <<EOF
-          DATABASE_URL=${DATABASE_URL}
           NEXT_PUBLIC_GOOGLE_PLACES_API_KEY=${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
           NEXT_PUBLIC_STRIPE_SECRET_KEY=${NEXT_PUBLIC_STRIPE_SECRET_KEY}

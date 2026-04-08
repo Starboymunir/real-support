@@ -27,7 +27,7 @@ jobs:
           if [ ! -d "/var/www/html/rs-web-admin/app/.git" ]; then
             echo "📁 /app missing — cloning fresh"
             rm -rf /var/www/html/rs-web-admin/app
-            git clone https://github.com/Ferujahammed/web-admin.git /var/www/html/rs-web-admin/app
+            git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Ferujahammed/web-admin.git /var/www/html/rs-web-admin/app
           else
             echo "🔄 /app exists — pulling latest"
             cd /var/www/html/rs-web-admin/app

@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+  # pull_request:
+  #   branches:
+  #     - main
 
 jobs:
   deploy:
@@ -17,6 +17,7 @@ jobs:
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
       NEXT_PUBLIC_STRIPE_SECRET_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_SECRET_KEY }}
       NEXT_PUBLIC_BACKEND_API: ${{ secrets.NEXT_PUBLIC_BACKEND_API }}
+      NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
 
     steps:
       # 1. Checkout code
@@ -66,6 +67,7 @@ jobs:
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
           NEXT_PUBLIC_STRIPE_SECRET_KEY=${NEXT_PUBLIC_STRIPE_SECRET_KEY}
           NEXT_PUBLIC_BACKEND_API=${NEXT_PUBLIC_BACKEND_API}
+          NEXT_PUBLIC_MAPBOX_TOKEN=${NEXT_PUBLIC_MAPBOX_TOKEN}
           EOF
 
       # 8. Build Next.js
@@ -80,6 +82,7 @@ jobs:
           cd /var/www/html/rs-web-admin/app
           if pm2 list | grep -q rs_web_admin; then
             sudo pm2 delete rs_web_admin
+          else
+            sudo pm2 start npm --name "rs_web_admin" -- start
           fi
-          sudo pm2 start npm --name "rs_web_admin" -- start
           sudo pm2 save

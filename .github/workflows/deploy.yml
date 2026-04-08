@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  # pull_request:
+  #   branches:
+  #     - main
 
 jobs:
   deploy:
@@ -17,31 +20,25 @@ jobs:
       NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
 
     steps:
-      # 1. Checkout (required for hashFiles)
+      # 1. Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Prepare /app folder (self-healing)
-      - name: Prepare app folder
+      # 2. Pull latest code in app folder
+      - name: Pull latest code from main branch
         run: |
-          if [ ! -d "/var/www/html/rs-web-admin/app/.git" ]; then
-            echo "📁 /app missing — cloning fresh"
-            rm -rf /var/www/html/rs-web-admin/app
-            git clone https://github.com/Ferujahammed/web-admin.git /var/www/html/rs-web-admin/app
-          else
-            echo "🔄 /app exists — pulling latest"
-            cd /var/www/html/rs-web-admin/app
-            git fetch --all
-            git reset --hard origin/main
-          fi
+          cd /var/www/html/rs-web-admin/app
+          git fetch --all
+          git reset --hard origin/main
+          echo "⬆️ Latest code pulled"
 
-      # 3. Setup Node.js
+      # 4. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      # 4. Cache node_modules
+      # 5. Cache node_modules
       - name: Cache node_modules
         uses: actions/cache@v3
         with:
@@ -49,13 +46,13 @@ jobs:
           key: node-modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: node-modules-
 
-      # 5. Install dependencies
+      # 6. Install dependencies
       - name: Install dependencies
         run: |
           cd /var/www/html/rs-web-admin/app
           npm install
 
-      # 6. Create .env file
+      # 7. Create .env file in app folder
       - name: Create .env file
         run: |
           sudo tee /var/www/html/rs-web-admin/app/.env > /dev/null <<EOF
@@ -66,21 +63,19 @@ jobs:
           NEXT_PUBLIC_MAPBOX_TOKEN=${NEXT_PUBLIC_MAPBOX_TOKEN}
           EOF
 
-      # 7. Build Next.js
+      # 8. Build Next.js
       - name: Build Next.js
         run: |
           cd /var/www/html/rs-web-admin/app
           npm run build 2>&1 | tee build.log
 
-      # 8. Restart PM2 (zero downtime)
+      # 9. Restart PM2
       - name: Restart PM2
         run: |
           cd /var/www/html/rs-web-admin/app
           if pm2 list | grep -q rs_web_admin; then
-            echo "♻️ Restarting PM2 process"
             sudo pm2 restart rs_web_admin
           else
-            echo "🚀 Starting PM2 process"
             sudo pm2 start npm --name "rs_web_admin" -- start
           fi
           sudo pm2 save

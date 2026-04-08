@@ -233,18 +233,16 @@ export default function TransferPage() {
                 <p className="text-xs text-white/30 uppercase tracking-wider font-semibold mb-3">Sending to</p>
                 <div className="flex items-center gap-4">
                   {resolveS3Url(recipient.coverImage || recipient.profileImageUrl) ? (
-                    <Image
+                    <img
                       src={resolveS3Url(recipient.coverImage || recipient.profileImageUrl)!}
                       alt={recipient.firstName}
-                      width={56}
-                      height={56}
                       className="w-14 h-14 rounded-full object-cover border-2 border-white/10"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling!.removeAttribute('style'); }}
                     />
-                  ) : (
-                    <div className="w-14 h-14 rounded-full bg-secondary/20 border-2 border-secondary/30 flex items-center justify-center text-secondary font-bold text-lg">
-                      {initials}
-                    </div>
-                  )}
+                  ) : null}
+                  <div className="w-14 h-14 rounded-full bg-secondary/20 border-2 border-secondary/30 flex items-center justify-center text-secondary font-bold text-lg" style={resolveS3Url(recipient.coverImage || recipient.profileImageUrl) ? { display: 'none' } : undefined}>
+                    {initials}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-bold text-lg">{recipient.firstName} {recipient.lastName}</p>
                     <div className="flex items-center gap-2 mt-1">
@@ -384,18 +382,16 @@ export default function TransferPage() {
                     className="flex items-center gap-3 p-4 rounded-xl bg-secondary/[0.06] border border-secondary/20"
                   >
                     {resolveS3Url(recipient.coverImage || recipient.profileImageUrl) ? (
-                      <Image
+                      <img
                         src={resolveS3Url(recipient.coverImage || recipient.profileImageUrl)!}
                         alt={recipient.firstName}
-                        width={40}
-                        height={40}
                         className="w-10 h-10 rounded-full object-cover border border-white/10"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling!.removeAttribute('style'); }}
                       />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-sm">
-                        {initials}
-                      </div>
-                    )}
+                    ) : null}
+                    <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-sm" style={resolveS3Url(recipient.coverImage || recipient.profileImageUrl) ? { display: 'none' } : undefined}>
+                      {initials}
+                    </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-white font-semibold text-sm">{recipient.firstName} {recipient.lastName}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">

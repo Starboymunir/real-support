@@ -385,18 +385,16 @@ export default function RequestsPage() {
                       className="flex items-center gap-3 p-4 rounded-xl bg-secondary/[0.06] border border-secondary/20"
                     >
                       {resolveS3Url(payee.coverImage || payee.profileImageUrl) ? (
-                        <Image
+                        <img
                           src={resolveS3Url(payee.coverImage || payee.profileImageUrl)!}
                           alt={payee.firstName}
-                          width={40}
-                          height={40}
                           className="w-10 h-10 rounded-full object-cover border border-white/10"
+                          onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling!.removeAttribute('style'); }}
                         />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-sm">
-                          {payeeInitials}
-                        </div>
-                      )}
+                      ) : null}
+                      <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary font-bold text-sm" style={resolveS3Url(payee.coverImage || payee.profileImageUrl) ? { display: 'none' } : undefined}>
+                        {payeeInitials}
+                      </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-white font-semibold text-sm">{payee.firstName} {payee.lastName}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">

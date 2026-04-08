@@ -1,0 +1,85 @@
+name: Node.js Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    env:
+      NEXT_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY }}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_STRIPE_SECRET_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_SECRET_KEY }}
+      NEXT_PUBLIC_BACKEND_API: ${{ secrets.NEXT_PUBLIC_BACKEND_API }}
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Pull latest code in app folder
+      - name: Pull latest code from Deploy branch
+        run: |
+          cd /var/www/html/rs-web-admin/app
+          git fetch --all
+          git reset --hard origin/Deploy
+          echo "⬆️ Latest code pulled"
+
+      # 3. Clean lock files
+      # - name: Clean lock files
+      #   run: |
+      #     cd /var/www/html/rs-web-admin/app
+      #     find . -type f -name "yarn.lock" -exec rm -f {} \;
+      #     find . -type f -name "package-lock.json" -exec rm -f {} \;
+
+      # 4. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # 5. Cache node_modules
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: /var/www/html/rs-web-admin/app/node_modules
+          key: node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: node-modules-
+
+      # 6. Install dependencies
+      - name: Install dependencies
+        run: |
+          cd /var/www/html/rs-web-admin/app
+          npm install
+
+      # 7. Create .env file in app folder
+      - name: Create .env file
+        run: |
+          sudo tee /var/www/html/rs-web-admin/app/.env > /dev/null <<EOF
+          NEXT_PUBLIC_GOOGLE_PLACES_API_KEY=${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+          NEXT_PUBLIC_STRIPE_SECRET_KEY=${NEXT_PUBLIC_STRIPE_SECRET_KEY}
+          NEXT_PUBLIC_BACKEND_API=${NEXT_PUBLIC_BACKEND_API}
+          EOF
+
+      # 8. Build Next.js
+      - name: Build Next.js
+        run: |
+          cd /var/www/html/rs-web-admin/app
+          npm run build 2>&1 | tee build.log
+
+      # 9. Restart PM2
+      - name: Restart PM2
+        run: |
+          cd /var/www/html/rs-web-admin/app
+          if pm2 list | grep -q rs_web_admin; then
+            sudo pm2 delete rs_web_admin
+          fi
+          sudo pm2 start npm --name "rs_web_admin" -- start
+          sudo pm2 save

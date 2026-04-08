@@ -1,0 +1,76 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: ["dev1"]
+  pull_request:
+    branches: ["dev1"]
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    env:
+      NEXT_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY }}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_STRIPE_SECRET_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_SECRET_KEY }}
+      NEXT_PUBLIC_BACKEND_API: ${{ secrets.NEXT_PUBLIC_BACKEND_API }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Remove all yarn.lock files (root and nested)
+        run: |
+          find /var/www/html . -type f -name "yarn.lock" -exec sudo rm -f {} \;
+          echo "✅ Removed all yarn.lock files"
+
+      - name: Remove nested package-lock.json files (keep root only)
+        run: |
+          find . -type f -name "package-lock.json" ! -path "./package-lock.json" -exec rm -f {} \;
+          echo "✅ Removed all nested package-lock.json files"
+
+      - name: Setup Node.js with Yarn cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create .env file
+        run: |
+          rm -f .env
+          cat <<EOF > .env
+          NEXT_PUBLIC_GOOGLE_PLACES_API_KEY=${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+          NEXT_PUBLIC_STRIPE_SECRET_KEY=${NEXT_PUBLIC_STRIPE_SECRET_KEY}
+          NEXT_PUBLIC_BACKEND_API=${NEXT_PUBLIC_BACKEND_API}
+          EOF
+
+      - name: Verify .env file creation
+        run: test -f .env && echo "✅ .env file created successfully"
+
+      - name: Cache Next.js build
+        uses: actions/cache@v3
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-node-22-nextjs-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-22-nextjs-
+
+      - name: Check Node and npm versions
+        run: |
+          node -v
+          npm -v
+
+      - name: Build Next.js
+        run: npm run build
+
+      - name: Restart PM2 app
+        if: success()
+        run: |
+          sudo pm2 delete rs_web_admin || true
+          sudo pm2 start npm --name "rs_web_admin" -- start
+          sudo pm2 save

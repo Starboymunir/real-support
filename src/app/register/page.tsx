@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, User, Phone, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import OAuthRoleModal from '@/components/auth/OAuthRoleModal';
 
 const _raw = process.env.NEXT_PUBLIC_BACKEND_API ?? 'https://backend.real-support.com/api';
 const API_BASE = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
@@ -19,6 +20,7 @@ function RegisterContent() {
   const [otpStep, setOtpStep] = useState(false);
   const [otp, setOtp] = useState('');
   const [socialLoading, setSocialLoading] = useState(false);
+  const [oauthModal, setOauthModal] = useState<{ open: boolean; provider: 'google' | 'apple' }>({ open: false, provider: 'google' });
   const [form, setForm] = useState({
     firstName: '', lastName: '', phone: '', email: '', password: '', confirmPassword: '',
   });
@@ -121,7 +123,7 @@ function RegisterContent() {
               <button
                 type="button"
                 disabled={socialLoading}
-                onClick={() => { window.location.href = `${API_BASE}/auth/google?origin=${encodeURIComponent(window.location.origin)}`; }}
+                onClick={() => setOauthModal({ open: true, provider: 'google' })}
                 className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-gray-800 font-semibold text-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -135,7 +137,7 @@ function RegisterContent() {
               <button
                 type="button"
                 disabled={socialLoading}
-                onClick={() => { window.location.href = `${API_BASE}/auth/apple?origin=${encodeURIComponent(window.location.origin)}`; }}
+                onClick={() => setOauthModal({ open: true, provider: 'apple' })}
                 className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-black text-white font-semibold text-sm hover:bg-gray-900 transition-colors disabled:opacity-50 border border-white/10"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -260,6 +262,12 @@ function RegisterContent() {
           </div>
         </div>
       </div>
+
+      <OAuthRoleModal
+        isOpen={oauthModal.open}
+        onClose={() => setOauthModal({ ...oauthModal, open: false })}
+        provider={oauthModal.provider}
+      />
     </div>
   );
 }

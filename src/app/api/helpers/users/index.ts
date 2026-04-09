@@ -15,15 +15,16 @@ export const checkUser = async (
 ): Promise<User | null> => {
   try {
     if (emailAddress) {
-      const res = await apiClient.get<User>(`/users/lookup?query=${encodeURIComponent(emailAddress)}`);
+      const res = await apiClient.get<User>(`/users/lookup?email=${encodeURIComponent(emailAddress)}`);
       if (res.data) return res.data;
     }
     if (phone_number) {
-      const res = await apiClient.get<User>(`/users/lookup?query=${encodeURIComponent(phone_number)}`);
+      const res = await apiClient.get<User>(`/users/lookup?phone=${encodeURIComponent(phone_number)}`);
       if (res.data) return res.data;
     }
-    if (cognitoId) {
-      const res = await apiClient.get<User>(`/users/cognito/${cognitoId}`);
+    if (cognitoId && emailAddress) {
+      // /users/cognito/ endpoint no longer exists; fall back to email lookup
+      const res = await apiClient.get<User>(`/users/lookup?email=${encodeURIComponent(emailAddress)}`);
       if (res.data) return res.data;
     }
     return null;

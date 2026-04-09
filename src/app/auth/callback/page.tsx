@@ -29,7 +29,7 @@ function CallbackContent() {
     authApi
       .getCurrentUser()
       .then((user) => {
-        const dest = '/rider/dashboard';
+        const dest = user?.mode === 'DRIVER' ? '/driver/dashboard' : '/rider/dashboard';
         // Use full page load so AuthProvider re-initialises with the stored token
         window.location.href = dest;
       })

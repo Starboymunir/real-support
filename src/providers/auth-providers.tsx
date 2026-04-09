@@ -24,6 +24,7 @@ import { useSnackbar } from "notistack";
 import { useWalletQuery } from "@/hooks/Payments";
 import axiosInstance from "@/lib/axios";
 import { useUserByIdQuery } from "@/hooks/Users";
+import { setToken } from "@/lib/api";
 
 type WalletResponse = Wallet | { message: string; statusCode: number };
 
@@ -102,32 +103,64 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   const getUser = async (redirectUrl: boolean): Promise<void> => {
+    let cognitoUser: UserType = null;
     try {
-      const user: UserType = await getCurrentUser();
-      if (!user) {
+      cognitoUser = await getCurrentUser();
+      if (!cognitoUser) {
         return;
       }
 
-      if (user) {
-        const { data } = await axiosInstance.get(`/users/info/${user.userId}`);
-        const newUser = data.data;
-        if (!newUser) {
-          enqueueSnackbar("User doesn't exists", { variant: "error" });
+      // Get the email from the Cognito session to look up the backend user.
+      // We cannot use cognitoUser.userId (Cognito sub) directly because the
+      // backend uses MongoDB ObjectIDs — passing a UUID causes a Prisma
+      // "Malformed ObjectID" error.
+      const session = await fetchAuthSession();
+      const email = session.tokens?.idToken?.payload?.email as string | undefined;
+
+      if (!email) {
+        console.log("No email in Cognito token, cannot look up backend user");
+        return;
+      }
+
+      // Step 1: Look up user by email to get the MongoDB ObjectID
+      const { data: lookupData } = await axiosInstance.get(
+        `/users/lookup?email=${encodeURIComponent(email)}`
+      );
+      const lookupUser = lookupData?.data;
+
+      if (!lookupUser?.id) {
+        // User exists in Cognito but not in the backend DB yet.
+        // Try company lookup by email as well.
+        try {
           const { data: companyData } = await axiosInstance.get(
-            `/company/info/${user.userId}`
+            `/company/lookup?email=${encodeURIComponent(email)}`
           );
-          const company = companyData.data;
-          if (company) {
-            setCompany(company);
-            setCompanyId(company?.id);
+          const comp = companyData?.data;
+          if (comp) {
+            setCompany(comp);
+            setCompanyId(comp?.id);
           }
-          return;
+        } catch {
+          // company lookup failed — ignore
         }
-        setUserId(newUser?.id);
-        setMode(newUser?.mode);
-        if (newUser?.driver) {
-          setDriverProfile(newUser?.driver);
-        }
+        return;
+      }
+
+      // Step 2: Get full user profile using the MongoDB ObjectID
+      const { data } = await axiosInstance.get(`/users/info/${lookupUser.id}`);
+      const newUser = data?.data;
+      if (!newUser) {
+        return;
+      }
+      setUserId(newUser.id);
+      setMode(newUser.mode);
+      if (newUser.driver) {
+        setDriverProfile(newUser.driver);
+      }
+
+      // Sync the backend token into rs_token so api.ts (fetch client) works
+      if (newUser.token) {
+        setToken(newUser.token);
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -137,17 +170,15 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
           enqueueSnackbar(error?.response?.data?.message, { variant: "error" });
         }
       } else {
-        // Handle non-Axios errors here if needed
         console.log("Non-Axios error:", error);
       }
     } finally {
-      if (redirectUrl && user) {
+      if (redirectUrl && cognitoUser) {
         const lastVisitedUrl = localStorage.getItem("lastVisitedPage");
-        console.log("Last Visited Url", lastVisitedUrl);
         if (lastVisitedUrl) {
           router.push(lastVisitedUrl);
         } else {
-          router.push(`/rider/${user?.id}`);
+          router.push(`/rider/dashboard`);
         }
       }
       setLoading(false);
@@ -162,25 +193,37 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("No access token found");
       }
 
-      const { data } = await axiosInstance.get(
-        `/users/info/${tokens.idToken?.payload.sub}`
-      );
-      if (data.success === false) {
-        const payload = {
-          firstName: tokens.idToken?.payload.given_name,
-          lastName: tokens.idToken?.payload.name,
-          emailAddress: tokens.idToken?.payload.email,
-          phone_number: tokens.idToken?.payload.phone_number,
-          cognitoId: tokens.idToken?.payload.sub,
-        };
-        const { data } = await axiosInstance.post(
-          `/auth/register/social`,
-          payload
-        );
+      const email = tokens.idToken?.payload?.email as string | undefined;
+      if (!email) {
+        throw new Error("No email found in social login token");
       }
+
+      // Look up user by email instead of cognitoSub (avoids Prisma ObjectID error)
+      let userExists = false;
+      try {
+        const { data: lookupData } = await axiosInstance.get(
+          `/users/lookup?email=${encodeURIComponent(email)}`
+        );
+        userExists = !!lookupData?.data?.id;
+      } catch {
+        // 404 or error means user doesn't exist yet
+      }
+
+      if (!userExists) {
+        // Register the social user in the backend DB
+        const payload = {
+          firstName: (tokens.idToken?.payload?.given_name as string) || (tokens.idToken?.payload?.name as string) || "User",
+          lastName: (tokens.idToken?.payload?.family_name as string) || (tokens.idToken?.payload?.name as string) || "",
+          emailAddress: email,
+          phone_number: (tokens.idToken?.payload?.phone_number as string) || "",
+          cognitoId: tokens.idToken?.payload?.sub as string,
+        };
+        await axiosInstance.post(`/auth/register/social`, payload);
+      }
+
       await getUser(true);
     } catch (error) {
-      console.log("error", error);
+      console.log("Social login error:", error);
       setUserId(null);
       await signOut();
     }

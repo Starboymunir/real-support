@@ -3,8 +3,10 @@ import { apiClient } from "@/lib/ApiClient";
 import { IUser } from "./../types/type";
 
 export const findUserByCognitoId = async (cognitoId: string): Promise<IUser | null> => {
+  // The /users/cognito/ endpoint no longer exists on the backend.
+  // Use email-based lookup instead if needed, or look up by MongoDB ID.
   try {
-    const result = await api.get(`/users/cognito/${cognitoId}`);
+    const result = await api.get(`/users/lookup?email=${encodeURIComponent(cognitoId)}`);
     return (result as any)?.data || null;
   } catch (error) {
     console.error("Database Error:", error);
@@ -23,7 +25,9 @@ export const getUserById = async (id: string) => {
 
 export const getUser = async (input: string) => {
   try {
-    const result = await api.get(`/users/lookup?query=${encodeURIComponent(input)}`);
+    // Determine if input is email or phone and use the correct query param
+    const param = input.includes('@') ? 'email' : 'phone';
+    const result = await api.get(`/users/lookup?${param}=${encodeURIComponent(input)}`);
     return (result as any)?.data || null;
   } catch (err) {
     console.error("Error fetching user:", err);
@@ -33,7 +37,7 @@ export const getUser = async (input: string) => {
 
 export const checkPhoneUnique = async (phone: string) => {
   try {
-    const result = await api.get(`/users/lookup?query=${encodeURIComponent(phone)}`);
+    const result = await api.get(`/users/lookup?phone=${encodeURIComponent(phone)}`);
     return (result as any)?.data || null;
   } catch (err) {
     return null;

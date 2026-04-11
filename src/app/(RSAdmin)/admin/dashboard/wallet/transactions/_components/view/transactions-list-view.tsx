@@ -28,6 +28,7 @@ import TransactionTableRow from "../admin-transactions-table-row";
 import TransactionsTableFiltersResult from "../transactions-filters-result";
 import { useAdminTransactionsQuery } from "@/hooks/Transaction";
 import { IAdminTransaction } from "@/types/type";
+import Scrollbar from "@/app/(RSAdmin)/admin/common/scrollbar";
 import { Tabs, Tab, alpha } from "@mui/material";
 import Label from "@/app/(RSAdmin)/admin/common/label";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
@@ -203,7 +204,7 @@ export default function AdminTransactionsListView() {
                   }
                 />
 
-                {/* <Scrollbar> */}
+                <Scrollbar>
                 <Table
                   size={table.dense ? "small" : "medium"}
                   sx={{ minWidth: 960 }}
@@ -245,7 +246,7 @@ export default function AdminTransactionsListView() {
                     <TableNoData notFound={notFound} />
                   </TableBody>
                 </Table>
-                {/* </Scrollbar> */}
+                </Scrollbar>
               </TableContainer>
 
               <TablePaginationCustom

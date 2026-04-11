@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth-context";
 import { adminStatsApi, type DashboardStats } from "@/lib/services/admin";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
+import { useSocket } from "@/providers/SocketProvider";
 import {
   Crown,
   Users,
@@ -90,16 +91,41 @@ function StatCard({
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
 
-  useEffect(() => {
+  const fetchStats = useCallback(() => {
     adminStatsApi
       .getDashboardStats()
       .then(setStats)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+    setLoading(false);
+  }, [fetchStats]);
+
+  // Refresh stats when relevant events occur
+  useEffect(() => {
+    if (!socket) return;
+    const refresh = () => fetchStats();
+    socket.on("driver-status-changed", refresh);
+    socket.on("new-driver-registered", refresh);
+    socket.on("new-booking", refresh);
+    socket.on("booking-status-changed", refresh);
+    socket.on("withdrawal-request-sent", refresh);
+    socket.on("admin-process-withdrawal-request", refresh);
+    return () => {
+      socket.off("driver-status-changed", refresh);
+      socket.off("new-driver-registered", refresh);
+      socket.off("new-booking", refresh);
+      socket.off("booking-status-changed", refresh);
+      socket.off("withdrawal-request-sent", refresh);
+      socket.off("admin-process-withdrawal-request", refresh);
+    };
+  }, [socket, fetchStats]);
 
   if (loading) return <LoadingScreen />;
 

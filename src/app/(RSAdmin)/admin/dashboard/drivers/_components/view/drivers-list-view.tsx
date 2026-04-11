@@ -40,6 +40,7 @@ import DriversTableRow from "../drivers-table-row";
 import { useDriversQuery } from "@/hooks/Drivers";
 import { IDriver } from "@/types/type";
 import axiosInstance from "@/lib/admin-axios";
+import { useSocket } from "@/providers/SocketProvider";
 
 // ----------------------------------------------------------------------
 
@@ -69,6 +70,7 @@ const defaultFilters = {
 
 export default function DriversListView() {
   const table = useTable();
+  const { socket } = useSocket();
 
   const router = useRouter();
 
@@ -135,6 +137,7 @@ export default function DriversListView() {
           enqueueSnackbar(response?.data?.message || "Failed to suspend driver", { variant: "error" });
         } else {
           enqueueSnackbar("Driver suspended successfully");
+          socket?.emit("driver-status-changed", { id, status: "SUSPEND" });
         }
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });
@@ -175,6 +178,7 @@ export default function DriversListView() {
           enqueueSnackbar(response?.data?.message || "Failed to activate driver", { variant: "error" });
         } else {
           enqueueSnackbar("Driver activated successfully");
+          socket?.emit("driver-status-changed", { id, status: "ACTIVE" });
         }
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });
@@ -195,6 +199,7 @@ export default function DriversListView() {
           enqueueSnackbar(response?.data?.message || "Failed to set driver on hold", { variant: "error" });
         } else {
           enqueueSnackbar("Driver set on hold successfully");
+          socket?.emit("driver-status-changed", { id, status: "ONHOLD" });
         }
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });
@@ -215,6 +220,7 @@ export default function DriversListView() {
           enqueueSnackbar(response?.data?.message || "Failed to set driver pending", { variant: "error" });
         } else {
           enqueueSnackbar("Driver set to pending successfully");
+          socket?.emit("driver-status-changed", { id, status: "PENDING" });
         }
       } catch (error: any) {
         enqueueSnackbar(error.message, { variant: "error" });

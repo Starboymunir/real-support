@@ -74,20 +74,20 @@ export default function PassengerNewEditForm({ currentPassenger }: { currentPass
   } = methods;
 
   const onSubmit = handleSubmit(async (data: any) => {
-    const fileName = await uploadImageFile(data.filePreview);
-    delete data.filePreview;
-    delete data.coverImage;
-    const formData = new FormData();
-    formData.append("coverImage", fileName || "");
-
-    for (const key in data) {
-      if (data[key] !== null && data[key] !== undefined) {
-        formData.append(key, data[key]);
-      }
-    }
-
     try {
-      await updatePassengerById(currentPassenger.id, formData);
+      let coverImageUrl: string | undefined;
+      if (data.filePreview instanceof File || data.coverImage instanceof File) {
+        const uploadedUrl = await uploadImageFile(data.coverImage || data.filePreview);
+        if (uploadedUrl) coverImageUrl = uploadedUrl;
+      }
+
+      const { filePreview, coverImage, ...payload } = data;
+
+      if (coverImageUrl) {
+        payload.coverImage = coverImageUrl;
+      }
+
+      await updatePassengerById(currentPassenger.id, payload);
       enqueueSnackbar("Update success!");
     } catch (error: any) {
       enqueueSnackbar(error.message, { variant: "error" });

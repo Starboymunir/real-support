@@ -27,6 +27,7 @@ import {
   TablePaginationCustom,
 } from "@/app/(RSAdmin)/admin/common/table";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
+import Scrollbar from "@/app/(RSAdmin)/admin/common/scrollbar";
 import { useSnackbar } from "notistack";
 import BookingsTableToolbar from "../bookings-table-toolbar";
 import BookingsTableFiltersResult from "../bookings-table-filters-result";
@@ -311,7 +312,7 @@ export default function BookingListView() {
                   }
                 />
 
-                {/* <Scrollbar> */}
+                <Scrollbar>
                 <Table
                   size={table.dense ? "small" : "medium"}
                   sx={{ minWidth: 960 }}
@@ -369,7 +370,7 @@ export default function BookingListView() {
                     <TableNoData notFound={notFound} />
                   </TableBody>
                 </Table>
-                {/* </Scrollbar> */}
+                </Scrollbar>
               </TableContainer>
 
               <TablePaginationCustom

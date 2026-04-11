@@ -28,6 +28,7 @@ import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import PassengersTableToolbar from "../passengers-table-toolbar";
 import PassengersTableFiltersResult from "../passengers-table-filters-result";
+import Scrollbar from "@/app/(RSAdmin)/admin/common/scrollbar";
 import PassengersTableRow from "../passengers-table-row";
 import { changeStatus, promoteUserToAdmin } from "@/server/Passenger";
 import { alpha, Tab } from "@mui/material";
@@ -318,7 +319,7 @@ export default function PassengersListView() {
                   }
                 />
 
-                {/* <Scrollbar> */}
+                <Scrollbar>
                 <Table
                   size={table.dense ? "small" : "medium"}
                   sx={{ minWidth: 960 }}
@@ -367,7 +368,7 @@ export default function PassengersListView() {
                     <TableNoData notFound={notFound} />
                   </TableBody>
                 </Table>
-                {/* </Scrollbar> */}
+                </Scrollbar>
               </TableContainer>
 
               <TablePaginationCustom

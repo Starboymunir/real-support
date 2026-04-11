@@ -46,6 +46,7 @@ interface Document {
 }
 
 const initialDocuments: Document[] = [
+  // ── Personal Documents ──
   {
     id: 'driving-license',
     label: 'Driving License',
@@ -54,6 +55,35 @@ const initialDocuments: Document[] = [
     status: 'not_uploaded',
     hasFrontBack: true,
   },
+  {
+    id: 'phv-license',
+    label: 'PHV License',
+    description: 'Private Hire Vehicle license from your local council',
+    icon: FileText,
+    status: 'not_uploaded',
+  },
+  {
+    id: 'dbs-certificate',
+    label: 'DBS Certificate',
+    description: 'Enhanced DBS (Disclosure and Barring Service) check',
+    icon: ShieldCheck,
+    status: 'not_uploaded',
+  },
+  {
+    id: 'bank-details',
+    label: 'Bank Details',
+    description: 'Bank account details for receiving payments',
+    icon: CreditCard,
+    status: 'not_uploaded',
+  },
+  {
+    id: 'address-proof',
+    label: 'Address Proof',
+    description: 'Utility bill or bank statement as proof of address',
+    icon: FileText,
+    status: 'not_uploaded',
+  },
+  // ── Vehicle Documents ──
   {
     id: 'vehicle-insurance',
     label: 'Vehicle Insurance',
@@ -69,17 +99,17 @@ const initialDocuments: Document[] = [
     status: 'not_uploaded',
   },
   {
-    id: 'phv-license',
-    label: 'PHV License',
-    description: 'Private Hire Vehicle license from your local council',
-    icon: FileText,
+    id: 'pco-vehicle-license',
+    label: 'PCO Vehicle License',
+    description: 'Private Hire Vehicle license for your vehicle',
+    icon: FileCheck,
     status: 'not_uploaded',
   },
   {
-    id: 'dbs-certificate',
-    label: 'DBS Certificate',
-    description: 'Enhanced DBS (Disclosure and Barring Service) check',
-    icon: ShieldCheck,
+    id: 'vehicle-log-book',
+    label: 'Vehicle Log Book',
+    description: 'V5C vehicle registration certificate (log book)',
+    icon: FileText,
     status: 'not_uploaded',
   },
 ];
@@ -136,10 +166,14 @@ export default function DocumentsPage() {
       // Map frontend doc IDs to backend response fields
       const fieldMap: Record<string, { src: 'driver' | 'car'; field: string; expiryKey?: string }> = {
         'driving-license': { src: 'driver', field: 'drivingLicense', expiryKey: 'licenseExpiryDate' },
-        'vehicle-insurance': { src: 'car', field: 'insuranceDocument', expiryKey: 'insuranceExpiryDate' },
-        'mot-certificate': { src: 'car', field: 'motDocument' },
         'phv-license': { src: 'driver', field: 'pcoDocuments', expiryKey: 'pcoBadgeExpiryDate' },
         'dbs-certificate': { src: 'driver', field: 'passport', expiryKey: 'passportExpiryDate' },
+        'bank-details': { src: 'driver', field: 'bankDocuments' },
+        'address-proof': { src: 'driver', field: 'addressProfDocs' },
+        'vehicle-insurance': { src: 'car', field: 'insuranceDocument', expiryKey: 'insuranceExpiryDate' },
+        'mot-certificate': { src: 'car', field: 'motDocument' },
+        'pco-vehicle-license': { src: 'car', field: 'pCOVehicleLicense' },
+        'vehicle-log-book': { src: 'car', field: 'vehicleLogBook' },
       };
 
       setDocuments(prev => prev.map(doc => {
@@ -150,8 +184,18 @@ export default function DocumentsPage() {
         const sub = source[mapping.field];
         if (!sub) return doc;
         const details = sub.details;
+        // Bank details and address proof may not have details.status — check if doc exists
         const status = details?.status || (details?.isSubmitted ? 'Pending' : null);
-        if (!status) return doc;
+        // For bank-details and address-proof, check for the data fields directly
+        if (!status) {
+          if (doc.id === 'bank-details' && (sub.sortCode || sub.accountNumber)) {
+            return { ...doc, status: 'pending' as DocStatus, fileName: 'Submitted' };
+          }
+          if (doc.id === 'address-proof' && sub.addressProfDoc) {
+            return { ...doc, status: 'pending' as DocStatus, fileName: 'Submitted' };
+          }
+          return doc;
+        }
         const update: Partial<Document> = {
           status: mapDocStatus(status),
           expiry: mapping.expiryKey ? sub[mapping.expiryKey] : doc.expiry,
@@ -231,6 +275,32 @@ export default function DocumentsPage() {
             passportDocFront: fileUrl,
             passportNumber: 'PENDING',
             passportExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
+          });
+          break;
+        case 'bank-details':
+          await documentsApi.uploadBankDocuments({
+            driverId,
+            bankStatementDoc: fileUrl,
+          });
+          break;
+        case 'address-proof':
+          await documentsApi.uploadAddress({
+            driverId,
+            addressProfDoc: fileUrl,
+          });
+          break;
+        case 'pco-vehicle-license':
+          if (!carId) { setUploadError('Vehicle not found. Please complete Step 2 first.'); return; }
+          await documentsApi.uploadCarPCO({
+            carId,
+            pcoVehicleLicenseDoc: fileUrl,
+          });
+          break;
+        case 'vehicle-log-book':
+          if (!carId) { setUploadError('Vehicle not found. Please complete Step 2 first.'); return; }
+          await documentsApi.uploadCarLogBook({
+            carId,
+            vehicleLogBookDoc: fileUrl,
           });
           break;
       }

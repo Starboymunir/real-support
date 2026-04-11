@@ -83,35 +83,6 @@ const initialDocuments: Document[] = [
     icon: FileText,
     status: 'not_uploaded',
   },
-  // ── Vehicle Documents ──
-  {
-    id: 'vehicle-insurance',
-    label: 'Vehicle Insurance',
-    description: 'Valid hire & reward or fleet insurance certificate',
-    icon: Shield,
-    status: 'not_uploaded',
-  },
-  {
-    id: 'mot-certificate',
-    label: 'MOT Certificate',
-    description: 'Current MOT certificate for your vehicle',
-    icon: FileCheck,
-    status: 'not_uploaded',
-  },
-  {
-    id: 'pco-vehicle-license',
-    label: 'PCO Vehicle License',
-    description: 'Private Hire Vehicle license for your vehicle',
-    icon: FileCheck,
-    status: 'not_uploaded',
-  },
-  {
-    id: 'vehicle-log-book',
-    label: 'Vehicle Log Book',
-    description: 'V5C vehicle registration certificate (log book)',
-    icon: FileText,
-    status: 'not_uploaded',
-  },
 ];
 
 const statusConfig: Record<DocStatus, { label: string; color: string; bgColor: string; borderColor: string; icon: React.ElementType }> = {
@@ -132,23 +103,12 @@ export default function DocumentsPage() {
     if (user?.driver?.id) return user.driver.id;
     return localStorage.getItem('rs_driver_id') || '';
   };
-  const getCarId = (): string => {
-    const cars = user?.driver?.cars;
-    if (cars?.length) return cars[cars.length - 1].id;
-    return localStorage.getItem('rs_car_id') || '';
-  };
 
   // Fetch existing documents from API
   const fetchDocuments = useCallback(async () => {
     const driverId = getDriverId();
-    const carId = getCarId();
     if (!driverId) return;
     try {
-      const tasks: Promise<unknown>[] = [documentsApi.getDriverDocuments(driverId)];
-      if (carId) tasks.push(documentsApi.getCarDocuments(carId));
-
-      const results = await Promise.allSettled(tasks);
-
       const mapDocStatus = (status?: string): DocStatus => {
         if (!status) return 'not_uploaded';
         const s = status.toLowerCase();
@@ -159,27 +119,21 @@ export default function DocumentsPage() {
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const driverDoc: any = results[0].status === 'fulfilled' ? results[0].value : null;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const carDoc: any = results[1]?.status === 'fulfilled' ? results[1].value : null;
+      const driverDoc: any = await documentsApi.getDriverDocuments(driverId);
 
       // Map frontend doc IDs to backend response fields
-      const fieldMap: Record<string, { src: 'driver' | 'car'; field: string; expiryKey?: string }> = {
-        'driving-license': { src: 'driver', field: 'drivingLicense', expiryKey: 'licenseExpiryDate' },
-        'phv-license': { src: 'driver', field: 'pcoDocuments', expiryKey: 'pcoBadgeExpiryDate' },
-        'dbs-certificate': { src: 'driver', field: 'passport', expiryKey: 'passportExpiryDate' },
-        'bank-details': { src: 'driver', field: 'bankDocuments' },
-        'address-proof': { src: 'driver', field: 'addressProfDocs' },
-        'vehicle-insurance': { src: 'car', field: 'insuranceDocument', expiryKey: 'insuranceExpiryDate' },
-        'mot-certificate': { src: 'car', field: 'motDocument' },
-        'pco-vehicle-license': { src: 'car', field: 'pCOVehicleLicense' },
-        'vehicle-log-book': { src: 'car', field: 'vehicleLogBook' },
+      const fieldMap: Record<string, { field: string; expiryKey?: string }> = {
+        'driving-license': { field: 'drivingLicense', expiryKey: 'licenseExpiryDate' },
+        'phv-license': { field: 'pcoDocuments', expiryKey: 'pcoBadgeExpiryDate' },
+        'dbs-certificate': { field: 'passport', expiryKey: 'passportExpiryDate' },
+        'bank-details': { field: 'bankDocuments' },
+        'address-proof': { field: 'addressProfDocs' },
       };
 
       setDocuments(prev => prev.map(doc => {
         const mapping = fieldMap[doc.id];
         if (!mapping) return doc;
-        const source = mapping.src === 'driver' ? driverDoc : carDoc;
+        const source = driverDoc;
         if (!source) return doc;
         const sub = source[mapping.field];
         if (!sub) return doc;
@@ -216,7 +170,6 @@ export default function DocumentsPage() {
 
   const handleFileUpload = async (docId: string, file: File, side?: 'front' | 'back') => {
     const driverId = getDriverId();
-    const carId = getCarId();
     if (!driverId) {
       setUploadError('Driver profile not found. Please complete registration first.');
       return;
@@ -245,22 +198,6 @@ export default function DocumentsPage() {
             licenseExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
           });
           break;
-        case 'vehicle-insurance':
-          if (!carId) { setUploadError('Vehicle not found. Please complete Step 2 first.'); return; }
-          await documentsApi.uploadInsurance({
-            carId,
-            insuranceDoc: fileUrl,
-            insuranceExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
-          });
-          break;
-        case 'mot-certificate':
-          if (!carId) { setUploadError('Vehicle not found. Please complete Step 2 first.'); return; }
-          await documentsApi.uploadMot({
-            carId,
-            motDoc: fileUrl,
-            motPassDate: new Date().toISOString(),
-          });
-          break;
         case 'phv-license':
           await documentsApi.uploadPCO({
             driverId,
@@ -287,20 +224,6 @@ export default function DocumentsPage() {
           await documentsApi.uploadAddress({
             driverId,
             addressProfDoc: fileUrl,
-          });
-          break;
-        case 'pco-vehicle-license':
-          if (!carId) { setUploadError('Vehicle not found. Please complete Step 2 first.'); return; }
-          await documentsApi.uploadCarPCO({
-            carId,
-            pcoVehicleLicenseDoc: fileUrl,
-          });
-          break;
-        case 'vehicle-log-book':
-          if (!carId) { setUploadError('Vehicle not found. Please complete Step 2 first.'); return; }
-          await documentsApi.uploadCarLogBook({
-            carId,
-            vehicleLogBookDoc: fileUrl,
           });
           break;
       }
@@ -379,12 +302,8 @@ export default function DocumentsPage() {
           })}
         </div>
 
-        {/* Documents – split into Personal & Vehicle */}
+        {/* Personal Documents */}
         {(() => {
-          const personalIds = ['driving-license', 'phv-license', 'dbs-certificate', 'bank-details', 'address-proof'];
-          const personalDocs = documents.filter(d => personalIds.includes(d.id));
-          const vehicleDocs = documents.filter(d => !personalIds.includes(d.id));
-
           const renderSection = (title: string, icon: React.ReactNode, docs: Document[], emptyLabel: string) => {
             const actionDocs = docs.filter(d => d.status === 'not_uploaded' || d.status === 'rejected');
             const completedDocs = docs.filter(d => d.status === 'approved' || d.status === 'pending');
@@ -567,12 +486,7 @@ export default function DocumentsPage() {
             );
           };
 
-          return (
-            <>
-              {renderSection('Personal Documents', <User size={20} className="text-secondary" />, personalDocs, 'All personal documents submitted!')}
-              {renderSection('Vehicle Documents', <Car size={20} className="text-secondary" />, vehicleDocs, 'All vehicle documents submitted!')}
-            </>
-          );
+          return renderSection('Personal Documents', <User size={20} className="text-secondary" />, documents, 'All personal documents submitted!');
         })()}
 
           {/* Upload Error */}

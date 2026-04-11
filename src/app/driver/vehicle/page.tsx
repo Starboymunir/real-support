@@ -22,6 +22,7 @@ import {
   Users,
   ChevronDown,
   ArrowLeft,
+  ArrowRight,
   Trash2,
   AlertTriangle,
   Shield,
@@ -802,6 +803,16 @@ export default function VehiclePage() {
                 Vehicle documents will be reviewed along with your personal documents.
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Next step navigation when car already exists */}
+        {existingCars.length > 0 && (
+          <div className="flex justify-end">
+            <Button variant="green" href="/driver/documents">
+              Next: Personal Documents
+              <ArrowRight size={18} />
+            </Button>
           </div>
         )}
       </div>

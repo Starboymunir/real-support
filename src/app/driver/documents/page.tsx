@@ -222,7 +222,7 @@ export default function DocumentsPage() {
           }
           await documentsApi.uploadBankDocuments({
             driverId,
-            bankStatementDoc: fileUrl,
+            accProfDoc: fileUrl,
             bankName: bankDetails.bankName,
             sortCode: bankDetails.sortCode,
             accountNumber: bankDetails.accountNumber,

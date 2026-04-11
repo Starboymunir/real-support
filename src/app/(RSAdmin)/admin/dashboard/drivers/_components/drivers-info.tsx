@@ -56,7 +56,7 @@ const generateDocumentAccordionData = (document: any, latestCarDocument: any) =>
       documentTitle: "bankDocuments",
       name: "Bank Details",
       documentsList: {
-        bankStatementDoc: document?.bankDocuments?.bankStatementDoc,
+        accProfDoc: document?.bankDocuments?.accProfDoc,
       },
     },
     {

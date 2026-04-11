@@ -379,22 +379,28 @@ export default function DocumentsPage() {
           })}
         </div>
 
-        {/* Documents Card */}
-        <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-white">Required Documents</h2>
-            <p className="text-white/60 mt-1">
-              Upload missing or rejected documents to complete your application
-            </p>
-          </div>
+        {/* Documents – split into Personal & Vehicle */}
+        {(() => {
+          const personalIds = ['driving-license', 'phv-license', 'dbs-certificate', 'bank-details', 'address-proof'];
+          const personalDocs = documents.filter(d => personalIds.includes(d.id));
+          const vehicleDocs = documents.filter(d => !personalIds.includes(d.id));
 
-          {/* Filter: only show docs that need action (not_uploaded or rejected) */}
-          {(() => {
-            const actionDocs = documents.filter(d => d.status === 'not_uploaded' || d.status === 'rejected');
-            const completedDocs = documents.filter(d => d.status === 'approved' || d.status === 'pending');
+          const renderSection = (title: string, icon: React.ReactNode, docs: Document[], emptyLabel: string) => {
+            const actionDocs = docs.filter(d => d.status === 'not_uploaded' || d.status === 'rejected');
+            const completedDocs = docs.filter(d => d.status === 'approved' || d.status === 'pending');
 
             return (
-              <>
+              <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+                    {icon}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">{title}</h2>
+                    <p className="text-white/50 text-sm mt-0.5">Upload missing or rejected documents</p>
+                  </div>
+                </div>
+
                 {/* Completed summary */}
                 {completedDocs.length > 0 && (
                   <div className="mb-6 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
@@ -414,13 +420,10 @@ export default function DocumentsPage() {
                 )}
 
                 {actionDocs.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Check size={48} className="text-secondary mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-white mb-2">All Documents Submitted!</h3>
-                    <p className="text-white/40 text-sm mb-6">All your documents have been submitted. Check your profile for approval status.</p>
-                    <Button href="/driver/profile" variant="green" size="md">
-                      View Profile
-                    </Button>
+                  <div className="text-center py-8">
+                    <Check size={36} className="text-secondary mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-white mb-1">{emptyLabel}</h3>
+                    <p className="text-white/40 text-sm">Check your profile for approval status.</p>
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -560,19 +563,27 @@ export default function DocumentsPage() {
             })}
                   </div>
                 )}
-              </>
+              </div>
             );
-          })()}
+          };
+
+          return (
+            <>
+              {renderSection('Personal Documents', <User size={20} className="text-secondary" />, personalDocs, 'All personal documents submitted!')}
+              {renderSection('Vehicle Documents', <Car size={20} className="text-secondary" />, vehicleDocs, 'All vehicle documents submitted!')}
+            </>
+          );
+        })()}
 
           {/* Upload Error */}
           {uploadError && (
-            <div className="mt-6 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
               {uploadError}
             </div>
           )}
 
           {/* Review Notice */}
-          <div className="mt-8 flex items-center gap-3 p-4 bg-info/5 border border-info/20 rounded-xl">
+          <div className="flex items-center gap-3 p-4 bg-info/5 border border-info/20 rounded-xl">
             <Info size={20} className="text-info shrink-0" />
             <p className="text-sm text-white/60">
               Your application will be reviewed within <strong className="text-white">48 hours</strong> after all documents are submitted. You&apos;ll receive a notification once approved.
@@ -590,7 +601,6 @@ export default function DocumentsPage() {
               Submit Application
             </Button>
           </div>
-        </div>
       </div>
     </DashboardLayout>
   );

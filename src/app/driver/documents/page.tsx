@@ -97,6 +97,7 @@ export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>(initialDocuments);
   const [uploading, setUploading] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState('');
+  const [bankDetails, setBankDetails] = useState({ bankName: '', sortCode: '', accountNumber: '' });
 
   // Get IDs from auth context or localStorage fallback
   const getDriverId = (): string => {
@@ -215,9 +216,16 @@ export default function DocumentsPage() {
           });
           break;
         case 'bank-details':
+          if (!bankDetails.bankName || !bankDetails.sortCode || !bankDetails.accountNumber) {
+            setUploadError('Please fill in Bank Name, Sort Code, and Account Number before uploading.');
+            return;
+          }
           await documentsApi.uploadBankDocuments({
             driverId,
             bankStatementDoc: fileUrl,
+            bankName: bankDetails.bankName,
+            sortCode: bankDetails.sortCode,
+            accountNumber: bankDetails.accountNumber,
           });
           break;
         case 'address-proof':
@@ -382,6 +390,42 @@ export default function DocumentsPage() {
                     <div className="flex items-start gap-2 mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                       <XCircle size={16} className="text-red-400 mt-0.5 shrink-0" />
                       <p className="text-sm text-red-400">{doc.rejectionMessage}</p>
+                    </div>
+                  )}
+
+                  {/* Bank Details extra fields */}
+                  {doc.id === 'bank-details' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                      <div>
+                        <label className="block text-xs font-medium text-white/40 mb-1">Bank Name</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Barclays"
+                          value={bankDetails.bankName}
+                          onChange={(e) => setBankDetails(prev => ({ ...prev, bankName: e.target.value }))}
+                          className="input-field text-sm py-2.5 px-3 w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-white/40 mb-1">Sort Code</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 20-00-00"
+                          value={bankDetails.sortCode}
+                          onChange={(e) => setBankDetails(prev => ({ ...prev, sortCode: e.target.value }))}
+                          className="input-field text-sm py-2.5 px-3 w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-white/40 mb-1">Account Number</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 12345678"
+                          value={bankDetails.accountNumber}
+                          onChange={(e) => setBankDetails(prev => ({ ...prev, accountNumber: e.target.value }))}
+                          className="input-field text-sm py-2.5 px-3 w-full"
+                        />
+                      </div>
                     </div>
                   )}
 

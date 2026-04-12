@@ -141,11 +141,14 @@ export default function DocumentsPage() {
         const details = sub.details;
         // Bank details and address proof may not have details.status — check if doc exists
         const status = details?.status || (details?.isSubmitted ? 'Pending' : null);
-        // For bank-details and address-proof, check for the data fields directly
+        // For bank-details, ALL required fields must exist to count as uploaded
+        if (doc.id === 'bank-details') {
+          const hasAllFields = sub.sortCode && sub.accountNumber && sub.bankName && sub.accProfDoc;
+          if (!hasAllFields) return doc; // missing fields → not_uploaded
+          if (!status) return { ...doc, status: 'pending' as DocStatus, fileName: 'Submitted' };
+        }
+        // For address-proof, check for the data field directly
         if (!status) {
-          if (doc.id === 'bank-details' && (sub.sortCode || sub.accountNumber)) {
-            return { ...doc, status: 'pending' as DocStatus, fileName: 'Submitted' };
-          }
           if (doc.id === 'address-proof' && sub.addressProfDoc) {
             return { ...doc, status: 'pending' as DocStatus, fileName: 'Submitted' };
           }

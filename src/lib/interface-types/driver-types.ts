@@ -1,3 +1,5 @@
+type CarStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
+
 interface User {
   id: string;
   createdAt?: Date | undefined;

@@ -58,6 +58,11 @@ const generateDocumentAccordionData = (document: any, latestCarDocument: any) =>
       documentsList: {
         accProfDoc: document?.bankDocuments?.accProfDoc,
       },
+      bankInfo: {
+        bankName: document?.bankDocuments?.bankName || '',
+        sortCode: document?.bankDocuments?.sortCode || '',
+        accountNumber: document?.bankDocuments?.accountNumber || '',
+      },
     },
     {
       documentTitle: "addressProfDocs",
@@ -356,32 +361,6 @@ export default function DriverInfo({ info, refetch }: { info: any; refetch: any 
                       documentTitle={documentTitle}
                       refetch={refetch}
                       showActions={showActions}
-                    />
-                  );
-                })}
-              </Stack>
-            </Card>
-
-            <Card sx={{ bgcolor: "background.neutral" }}>
-              <CardHeader title="Vehicle Documents" />
-              <Stack spacing={1} sx={{ p: 3 }}>
-                {AccordionData.vehicle.map((accord, index) => {
-                  const { name, documentsList, documentTitle, showActions, isCarDocument, carDocumentId, carDocument } = accord || {};
-                  return (
-                    <AccordionDocument
-                      info={info}
-                      handleForEdit={handleForEdit}
-                      key={index}
-                      expanded={expanded}
-                      handleChange={handleChange}
-                      name={name}
-                      documentsList={documentsList}
-                      documentTitle={documentTitle}
-                      refetch={refetch}
-                      showActions={showActions}
-                      isCarDocument={isCarDocument}
-                      carDocumentId={carDocumentId}
-                      carDocument={carDocument}
                     />
                   );
                 })}

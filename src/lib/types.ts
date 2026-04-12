@@ -5,7 +5,7 @@
 // ── Enums ──
 
 export type UserStatus = 'PENDING' | 'ACTIVE' | 'ONHOLD' | 'SUSPEND';
-export type CarStatus = 'ACTIVE' | 'INACTIVE';
+export type CarStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
 export type Subscription = 'DIAMOND' | 'GOLD' | 'SILVER' | 'NONE';
 export type PaymentType = 'CASH' | 'WALLET' | 'CASHANDWALLET';
 export type RideRequestStatus = 'PENDING' | 'CANCELLED' | 'ACCEPTED';

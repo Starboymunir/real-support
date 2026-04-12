@@ -91,11 +91,12 @@ export default function CarDetailsToolbar({
                 variant="soft"
                 color={
                   (car.status === "ACTIVE" && "success") ||
+                  (car.status === "PENDING" && "warning") ||
                   (car.status === "INACTIVE" && "error") ||
                   "default"
                 }
               >
-                {car.status}
+                {car.status === "PENDING" ? "Pending Approval" : car.status}
               </Label>
             </Stack>
           </Stack>

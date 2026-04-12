@@ -3,6 +3,7 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import ListItemText from '@mui/material/ListItemText';
 import Iconify from '@/components/iconify/iconify';
+import Label from '@/app/(RSAdmin)/admin/common/label';
 import { Car } from '@/lib/interface-types/driver-types';
 import React, { useState } from 'react';
 import { resolveS3Url } from '@/lib/api';
@@ -61,6 +62,19 @@ export default function CarCard({ car, handleClick }: CarCardProps) {
         primaryTypographyProps={{ typography: "subtitle1" }}
         secondaryTypographyProps={{ component: "span", mt: 0.5 }}
       />
+
+      <Box sx={{ px: 2, pb: 2 }}>
+        <Label
+          variant="soft"
+          color={
+            (car.status === "ACTIVE" && "success") ||
+            (car.status === "PENDING" && "warning") ||
+            "error"
+          }
+        >
+          {car.status === "PENDING" ? "Pending Approval" : car.status}
+        </Label>
+      </Box>
     </Card>
   );
 }

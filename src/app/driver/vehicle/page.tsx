@@ -216,14 +216,12 @@ export default function VehiclePage() {
           await documentsApi.uploadInsurance({
             carId,
             insuranceDoc: fileUrl,
-            insuranceExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
           });
           break;
         case 'mot-certificate':
           await documentsApi.uploadMot({
             carId,
             motDoc: fileUrl,
-            motPassDate: new Date().toISOString(),
           });
           break;
         case 'pco-vehicle-license':

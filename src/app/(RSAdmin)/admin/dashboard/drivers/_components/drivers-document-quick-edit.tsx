@@ -1,5 +1,5 @@
 import * as Yup from "yup";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import LoadingButton from "@mui/lab/LoadingButton";
@@ -10,6 +10,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
+import TextField from "@mui/material/TextField";
 import FormProvider, {
   RHFUpload,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
@@ -19,7 +20,7 @@ import axiosInstance from "@/lib/admin-axios";
 
 interface DocQuickEditFormProps {
   title: string;
-  currentData: { documentsList?: Record<string, any>; documentTitle?: string; isCarDocument?: boolean } | null;
+  currentData: { documentsList?: Record<string, any>; documentTitle?: string; isCarDocument?: boolean; bankInfo?: { bankName: string; sortCode: string; accountNumber: string } } | null;
   open: boolean;
   onClose: () => void;
   documentId: string;
@@ -40,6 +41,20 @@ export default function DocQuickEditForm({
 }: DocQuickEditFormProps): JSX.Element {
   const { enqueueSnackbar } = useSnackbar();
   const documentsList: Record<string, any> = (currentData?.documentsList ?? {}) as Record<string, any>;
+  const isBankDoc = currentData?.documentTitle === 'bankDocuments';
+  const bankInfo = currentData?.bankInfo;
+  const [bankName, setBankName] = useState(bankInfo?.bankName || '');
+  const [sortCode, setSortCode] = useState(bankInfo?.sortCode || '');
+  const [accountNumber, setAccountNumber] = useState(bankInfo?.accountNumber || '');
+
+  // Keep bank fields in sync when dialog opens with new data
+  useEffect(() => {
+    if (open && bankInfo) {
+      setBankName(bankInfo.bankName || '');
+      setSortCode(bankInfo.sortCode || '');
+      setAccountNumber(bankInfo.accountNumber || '');
+    }
+  }, [open, bankInfo]);
   const DocSchema = Yup.object().shape(
     Object.keys(documentsList).reduce((schema: Record<string, Yup.AnySchema>, key: string) => {
       schema[key] = Yup.mixed();
@@ -160,6 +175,17 @@ export default function DocQuickEditForm({
         ? { carId, ...uploadedFields }
         : { driverId, ...uploadedFields };
 
+      // Include bank detail fields for bank documents
+      if (docType === 'bankDocuments') {
+        if (!bankName || !sortCode || !accountNumber) {
+          enqueueSnackbar('Please fill in Bank Name, Sort Code, and Account Number', { variant: 'error' });
+          return;
+        }
+        payload.bankName = bankName;
+        payload.sortCode = sortCode;
+        payload.accountNumber = accountNumber;
+      }
+
       await axiosInstance.post(endpoint, payload);
       refetch();
       enqueueSnackbar('Update success!');
@@ -220,6 +246,40 @@ export default function DocQuickEditForm({
               />
             ))}
           </Box>
+
+          {isBankDoc && (
+            <Box
+              rowGap={2}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{ xs: 'repeat(1, 1fr)', sm: 'repeat(3, 1fr)' }}
+              sx={{ mt: 3 }}
+            >
+              <TextField
+                label="Bank Name"
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+                fullWidth
+                required
+              />
+              <TextField
+                label="Sort Code"
+                value={sortCode}
+                onChange={(e) => setSortCode(e.target.value)}
+                fullWidth
+                required
+                placeholder="e.g. 20-00-00"
+              />
+              <TextField
+                label="Account Number"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+                fullWidth
+                required
+                placeholder="e.g. 12345678"
+              />
+            </Box>
+          )}
         </DialogContent>
 
         <DialogActions>

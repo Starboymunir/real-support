@@ -31,6 +31,9 @@ export interface DashboardStats {
   totalDrivers: number;
   totalPassengers: number;
   totalRevenue: number;
+  totalReceived: number;
+  totalDispensed: number;
+  platformBalance: number;
   activeDrivers: number;
   pendingDrivers: number;
   completedBookings: number;

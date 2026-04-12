@@ -229,10 +229,10 @@ export default function SuperAdminDashboard() {
               Platform Balance
             </p>
             <p className="text-3xl font-bold mt-2" style={{ color: T.text }}>
-              £{(stats?.totalRevenue ?? 0).toLocaleString()}
+              £{(stats?.platformBalance ?? 0).toLocaleString()}
             </p>
             <p className="text-xs mt-2" style={{ color: T.textMuted }}>
-              All-time accumulated
+              Received minus dispensed
             </p>
           </div>
 
@@ -249,10 +249,10 @@ export default function SuperAdminDashboard() {
               </p>
             </div>
             <p className="text-3xl font-bold mt-2 text-green-400">
-              £{Math.round((stats?.totalRevenue ?? 0) * 0.7).toLocaleString()}
+              £{(stats?.totalReceived ?? 0).toLocaleString()}
             </p>
             <p className="text-xs mt-2" style={{ color: T.textMuted }}>
-              From completed bookings
+              Top-ups &amp; deposits
             </p>
           </div>
 
@@ -269,10 +269,10 @@ export default function SuperAdminDashboard() {
               </p>
             </div>
             <p className="text-3xl font-bold mt-2 text-red-400">
-              £{Math.round((stats?.totalRevenue ?? 0) * 0.3).toLocaleString()}
+              £{(stats?.totalDispensed ?? 0).toLocaleString()}
             </p>
             <p className="text-xs mt-2" style={{ color: T.textMuted }}>
-              Driver payouts &amp; fees
+              Withdrawals processed
             </p>
           </div>
         </div>

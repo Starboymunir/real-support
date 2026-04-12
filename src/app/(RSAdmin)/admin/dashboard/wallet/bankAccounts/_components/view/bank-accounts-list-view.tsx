@@ -27,6 +27,7 @@ import {
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import BankAccountsTableRow from "../bank-accounts-table-row";
+import BankAccountDetailDialog from "../bank-account-detail-dialog";
 import axiosInstance from "@/lib/admin-axios";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -58,6 +59,7 @@ export default function BankAccountsListView() {
   const { enqueueSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("PENDING");
+  const [detailAccount, setDetailAccount] = useState<any | null>(null);
 
   const { data: allAccounts = [], isPending } = useQuery<any[]>({
     queryKey: ["admin-bank-accounts"],
@@ -184,6 +186,7 @@ export default function BankAccountsListView() {
                         onReject={() =>
                           handleChangeStatus(row.id, "REJECTED")
                         }
+                        onViewDetail={() => setDetailAccount(row)}
                       />
                     ))}
 
@@ -214,6 +217,18 @@ export default function BankAccountsListView() {
           </Card>
         </Container>
       )}
+
+      <BankAccountDetailDialog
+        open={!!detailAccount}
+        onClose={() => setDetailAccount(null)}
+        account={detailAccount}
+        onApprove={async (id) => {
+          await handleChangeStatus(id, "ACTIVE");
+        }}
+        onReject={async (id) => {
+          await handleChangeStatus(id, "REJECTED");
+        }}
+      />
     </>
   );
 }

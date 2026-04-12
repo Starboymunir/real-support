@@ -36,16 +36,18 @@ export default function BankAccountsTableRow({
   row,
   onApprove,
   onReject,
+  onViewDetail,
 }: {
   row: BankAccountRow;
   onApprove: VoidFunction;
   onReject: VoidFunction;
+  onViewDetail: VoidFunction;
 }) {
   const popover = usePopover();
 
   return (
     <>
-      <TableRow hover>
+      <TableRow hover sx={{ cursor: "pointer" }} onClick={onViewDetail}>
         {/* User Info */}
         <TableCell sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <AwsImageAvatar
@@ -113,7 +115,7 @@ export default function BankAccountsTableRow({
         <TableCell align="right" sx={{ px: 1 }}>
           <IconButton
             color={popover.open ? "inherit" : "default"}
-            onClick={popover.onOpen}
+            onClick={(e) => { e.stopPropagation(); popover.onOpen(e); }}
           >
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
@@ -126,6 +128,16 @@ export default function BankAccountsTableRow({
         arrow="right-top"
         sx={{ width: 180 }}
       >
+        <MenuItem
+          onClick={() => {
+            onViewDetail();
+            popover.onClose();
+          }}
+        >
+          <Iconify icon="solar:eye-bold" />
+          View Details
+        </MenuItem>
+
         {row.status !== "ACTIVE" && (
           <MenuItem
             onClick={() => {

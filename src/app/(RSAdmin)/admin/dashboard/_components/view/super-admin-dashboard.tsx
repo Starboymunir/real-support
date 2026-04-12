@@ -323,9 +323,9 @@ export default function SuperAdminDashboard() {
             </div>
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span style={{ color: T.textMuted }}>Pending Drivers</span>
+                <span style={{ color: T.textMuted }}>Active</span>
                 <span style={{ color: T.accentLight }} className="font-semibold">
-                  {stats?.pendingDrivers ?? 0}
+                  {stats?.activeBookings ?? 0}
                 </span>
               </div>
               <div className="h-2 rounded-full bg-white/5">
@@ -333,7 +333,7 @@ export default function SuperAdminDashboard() {
                   className="h-full rounded-full transition-all duration-700"
                   style={{
                     background: T.accent,
-                    width: `${stats?.totalDrivers ? ((stats.pendingDrivers / stats.totalDrivers) * 100) : 0}%`,
+                    width: `${stats?.totalBookings ? ((stats.activeBookings / stats.totalBookings) * 100) : 0}%`,
                   }}
                 />
               </div>

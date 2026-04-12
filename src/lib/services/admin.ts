@@ -35,6 +35,7 @@ export interface DashboardStats {
   pendingDrivers: number;
   completedBookings: number;
   cancelledBookings: number;
+  activeBookings: number;
   [key: string]: unknown;
 }
 

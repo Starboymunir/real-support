@@ -28,50 +28,88 @@ const formatDocDate = (value: string | null | undefined) => {
   });
 };
 
-const generateDocumentAccordionData = (document: any, latestCarDocument: any) => [
-  {
-    documentTitle: "drivingLicense",
-    name: "Driving License",
-    documentsList: {
-      licenseDocFront: document?.drivingLicense?.licenseDocFront,
-      licenseDocBack: document?.drivingLicense?.licenseDocBack,
+const generateDocumentAccordionData = (document: any, latestCarDocument: any) => ({
+  personal: [
+    {
+      documentTitle: "drivingLicense",
+      name: "Driving License",
+      documentsList: {
+        licenseDocFront: document?.drivingLicense?.licenseDocFront,
+        licenseDocBack: document?.drivingLicense?.licenseDocBack,
+      },
     },
-  },
-  {
-    documentTitle: "pcoDocuments",
-    name: "PHV License",
-    documentsList: {
-      pcoBadgeDocFront: document?.pcoDocuments?.pcoBadgeDocFront,
+    {
+      documentTitle: "pcoDocuments",
+      name: "PHV License",
+      documentsList: {
+        pcoBadgeDocFront: document?.pcoDocuments?.pcoBadgeDocFront,
+      },
     },
-  },
-  {
-    documentTitle: "passport",
-    name: "DBS Certificate",
-    documentsList: {
-      passportDocFront: document?.passport?.passportDocFront,
+    {
+      documentTitle: "passport",
+      name: "DBS Certificate",
+      documentsList: {
+        passportDocFront: document?.passport?.passportDocFront,
+      },
     },
-  },
-  {
-    documentTitle: "insuranceDocument",
-    name: "Vehicle Insurance",
-    documentsList: {
-      insuranceDoc: latestCarDocument?.insuranceDocument?.insuranceDoc,
+    {
+      documentTitle: "bankDocuments",
+      name: "Bank Details",
+      documentsList: {
+        accProfDoc: document?.bankDocuments?.accProfDoc,
+      },
     },
-    isCarDocument: true,
-    carDocumentId: latestCarDocument?.id,
-    carDocument: latestCarDocument,
-  },
-  {
-    documentTitle: "motDocument",
-    name: "MOT Certificate",
-    documentsList: {
-      motDoc: latestCarDocument?.motDocument?.motDoc,
+    {
+      documentTitle: "addressProfDocs",
+      name: "Address Proof",
+      documentsList: {
+        addressProfDoc: document?.addressProfDocs?.addressProfDoc,
+      },
     },
-    isCarDocument: true,
-    carDocumentId: latestCarDocument?.id,
-    carDocument: latestCarDocument,
-  },
-];
+  ],
+  vehicle: [
+    {
+      documentTitle: "insuranceDocument",
+      name: "Vehicle Insurance",
+      documentsList: {
+        insuranceDoc: latestCarDocument?.insuranceDocument?.insuranceDoc,
+      },
+      isCarDocument: true,
+      carDocumentId: latestCarDocument?.id,
+      carDocument: latestCarDocument,
+    },
+    {
+      documentTitle: "motDocument",
+      name: "MOT Certificate",
+      documentsList: {
+        motDoc: latestCarDocument?.motDocument?.motDoc,
+      },
+      isCarDocument: true,
+      carDocumentId: latestCarDocument?.id,
+      carDocument: latestCarDocument,
+    },
+    {
+      documentTitle: "pcoDocument",
+      name: "PCO Vehicle License",
+      documentsList: {
+        pcoVehicleLicenseDoc: latestCarDocument?.pCOVehicleLicense?.pcoVehicleLicenseDoc,
+      },
+      isCarDocument: true,
+      carDocumentId: latestCarDocument?.id,
+      carDocument: latestCarDocument,
+    },
+    {
+      documentTitle: "vehicleLogBook",
+      name: "Vehicle Log Book",
+      documentsList: {
+        vehicleLogBookDoc: latestCarDocument?.vehicleLogBook?.vehicleLogBookDoc,
+      },
+      isCarDocument: true,
+      carDocumentId: latestCarDocument?.id,
+      carDocument: latestCarDocument,
+    },
+  ],
+});
 
 const generateLegalInfoData = (document: any) => [
   { name: "Sort code", value: document?.bankDocuments?.sortCode },
@@ -300,31 +338,56 @@ export default function DriverInfo({ info, refetch }: { info: any; refetch: any 
         </Grid>
 
         <Grid size={{ xs: 12, md: 7 }}>
-          <Card sx={{ bgcolor: "background.neutral" }}>
-            <CardHeader title="Documents" />
-            <Stack spacing={1} sx={{ p: 3 }}>
-              {AccordionData.map((accord, index) => {
-                const { name, documentsList, documentTitle, showActions, isCarDocument, carDocumentId, carDocument } = accord || {};
-                return (
-                  <AccordionDocument
-                    info={info}
-                    handleForEdit={handleForEdit}
-                    key={index}
-                    expanded={expanded}
-                    handleChange={handleChange}
-                    name={name}
-                    documentsList={documentsList}
-                    documentTitle={documentTitle}
-                    refetch={refetch}
-                    showActions={showActions}
-                    isCarDocument={isCarDocument}
-                    carDocumentId={carDocumentId}
-                    carDocument={carDocument}
-                  />
-                );
-              })}
-            </Stack>
-          </Card>
+          <Stack spacing={3}>
+            <Card sx={{ bgcolor: "background.neutral" }}>
+              <CardHeader title="Personal Documents" />
+              <Stack spacing={1} sx={{ p: 3 }}>
+                {AccordionData.personal.map((accord, index) => {
+                  const { name, documentsList, documentTitle, showActions } = accord || {};
+                  return (
+                    <AccordionDocument
+                      info={info}
+                      handleForEdit={handleForEdit}
+                      key={index}
+                      expanded={expanded}
+                      handleChange={handleChange}
+                      name={name}
+                      documentsList={documentsList}
+                      documentTitle={documentTitle}
+                      refetch={refetch}
+                      showActions={showActions}
+                    />
+                  );
+                })}
+              </Stack>
+            </Card>
+
+            <Card sx={{ bgcolor: "background.neutral" }}>
+              <CardHeader title="Vehicle Documents" />
+              <Stack spacing={1} sx={{ p: 3 }}>
+                {AccordionData.vehicle.map((accord, index) => {
+                  const { name, documentsList, documentTitle, showActions, isCarDocument, carDocumentId, carDocument } = accord || {};
+                  return (
+                    <AccordionDocument
+                      info={info}
+                      handleForEdit={handleForEdit}
+                      key={index}
+                      expanded={expanded}
+                      handleChange={handleChange}
+                      name={name}
+                      documentsList={documentsList}
+                      documentTitle={documentTitle}
+                      refetch={refetch}
+                      showActions={showActions}
+                      isCarDocument={isCarDocument}
+                      carDocumentId={carDocumentId}
+                      carDocument={carDocument}
+                    />
+                  );
+                })}
+              </Stack>
+            </Card>
+          </Stack>
         </Grid>
       </Grid>
 

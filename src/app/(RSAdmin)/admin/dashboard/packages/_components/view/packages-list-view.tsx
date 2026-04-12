@@ -25,6 +25,7 @@ import {
 } from "@/app/(RSAdmin)/admin/common/table";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
+import Scrollbar from "@/app/(RSAdmin)/admin/common/scrollbar";
 import Button from "@mui/material/Button";
 import { RouterLink } from "@/app/(RSAdmin)/admin/routes/components";
 import PackagesTableToolbar from "../packages-table-toolbar";
@@ -227,6 +228,7 @@ export const PackagesListView = () => {
                   }
                   sx={{}}
                 />
+                <Scrollbar>
                 <Table
                   size={table.dense ? "small" : "medium"}
                   sx={{ minWidth: 960 }}
@@ -272,6 +274,7 @@ export const PackagesListView = () => {
                     <TableNoData notFound={notFound} />
                   </TableBody>
                 </Table>
+                </Scrollbar>
               </TableContainer>
 
               <TablePaginationCustom

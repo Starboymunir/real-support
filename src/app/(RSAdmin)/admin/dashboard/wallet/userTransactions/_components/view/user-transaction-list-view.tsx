@@ -28,6 +28,7 @@ import TransactionTableRow from "../transaction-table-row";
 import { Tab, Tabs, alpha } from "@mui/material";
 import Label from "@/app/(RSAdmin)/admin/common/label";
 import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
+import Scrollbar from "@/app/(RSAdmin)/admin/common/scrollbar";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { useUsersTransactionsQuery } from "@/hooks/Transaction";
 import { ITransaction } from "@/types/type";
@@ -221,7 +222,7 @@ export default function UserTransactionsListView() {
                   }
                 />
 
-                {/* <Scrollbar> */}
+                <Scrollbar>
                 <Table
                   size={table.dense ? "small" : "medium"}
                   sx={{ minWidth: 960 }}
@@ -263,7 +264,7 @@ export default function UserTransactionsListView() {
                     <TableNoData notFound={notFound} />
                   </TableBody>
                 </Table>
-                {/* </Scrollbar> */}
+                </Scrollbar>
               </TableContainer>
 
               <TablePaginationCustom

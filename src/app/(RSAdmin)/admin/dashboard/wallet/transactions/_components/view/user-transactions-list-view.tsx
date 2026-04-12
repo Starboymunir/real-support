@@ -28,12 +28,13 @@ import { Tab, Tabs, Typography, alpha } from "@mui/material";
 import Label from "@/app/(RSAdmin)/admin/common/label";
 import { useUserTransactionsQuery } from "@/hooks/Transaction";
 import { ITransaction } from "@/types/type";
+import Scrollbar from "@/app/(RSAdmin)/admin/common/scrollbar";
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: "type", label: "Transaction Type" },
   { id: "amount", label: "Amount", width: 150 },
-  { id: "senderId", label: "Sender Info", width: 120 },
+  { id: "senderInfo", label: "Sender Info", width: 120 },
   { id: "stripeId", label: "Stripe Id", width: 150 },
   { id: "receiverInfo", label: "Receiver Info", width: 150 },
 ];
@@ -202,7 +203,7 @@ export default function UserTransactionsListView({
                 }
               />
 
-              {/* <Scrollbar> */}
+              <Scrollbar>
               <Table
                 size={table.dense ? "small" : "medium"}
                 sx={{ minWidth: 960 }}
@@ -244,7 +245,7 @@ export default function UserTransactionsListView({
                   <TableNoData notFound={notFound} />
                 </TableBody>
               </Table>
-              {/* </Scrollbar> */}
+              </Scrollbar>
             </TableContainer>
 
             <TablePaginationCustom

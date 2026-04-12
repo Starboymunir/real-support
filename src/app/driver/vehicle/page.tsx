@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/button';
@@ -22,8 +22,16 @@ import {
   Users,
   ChevronDown,
   ArrowLeft,
+  ArrowRight,
   Trash2,
   AlertTriangle,
+  Shield,
+  FileCheck,
+  Clock,
+  XCircle,
+  AlertCircle,
+  Calendar,
+  Info,
 } from 'lucide-react';
 
 const steps = [
@@ -40,6 +48,57 @@ const carMakes = [
 const vehicleTypes = ['Sedan', 'SUV', 'Van', 'Luxury'];
 
 const years = Array.from({ length: 20 }, (_, i) => 2026 - i);
+
+type DocStatus = 'approved' | 'pending' | 'rejected' | 'not_uploaded';
+
+interface VehicleDocument {
+  id: string;
+  label: string;
+  description: string;
+  icon: React.ElementType;
+  status: DocStatus;
+  expiry?: string;
+  rejectionMessage?: string;
+  fileName?: string;
+}
+
+const initialVehicleDocuments: VehicleDocument[] = [
+  {
+    id: 'vehicle-insurance',
+    label: 'Vehicle Insurance',
+    description: 'Valid hire & reward or fleet insurance certificate',
+    icon: Shield,
+    status: 'not_uploaded',
+  },
+  {
+    id: 'mot-certificate',
+    label: 'MOT Certificate',
+    description: 'Current MOT certificate for your vehicle',
+    icon: FileCheck,
+    status: 'not_uploaded',
+  },
+  {
+    id: 'pco-vehicle-license',
+    label: 'PCO Vehicle License',
+    description: 'Private Hire Vehicle license for your vehicle',
+    icon: FileCheck,
+    status: 'not_uploaded',
+  },
+  {
+    id: 'vehicle-log-book',
+    label: 'Vehicle Log Book',
+    description: 'V5C vehicle registration certificate (log book)',
+    icon: FileText,
+    status: 'not_uploaded',
+  },
+];
+
+const statusConfig: Record<DocStatus, { label: string; color: string; bgColor: string; borderColor: string; icon: React.ElementType }> = {
+  approved: { label: 'Approved', color: 'text-green-400', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/20', icon: Check },
+  pending: { label: 'Pending Review', color: 'text-yellow-400', bgColor: 'bg-yellow-500/10', borderColor: 'border-yellow-500/20', icon: Clock },
+  rejected: { label: 'Rejected', color: 'text-red-400', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/20', icon: XCircle },
+  not_uploaded: { label: 'Not Uploaded', color: 'text-white/40', bgColor: 'bg-white/[0.03]', borderColor: 'border-white/[0.08]', icon: AlertCircle },
+};
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string; label: string }> = {
@@ -79,8 +138,117 @@ export default function VehiclePage() {
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
+  // Vehicle documents state
+  const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>(initialVehicleDocuments);
+  const [docUploading, setDocUploading] = useState<string | null>(null);
+  const [docUploadError, setDocUploadError] = useState('');
+
   // Existing cars from the driver profile
   const existingCars: CarType[] = user?.driver?.cars || [];
+
+  const getCarId = (): string => {
+    const cars = user?.driver?.cars;
+    if (cars?.length) return cars[cars.length - 1].id;
+    return localStorage.getItem('rs_car_id') || '';
+  };
+
+  // Fetch vehicle documents from API
+  const fetchVehicleDocs = useCallback(async () => {
+    const carId = getCarId();
+    if (!carId) return;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const carDoc: any = await documentsApi.getCarDocuments(carId);
+
+      const mapDocStatus = (status?: string): DocStatus => {
+        if (!status) return 'not_uploaded';
+        const s = status.toLowerCase();
+        if (s === 'approved' || s === 'verified') return 'approved';
+        if (s === 'pending' || s === 'submitted') return 'pending';
+        if (s === 'rejected') return 'rejected';
+        return 'not_uploaded';
+      };
+
+      const fieldMap: Record<string, { field: string; expiryKey?: string }> = {
+        'vehicle-insurance': { field: 'insuranceDocument', expiryKey: 'insuranceExpiryDate' },
+        'mot-certificate': { field: 'motDocument' },
+        'pco-vehicle-license': { field: 'pCOVehicleLicense' },
+        'vehicle-log-book': { field: 'vehicleLogBook' },
+      };
+
+      setVehicleDocs(prev => prev.map(doc => {
+        const mapping = fieldMap[doc.id];
+        if (!mapping || !carDoc) return doc;
+        const sub = carDoc[mapping.field];
+        if (!sub) return doc;
+        const details = sub.details;
+        const status = details?.status || (details?.isSubmitted ? 'Pending' : null);
+        if (!status) return doc;
+        return {
+          ...doc,
+          status: mapDocStatus(status),
+          expiry: mapping.expiryKey ? sub[mapping.expiryKey] : doc.expiry,
+          rejectionMessage: details?.rejectionReason || doc.rejectionMessage,
+        };
+      }));
+    } catch { /* keep initial */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  useEffect(() => { fetchVehicleDocs(); }, [fetchVehicleDocs]);
+
+  const handleDocUpload = async (docId: string, file: File) => {
+    const carId = getCarId();
+    if (!carId) {
+      setDocUploadError('Vehicle not found. Please register a vehicle first.');
+      return;
+    }
+    setDocUploading(docId);
+    setDocUploadError('');
+    try {
+      const uploaded = await documentsApi.uploadFile(file);
+      const fileUrl = (uploaded as { fileUrl?: string; url?: string })?.fileUrl
+        || (uploaded as { url?: string })?.url || '';
+      if (!fileUrl) throw new Error('File upload failed — no URL returned');
+
+      switch (docId) {
+        case 'vehicle-insurance':
+          await documentsApi.uploadInsurance({
+            carId,
+            insuranceDoc: fileUrl,
+            insuranceExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
+          });
+          break;
+        case 'mot-certificate':
+          await documentsApi.uploadMot({
+            carId,
+            motDoc: fileUrl,
+            motPassDate: new Date().toISOString(),
+          });
+          break;
+        case 'pco-vehicle-license':
+          await documentsApi.uploadCarPCO({
+            carId,
+            pcoVehicleLicenseDoc: fileUrl,
+          });
+          break;
+        case 'vehicle-log-book':
+          await documentsApi.uploadCarLogBook({
+            carId,
+            vehicleLogBookDoc: fileUrl,
+          });
+          break;
+      }
+
+      setVehicleDocs(prev => prev.map(d =>
+        d.id === docId ? { ...d, fileName: file.name, status: 'pending' as DocStatus } : d
+      ));
+    } catch (err) {
+      setDocUploadError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setDocUploading(null);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -509,6 +677,144 @@ export default function VehiclePage() {
             </div>
           </form>
         </div>
+
+        {/* ═══ VEHICLE DOCUMENTS ═══ */}
+        {existingCars.length > 0 && (
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+                <Car size={20} className="text-secondary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Vehicle Documents</h2>
+                <p className="text-white/50 text-sm mt-0.5">Upload required documents for your vehicle</p>
+              </div>
+            </div>
+
+            {/* Completed summary */}
+            {vehicleDocs.filter(d => d.status === 'approved' || d.status === 'pending').length > 0 && (
+              <div className="mb-6 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <p className="text-white/40 text-xs uppercase tracking-wider font-semibold mb-3">Already submitted</p>
+                <div className="flex flex-wrap gap-2">
+                  {vehicleDocs.filter(d => d.status === 'approved' || d.status === 'pending').map(d => {
+                    const sc = statusConfig[d.status];
+                    const SIcon = sc.icon;
+                    return (
+                      <span key={d.id} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${sc.bgColor} ${sc.color}`}>
+                        <SIcon size={13} /> {d.label}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {vehicleDocs.filter(d => d.status === 'not_uploaded' || d.status === 'rejected').length === 0 ? (
+              <div className="text-center py-8">
+                <Check size={36} className="text-secondary mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-white mb-1">All vehicle documents submitted!</h3>
+                <p className="text-white/40 text-sm">Check your profile for approval status.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {vehicleDocs.filter(d => d.status === 'not_uploaded' || d.status === 'rejected').map(doc => {
+                  const DocIcon = doc.icon;
+                  const status = statusConfig[doc.status];
+                  const StatusIcon = status.icon;
+                  return (
+                    <div
+                      key={doc.id}
+                      className={`rounded-2xl border ${status.borderColor} p-6 transition-all duration-200`}
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${status.bgColor}`}>
+                            <DocIcon size={20} className={status.color} />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-white">{doc.label}</h3>
+                            <p className="text-sm text-white/40">{doc.description}</p>
+                          </div>
+                        </div>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${status.bgColor} ${status.color}`}>
+                          <StatusIcon size={14} />
+                          {status.label}
+                        </span>
+                      </div>
+
+                      {doc.status === 'rejected' && doc.rejectionMessage && (
+                        <div className="flex items-start gap-2 mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                          <XCircle size={16} className="text-red-400 mt-0.5 shrink-0" />
+                          <p className="text-sm text-red-400">{doc.rejectionMessage}</p>
+                        </div>
+                      )}
+
+                      <label className={`block border-2 rounded-xl p-6 text-center transition-all duration-300 cursor-pointer group mb-4 ${
+                        doc.fileName
+                          ? 'border-solid border-green-500/30 bg-green-500/[0.05]'
+                          : 'border-dashed border-white/[0.08] hover:border-secondary/40 hover:bg-secondary/[0.04]'
+                      } ${docUploading === doc.id ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,application/pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleDocUpload(doc.id, file);
+                          }}
+                        />
+                        {docUploading === doc.id ? (
+                          <div className="animate-spin w-6 h-6 border-2 border-secondary border-t-transparent rounded-full mx-auto mb-2" />
+                        ) : doc.fileName ? (
+                          <Check size={22} className="mx-auto mb-2 text-green-400" />
+                        ) : (
+                          <Upload size={22} className="mx-auto mb-2 text-white/40 group-hover:text-secondary transition-colors" />
+                        )}
+                        <p className={`text-sm font-medium ${doc.fileName ? 'text-green-400' : 'text-white'}`}>
+                          {doc.fileName || 'Click to upload or drag and drop'}
+                        </p>
+                        <p className="text-xs text-white/40 mt-1">
+                          {doc.fileName ? 'Click to replace' : 'PNG, JPG or PDF (max 5MB)'}
+                        </p>
+                      </label>
+
+                      {(doc.expiry || doc.status !== 'not_uploaded') && (
+                        <div className="flex items-center gap-2">
+                          <Calendar size={16} className="text-white/40" />
+                          <label className="text-sm font-medium text-white/60">Expiry Date</label>
+                          <input type="date" className="input-field max-w-[200px] text-sm py-2 px-3" defaultValue={doc.expiry || ''} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {docUploadError && (
+              <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                {docUploadError}
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 mt-6 p-4 bg-info/5 border border-info/20 rounded-xl">
+              <Info size={20} className="text-info shrink-0" />
+              <p className="text-sm text-white/60">
+                Vehicle documents will be reviewed along with your personal documents.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Next step navigation when car already exists */}
+        {existingCars.length > 0 && (
+          <div className="flex justify-end">
+            <Button variant="green" href="/driver/documents">
+              Next: Personal Documents
+              <ArrowRight size={18} />
+            </Button>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

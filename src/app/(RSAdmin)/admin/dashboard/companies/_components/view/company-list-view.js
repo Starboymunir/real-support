@@ -28,6 +28,7 @@ import {
 } from "@/app/(RSAdmin)/admin/common/table";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
+import Scrollbar from "@/app/(RSAdmin)/admin/common/scrollbar";
 import PackagesTableToolbar from "../company-table-toolbar";
 import PackagesTableFiltersResult from "../company-table-filters-result";
 import CompaniesTableRow from "../company-table-row";
@@ -223,6 +224,7 @@ export default function CompaniesListView() {
                     </Tooltip>
                   }
                 />
+                <Scrollbar>
                 <Table
                   size={table.dense ? "small" : "medium"}
                   sx={{ minWidth: 960 }}
@@ -274,6 +276,7 @@ export default function CompaniesListView() {
                     <TableNoData notFound={notFound} />
                   </TableBody>
                 </Table>
+                </Scrollbar>
               </TableContainer>
 
               <TablePaginationCustom

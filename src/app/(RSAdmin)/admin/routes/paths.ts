@@ -170,6 +170,10 @@ export const paths = {
         root: `${ROOTS.DASHBOARD}/wallet/userTransactions/`,
         list: `${ROOTS.DASHBOARD}/wallet/userTransactions/`,
       },
+      bankAccounts: {
+        root: `${ROOTS.DASHBOARD}/wallet/bankAccounts/`,
+        list: `${ROOTS.DASHBOARD}/wallet/bankAccounts/`,
+      },
     },
     workSummary: {
       root: `${ROOTS.DASHBOARD}/work-summary`,

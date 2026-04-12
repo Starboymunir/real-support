@@ -129,7 +129,7 @@ export default function DriverProfilePage() {
 
   const userInfo = driver.userInfo || user;
   const cars = driver.cars || [];
-  const activeCar = cars.find(c => c.status === 'ACTIVE');
+  const activeCar = cars.find(c => c.status === 'ACTIVE') || cars[0] || null;
   const doc = driver.document;
   const carDoc = activeCar?.carDocument;
   const assignedPackages = Array.isArray(driver.packageInfos)

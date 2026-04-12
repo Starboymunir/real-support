@@ -42,6 +42,15 @@ import { useAuth } from "@/lib/auth-context";
 import { useSocket } from "@/providers/SocketProvider";
 import { useWithdrawalRequestsQuery } from "@/hooks/Transaction";
 import { IWithdrawals } from "@/types/type";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
+import { formattedPrice } from "@/lib/utils";
 
 // ----------------------------------------------------------------------
 
@@ -93,6 +102,8 @@ export default function WithDrawalListView() {
   const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState(defaultFilters);
+
+  const [processDialogRow, setProcessDialogRow] = useState<IWithdrawals | null>(null);
 
   const dataFiltered: IWithdrawals[] = applyFilter({
     inputData: tableData,
@@ -156,8 +167,17 @@ export default function WithDrawalListView() {
   );
 
   const handleProcessRequest = useCallback(
-    async (row: IWithdrawals) => {
-      const { id } = row;
+    (row: IWithdrawals) => {
+      setProcessDialogRow(row);
+    },
+    []
+  );
+
+  const handleConfirmProcess = useCallback(
+    async () => {
+      if (!processDialogRow) return;
+      const { id } = processDialogRow;
+      setProcessDialogRow(null);
       setLoading(true);
       try {
         const { statusCode, message } = await processWithdrawalRequest(
@@ -168,7 +188,7 @@ export default function WithDrawalListView() {
           enqueueSnackbar(message);
           setChangeFlag((prev) => !prev);
           refetch();
-          socket?.emit("admin-process-withdrawal-request", row);
+          socket?.emit("admin-process-withdrawal-request", processDialogRow);
         } else {
           enqueueSnackbar(message, { variant: "error" });
         }
@@ -178,7 +198,7 @@ export default function WithDrawalListView() {
         setLoading(false);
       }
     },
-    [dataInPage.length, table, tableData, refetch]
+    [processDialogRow, dataInPage.length, table, tableData, refetch]
   );
 
   const handleResetFilters = useCallback(() => {
@@ -368,6 +388,127 @@ export default function WithDrawalListView() {
           </Container>
         </>
       )}
+
+      {/* Process Withdrawal Dialog - Shows bank details */}
+      <Dialog
+        open={!!processDialogRow}
+        onClose={() => setProcessDialogRow(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Process Withdrawal Request</DialogTitle>
+        <DialogContent>
+          {processDialogRow && (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Requester
+                </Typography>
+                <Typography variant="body1">
+                  {processDialogRow.userInfo?.firstName}{" "}
+                  {processDialogRow.userInfo?.lastName} (
+                  {processDialogRow.userInfo?.emailAddress})
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Withdrawal Amount
+                </Typography>
+                <Typography variant="h5" color="error.main">
+                  {formattedPrice(processDialogRow.amount)}
+                </Typography>
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                  Bank Account Details
+                </Typography>
+                {processDialogRow.userInfo?.bankAccounts &&
+                processDialogRow.userInfo.bankAccounts.length > 0 ? (
+                  processDialogRow.userInfo.bankAccounts.map((account, idx) => (
+                    <Box
+                      key={account.id || idx}
+                      sx={{
+                        p: 2,
+                        mb: 1,
+                        borderRadius: 1,
+                        bgcolor: "background.neutral",
+                        border: (theme) => `1px solid ${theme.palette.divider}`,
+                      }}
+                    >
+                      <Stack spacing={1}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Bank Name
+                          </Typography>
+                          <Typography variant="subtitle2">
+                            {account.bankName}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Account Name
+                          </Typography>
+                          <Typography variant="subtitle2">
+                            {account.accountName}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Account Number
+                          </Typography>
+                          <Typography variant="subtitle2">
+                            {account.accountNumber}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Sort Code
+                          </Typography>
+                          <Typography variant="subtitle2">
+                            {account.sortCode}
+                          </Typography>
+                        </Box>
+                        {account.isDefault && (
+                          <Label variant="soft" color="info" sx={{ alignSelf: "flex-start" }}>
+                            Default Account
+                          </Label>
+                        )}
+                      </Stack>
+                    </Box>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No bank account details on file for this user.
+                  </Typography>
+                )}
+              </Box>
+
+              {processDialogRow.notes && (
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Notes
+                  </Typography>
+                  <Typography variant="body2">{processDialogRow.notes}</Typography>
+                </Box>
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setProcessDialogRow(null)} color="inherit">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmProcess}
+            variant="contained"
+            color="success"
+          >
+            Confirm &amp; Mark as Processed
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

@@ -192,7 +192,7 @@ export default function UserListView() {
                 }
               />
 
-              {/* <Scrollbar> */}
+              <Scrollbar>
               <Table
                 size={table.dense ? "small" : "medium"}
                 sx={{ minWidth: 960 }}
@@ -243,7 +243,7 @@ export default function UserListView() {
                   <TableNoData notFound={notFound} />
                 </TableBody>
               </Table>
-              {/* </Scrollbar> */}
+              </Scrollbar>
             </TableContainer>
 
             <TablePaginationCustom

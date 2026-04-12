@@ -50,6 +50,9 @@ export const SOCKET_EVENTS = {
   SUPPORT_TICKET_MESSAGE: 'SUPPORT_TICKET_MESSAGE',
   // Broadcast
   BROADCAST_MESSAGE: 'BROADCAST_MESSAGE',
+  // Contact Us
+  NEW_CONTACT_US: 'NEW_CONTACT_US',
+  CONTACT_US_UPDATED: 'CONTACT_US_UPDATED',
 } as const;
 
 // ── Context types ──
@@ -83,16 +86,18 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_BACKEND_API
   : 'https://backend.real-support.com'
 
 export function SocketProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, admin } = useAuth();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [unreadChats, setUnreadChats] = useState(0);
   const socketRef = useRef<Socket | null>(null);
 
+  const currentUser = user || admin;
+
   useEffect(() => {
     const token = getToken();
-    if (!user || !token) {
+    if (!currentUser || !token) {
       // Disconnect existing socket if user logs out
       if (socketRef.current) {
         socketRef.current.disconnect();
@@ -124,7 +129,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
     // Increment unread counts on real-time events (skip own messages)
     newSocket.on(SOCKET_EVENTS.MESSAGE_RECEIVED_EVENT, (data: any) => {
-      if (data?.senderId !== user?.id) {
+      if (data?.senderId !== currentUser?.id) {
         setUnreadChats((prev) => prev + 1);
       }
     });
@@ -171,7 +176,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       setSocket(null);
       setConnected(false);
     };
-  }, [user]);
+  }, [currentUser]);
 
   return (
     <SocketContext.Provider

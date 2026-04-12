@@ -67,47 +67,48 @@ export default function PlatformWalletOverviewView() {
   const isLoading = adminPending || usersPending || withdrawalPending;
 
   const metrics = useMemo(() => {
-    const adminIncome = adminTransactions
-      .filter((t: any) => t?.type === "INCOME" || t?.type === "COMMISSION")
-      .reduce((sum: number, t: any) => sum + Number(t?.amount || 0), 0);
+    // ── Money received by the platform (topups + deposits + refunds received) ──
+    const totalTopUps = userTransactions
+      .filter((t: any) => t?.type === "TOPUP" || t?.type === "DEPOSIT")
+      .reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
 
-    const adminExpense = adminTransactions
+    // ── Money dispensed by the platform (processed withdrawals) ──
+    const totalWithdrawn = withdrawalRequests
+      .filter((r: any) => r?.status === "PROCESSED")
+      .reduce((sum: number, r: any) => sum + Math.abs(Number(r?.amount || 0)), 0);
+
+    // ── Platform balance = received – dispensed ──
+    const platformBalance = totalTopUps - totalWithdrawn;
+
+    // ── Commission from bookings / admin transactions ──
+    const totalCommission = [
+      ...userTransactions.filter((t: any) => t?.type === "COMMISSION" || t?.type === "CANCELLATION_FEE"),
+      ...adminTransactions.filter((t: any) => t?.type === "COMMISSION"),
+    ].reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
+
+    // ── User-facing expense transactions (booking payments, etc.) ──
+    const totalExpenses = userTransactions
       .filter((t: any) => t?.type === "EXPENSE")
       .reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
 
-    const platformNet = adminIncome - adminExpense;
-
-    const totalTopUps = userTransactions
-      .filter((t: any) => t?.type === "TOPUP")
-      .reduce((sum: number, t: any) => sum + Number(t?.amount || 0), 0);
-
-    const totalWithdrawn = userTransactions
-      .filter((t: any) => t?.type === "WITHDRAW")
-      .reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
-
-    const totalCommissionFromUsers = userTransactions
-      .filter((t: any) => t?.type === "COMMISSION" || t?.type === "ADMIN_COMMISSION")
-      .reduce((sum: number, t: any) => sum + Number(t?.amount || 0), 0);
-
+    // ── Pending withdrawal requests ──
     const pendingWithdrawals = withdrawalRequests
       .filter((r: any) => r?.status === "PENDING")
-      .reduce((sum: number, r: any) => sum + Number(r?.amount || 0), 0);
+      .reduce((sum: number, r: any) => sum + Math.abs(Number(r?.amount || 0)), 0);
 
-    const processedWithdrawals = withdrawalRequests
-      .filter((r: any) => r?.status === "PROCESSED")
-      .reduce((sum: number, r: any) => sum + Number(r?.amount || 0), 0);
+    // ── Total wallet balances across all users ──
+    // Not available from these queries, but we can derive: topups - withdrawals(processed) - pending
+    const availableBalance = totalTopUps - totalWithdrawn - pendingWithdrawals;
 
     return {
-      adminIncome,
-      adminExpense,
-      platformNet,
+      platformBalance,
       totalTopUps,
       totalWithdrawn,
-      totalCommissionFromUsers,
+      totalCommission,
+      totalExpenses,
       pendingWithdrawals,
-      processedWithdrawals,
-      adminTxCount: adminTransactions.length,
-      userTxCount: userTransactions.length,
+      availableBalance,
+      txCount: userTransactions.length + adminTransactions.length,
     };
   }, [adminTransactions, userTransactions, withdrawalRequests]);
 
@@ -139,61 +140,43 @@ export default function PlatformWalletOverviewView() {
         <Box>
           {statCard(
             "Platform Balance",
-            formatGBP(metrics.platformNet),
+            formatGBP(metrics.platformBalance),
             "solar:wallet-money-bold-duotone",
             theme.palette.primary.main,
-            "Admin income minus admin expenses",
+            "Total received minus total dispensed",
           )}
         </Box>
         <Box>
           {statCard(
-            "Admin Income",
-            formatGBP(metrics.adminIncome),
-            "solar:arrow-down-bold-duotone",
+            "Total Received",
+            formatGBP(metrics.totalTopUps),
+            "solar:card-recive-bold-duotone",
             theme.palette.success.main,
-            `${metrics.adminTxCount} admin transactions`,
+            "Top-ups & deposits into the platform",
           )}
         </Box>
         <Box>
           {statCard(
-            "Admin Expenses",
-            formatGBP(metrics.adminExpense),
-            "solar:arrow-up-bold-duotone",
+            "Total Dispensed",
+            formatGBP(metrics.totalWithdrawn),
+            "solar:card-send-bold-duotone",
             theme.palette.error.main,
-            "Outgoing payments from platform wallet",
+            "Processed withdrawal payouts",
           )}
         </Box>
         <Box>
           {statCard(
             "Commission Collected",
-            formatGBP(metrics.totalCommissionFromUsers),
+            formatGBP(metrics.totalCommission),
             "solar:chart-square-bold-duotone",
             theme.palette.warning.main,
-            "From user transaction stream",
+            "Booking commissions & fees",
           )}
         </Box>
 
         <Box>
           {statCard(
-            "User Top-Ups",
-            formatGBP(metrics.totalTopUps),
-            "solar:card-recive-bold-duotone",
-            theme.palette.info.main,
-            `${metrics.userTxCount} user transactions`,
-          )}
-        </Box>
-        <Box>
-          {statCard(
-            "User Withdrawals",
-            formatGBP(metrics.totalWithdrawn),
-            "solar:card-send-bold-duotone",
-            theme.palette.secondary.main,
-            "Processed withdraw transactions",
-          )}
-        </Box>
-        <Box>
-          {statCard(
-            "Pending Withdraw Requests",
+            "Pending Withdrawals",
             formatGBP(metrics.pendingWithdrawals),
             "solar:clock-circle-bold-duotone",
             theme.palette.warning.main,
@@ -202,11 +185,29 @@ export default function PlatformWalletOverviewView() {
         </Box>
         <Box>
           {statCard(
-            "Processed Withdraw Requests",
-            formatGBP(metrics.processedWithdrawals),
-            "solar:check-circle-bold-duotone",
-            theme.palette.success.main,
-            "Already handled",
+            "Available Balance",
+            formatGBP(metrics.availableBalance),
+            "solar:safe-circle-bold-duotone",
+            theme.palette.info.main,
+            "After pending withdrawals",
+          )}
+        </Box>
+        <Box>
+          {statCard(
+            "User Expenses",
+            formatGBP(metrics.totalExpenses),
+            "solar:arrow-up-bold-duotone",
+            theme.palette.secondary.main,
+            "Booking payments & charges",
+          )}
+        </Box>
+        <Box>
+          {statCard(
+            "Total Transactions",
+            String(metrics.txCount),
+            "solar:document-text-bold-duotone",
+            theme.palette.info.main,
+            "All recorded transactions",
           )}
         </Box>
       </Box>

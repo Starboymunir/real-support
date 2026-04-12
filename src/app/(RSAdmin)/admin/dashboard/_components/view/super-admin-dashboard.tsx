@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth-context";
 import { adminStatsApi, type DashboardStats } from "@/lib/services/admin";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
+import { useSocket } from "@/providers/SocketProvider";
 import {
   Crown,
   Users,
@@ -90,16 +91,41 @@ function StatCard({
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
 
-  useEffect(() => {
+  const fetchStats = useCallback(() => {
     adminStatsApi
       .getDashboardStats()
       .then(setStats)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+    setLoading(false);
+  }, [fetchStats]);
+
+  // Refresh stats when relevant events occur
+  useEffect(() => {
+    if (!socket) return;
+    const refresh = () => fetchStats();
+    socket.on("driver-status-changed", refresh);
+    socket.on("new-driver-registered", refresh);
+    socket.on("new-booking", refresh);
+    socket.on("booking-status-changed", refresh);
+    socket.on("withdrawal-request-sent", refresh);
+    socket.on("admin-process-withdrawal-request", refresh);
+    return () => {
+      socket.off("driver-status-changed", refresh);
+      socket.off("new-driver-registered", refresh);
+      socket.off("new-booking", refresh);
+      socket.off("booking-status-changed", refresh);
+      socket.off("withdrawal-request-sent", refresh);
+      socket.off("admin-process-withdrawal-request", refresh);
+    };
+  }, [socket, fetchStats]);
 
   if (loading) return <LoadingScreen />;
 
@@ -203,10 +229,10 @@ export default function SuperAdminDashboard() {
               Platform Balance
             </p>
             <p className="text-3xl font-bold mt-2" style={{ color: T.text }}>
-              £{(stats?.totalRevenue ?? 0).toLocaleString()}
+              £{(stats?.platformBalance ?? 0).toLocaleString()}
             </p>
             <p className="text-xs mt-2" style={{ color: T.textMuted }}>
-              All-time accumulated
+              Received minus dispensed
             </p>
           </div>
 
@@ -223,10 +249,10 @@ export default function SuperAdminDashboard() {
               </p>
             </div>
             <p className="text-3xl font-bold mt-2 text-green-400">
-              £{Math.round((stats?.totalRevenue ?? 0) * 0.7).toLocaleString()}
+              £{(stats?.totalReceived ?? 0).toLocaleString()}
             </p>
             <p className="text-xs mt-2" style={{ color: T.textMuted }}>
-              From completed bookings
+              Top-ups &amp; deposits
             </p>
           </div>
 
@@ -243,10 +269,10 @@ export default function SuperAdminDashboard() {
               </p>
             </div>
             <p className="text-3xl font-bold mt-2 text-red-400">
-              £{Math.round((stats?.totalRevenue ?? 0) * 0.3).toLocaleString()}
+              £{(stats?.totalDispensed ?? 0).toLocaleString()}
             </p>
             <p className="text-xs mt-2" style={{ color: T.textMuted }}>
-              Driver payouts &amp; fees
+              Withdrawals processed
             </p>
           </div>
         </div>
@@ -297,9 +323,9 @@ export default function SuperAdminDashboard() {
             </div>
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span style={{ color: T.textMuted }}>Pending Drivers</span>
+                <span style={{ color: T.textMuted }}>Active</span>
                 <span style={{ color: T.accentLight }} className="font-semibold">
-                  {stats?.pendingDrivers ?? 0}
+                  {stats?.activeBookings ?? 0}
                 </span>
               </div>
               <div className="h-2 rounded-full bg-white/5">
@@ -307,7 +333,7 @@ export default function SuperAdminDashboard() {
                   className="h-full rounded-full transition-all duration-700"
                   style={{
                     background: T.accent,
-                    width: `${stats?.totalDrivers ? ((stats.pendingDrivers / stats.totalDrivers) * 100) : 0}%`,
+                    width: `${stats?.totalBookings ? ((stats.activeBookings / stats.totalBookings) * 100) : 0}%`,
                   }}
                 />
               </div>

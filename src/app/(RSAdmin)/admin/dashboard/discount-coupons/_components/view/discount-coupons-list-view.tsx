@@ -22,6 +22,7 @@ import {
   TablePaginationCustom,
 } from "@/app/(RSAdmin)/admin/common/table";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
+import Scrollbar from "@/app/(RSAdmin)/admin/common/scrollbar";
 import DiscountCouponsTableToolbar from "../discount-coupons-table-toolbar";
 import DiscountCouponsTableFiltersResult from "../discount-coupons-table-filters-result";
 import DiscountCouponsTableRow from "../discount-coupons-table-row";
@@ -210,6 +211,7 @@ export default function DiscountCouponsListView() {
                   }
                 />
 
+                <Scrollbar>
                 <Table
                   size={table.dense ? "small" : "medium"}
                   sx={{ minWidth: 960 }}
@@ -256,6 +258,7 @@ export default function DiscountCouponsListView() {
                     <TableNoData notFound={notFound} />
                   </TableBody>
                 </Table>
+                </Scrollbar>
               </TableContainer>
 
               <TablePaginationCustom

@@ -46,6 +46,7 @@ interface Document {
 }
 
 const initialDocuments: Document[] = [
+  // ── Personal Documents ──
   {
     id: 'driving-license',
     label: 'Driving License',
@@ -53,20 +54,6 @@ const initialDocuments: Document[] = [
     icon: CreditCard,
     status: 'not_uploaded',
     hasFrontBack: true,
-  },
-  {
-    id: 'vehicle-insurance',
-    label: 'Vehicle Insurance',
-    description: 'Valid hire & reward or fleet insurance certificate',
-    icon: Shield,
-    status: 'not_uploaded',
-  },
-  {
-    id: 'mot-certificate',
-    label: 'MOT Certificate',
-    description: 'Current MOT certificate for your vehicle',
-    icon: FileCheck,
-    status: 'not_uploaded',
   },
   {
     id: 'phv-license',
@@ -80,6 +67,20 @@ const initialDocuments: Document[] = [
     label: 'DBS Certificate',
     description: 'Enhanced DBS (Disclosure and Barring Service) check',
     icon: ShieldCheck,
+    status: 'not_uploaded',
+  },
+  {
+    id: 'bank-details',
+    label: 'Bank Details',
+    description: 'Bank account details for receiving payments',
+    icon: CreditCard,
+    status: 'not_uploaded',
+  },
+  {
+    id: 'address-proof',
+    label: 'Address Proof',
+    description: 'Utility bill or bank statement as proof of address',
+    icon: FileText,
     status: 'not_uploaded',
   },
 ];
@@ -96,29 +97,19 @@ export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>(initialDocuments);
   const [uploading, setUploading] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState('');
+  const [bankDetails, setBankDetails] = useState({ bankName: '', sortCode: '', accountNumber: '' });
 
   // Get IDs from auth context or localStorage fallback
   const getDriverId = (): string => {
     if (user?.driver?.id) return user.driver.id;
     return localStorage.getItem('rs_driver_id') || '';
   };
-  const getCarId = (): string => {
-    const cars = user?.driver?.cars;
-    if (cars?.length) return cars[cars.length - 1].id;
-    return localStorage.getItem('rs_car_id') || '';
-  };
 
   // Fetch existing documents from API
   const fetchDocuments = useCallback(async () => {
     const driverId = getDriverId();
-    const carId = getCarId();
     if (!driverId) return;
     try {
-      const tasks: Promise<unknown>[] = [documentsApi.getDriverDocuments(driverId)];
-      if (carId) tasks.push(documentsApi.getCarDocuments(carId));
-
-      const results = await Promise.allSettled(tasks);
-
       const mapDocStatus = (status?: string): DocStatus => {
         if (!status) return 'not_uploaded';
         const s = status.toLowerCase();
@@ -129,29 +120,37 @@ export default function DocumentsPage() {
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const driverDoc: any = results[0].status === 'fulfilled' ? results[0].value : null;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const carDoc: any = results[1]?.status === 'fulfilled' ? results[1].value : null;
+      const driverDoc: any = await documentsApi.getDriverDocuments(driverId);
 
       // Map frontend doc IDs to backend response fields
-      const fieldMap: Record<string, { src: 'driver' | 'car'; field: string; expiryKey?: string }> = {
-        'driving-license': { src: 'driver', field: 'drivingLicense', expiryKey: 'licenseExpiryDate' },
-        'vehicle-insurance': { src: 'car', field: 'insuranceDocument', expiryKey: 'insuranceExpiryDate' },
-        'mot-certificate': { src: 'car', field: 'motDocument' },
-        'phv-license': { src: 'driver', field: 'pcoDocuments', expiryKey: 'pcoBadgeExpiryDate' },
-        'dbs-certificate': { src: 'driver', field: 'passport', expiryKey: 'passportExpiryDate' },
+      const fieldMap: Record<string, { field: string; expiryKey?: string }> = {
+        'driving-license': { field: 'drivingLicense', expiryKey: 'licenseExpiryDate' },
+        'phv-license': { field: 'pcoDocuments', expiryKey: 'pcoBadgeExpiryDate' },
+        'dbs-certificate': { field: 'passport', expiryKey: 'passportExpiryDate' },
+        'bank-details': { field: 'bankDocuments' },
+        'address-proof': { field: 'addressProfDocs' },
       };
 
       setDocuments(prev => prev.map(doc => {
         const mapping = fieldMap[doc.id];
         if (!mapping) return doc;
-        const source = mapping.src === 'driver' ? driverDoc : carDoc;
+        const source = driverDoc;
         if (!source) return doc;
         const sub = source[mapping.field];
         if (!sub) return doc;
         const details = sub.details;
+        // Bank details and address proof may not have details.status — check if doc exists
         const status = details?.status || (details?.isSubmitted ? 'Pending' : null);
-        if (!status) return doc;
+        // For bank-details and address-proof, check for the data fields directly
+        if (!status) {
+          if (doc.id === 'bank-details' && (sub.sortCode || sub.accountNumber)) {
+            return { ...doc, status: 'pending' as DocStatus, fileName: 'Submitted' };
+          }
+          if (doc.id === 'address-proof' && sub.addressProfDoc) {
+            return { ...doc, status: 'pending' as DocStatus, fileName: 'Submitted' };
+          }
+          return doc;
+        }
         const update: Partial<Document> = {
           status: mapDocStatus(status),
           expiry: mapping.expiryKey ? sub[mapping.expiryKey] : doc.expiry,
@@ -172,7 +171,6 @@ export default function DocumentsPage() {
 
   const handleFileUpload = async (docId: string, file: File, side?: 'front' | 'back') => {
     const driverId = getDriverId();
-    const carId = getCarId();
     if (!driverId) {
       setUploadError('Driver profile not found. Please complete registration first.');
       return;
@@ -201,22 +199,6 @@ export default function DocumentsPage() {
             licenseExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
           });
           break;
-        case 'vehicle-insurance':
-          if (!carId) { setUploadError('Vehicle not found. Please complete Step 2 first.'); return; }
-          await documentsApi.uploadInsurance({
-            carId,
-            insuranceDoc: fileUrl,
-            insuranceExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
-          });
-          break;
-        case 'mot-certificate':
-          if (!carId) { setUploadError('Vehicle not found. Please complete Step 2 first.'); return; }
-          await documentsApi.uploadMot({
-            carId,
-            motDoc: fileUrl,
-            motPassDate: new Date().toISOString(),
-          });
-          break;
         case 'phv-license':
           await documentsApi.uploadPCO({
             driverId,
@@ -231,6 +213,25 @@ export default function DocumentsPage() {
             passportDocFront: fileUrl,
             passportNumber: 'PENDING',
             passportExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
+          });
+          break;
+        case 'bank-details':
+          if (!bankDetails.bankName || !bankDetails.sortCode || !bankDetails.accountNumber) {
+            setUploadError('Please fill in Bank Name, Sort Code, and Account Number before uploading.');
+            return;
+          }
+          await documentsApi.uploadBankDocuments({
+            driverId,
+            accProfDoc: fileUrl,
+            bankName: bankDetails.bankName,
+            sortCode: bankDetails.sortCode,
+            accountNumber: bankDetails.accountNumber,
+          });
+          break;
+        case 'address-proof':
+          await documentsApi.uploadAddress({
+            driverId,
+            addressProfDoc: fileUrl,
           });
           break;
       }
@@ -309,22 +310,24 @@ export default function DocumentsPage() {
           })}
         </div>
 
-        {/* Documents Card */}
-        <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-white">Required Documents</h2>
-            <p className="text-white/60 mt-1">
-              Upload missing or rejected documents to complete your application
-            </p>
-          </div>
-
-          {/* Filter: only show docs that need action (not_uploaded or rejected) */}
-          {(() => {
-            const actionDocs = documents.filter(d => d.status === 'not_uploaded' || d.status === 'rejected');
-            const completedDocs = documents.filter(d => d.status === 'approved' || d.status === 'pending');
+        {/* Personal Documents */}
+        {(() => {
+          const renderSection = (title: string, icon: React.ReactNode, docs: Document[], emptyLabel: string) => {
+            const actionDocs = docs.filter(d => d.status === 'not_uploaded' || d.status === 'rejected');
+            const completedDocs = docs.filter(d => d.status === 'approved' || d.status === 'pending');
 
             return (
-              <>
+              <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+                    {icon}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">{title}</h2>
+                    <p className="text-white/50 text-sm mt-0.5">Upload missing or rejected documents</p>
+                  </div>
+                </div>
+
                 {/* Completed summary */}
                 {completedDocs.length > 0 && (
                   <div className="mb-6 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
@@ -344,13 +347,10 @@ export default function DocumentsPage() {
                 )}
 
                 {actionDocs.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Check size={48} className="text-secondary mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-white mb-2">All Documents Submitted!</h3>
-                    <p className="text-white/40 text-sm mb-6">All your documents have been submitted. Check your profile for approval status.</p>
-                    <Button href="/driver/profile" variant="green" size="md">
-                      View Profile
-                    </Button>
+                  <div className="text-center py-8">
+                    <Check size={36} className="text-secondary mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-white mb-1">{emptyLabel}</h3>
+                    <p className="text-white/40 text-sm">Check your profile for approval status.</p>
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -390,6 +390,42 @@ export default function DocumentsPage() {
                     <div className="flex items-start gap-2 mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                       <XCircle size={16} className="text-red-400 mt-0.5 shrink-0" />
                       <p className="text-sm text-red-400">{doc.rejectionMessage}</p>
+                    </div>
+                  )}
+
+                  {/* Bank Details extra fields */}
+                  {doc.id === 'bank-details' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                      <div>
+                        <label className="block text-xs font-medium text-white/40 mb-1">Bank Name</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Barclays"
+                          value={bankDetails.bankName}
+                          onChange={(e) => setBankDetails(prev => ({ ...prev, bankName: e.target.value }))}
+                          className="input-field text-sm py-2.5 px-3 w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-white/40 mb-1">Sort Code</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 20-00-00"
+                          value={bankDetails.sortCode}
+                          onChange={(e) => setBankDetails(prev => ({ ...prev, sortCode: e.target.value }))}
+                          className="input-field text-sm py-2.5 px-3 w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-white/40 mb-1">Account Number</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 12345678"
+                          value={bankDetails.accountNumber}
+                          onChange={(e) => setBankDetails(prev => ({ ...prev, accountNumber: e.target.value }))}
+                          className="input-field text-sm py-2.5 px-3 w-full"
+                        />
+                      </div>
                     </div>
                   )}
 
@@ -490,19 +526,22 @@ export default function DocumentsPage() {
             })}
                   </div>
                 )}
-              </>
+              </div>
             );
-          })()}
+          };
+
+          return renderSection('Personal Documents', <User size={20} className="text-secondary" />, documents, 'All personal documents submitted!');
+        })()}
 
           {/* Upload Error */}
           {uploadError && (
-            <div className="mt-6 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
               {uploadError}
             </div>
           )}
 
           {/* Review Notice */}
-          <div className="mt-8 flex items-center gap-3 p-4 bg-info/5 border border-info/20 rounded-xl">
+          <div className="flex items-center gap-3 p-4 bg-info/5 border border-info/20 rounded-xl">
             <Info size={20} className="text-info shrink-0" />
             <p className="text-sm text-white/60">
               Your application will be reviewed within <strong className="text-white">48 hours</strong> after all documents are submitted. You&apos;ll receive a notification once approved.
@@ -520,7 +559,6 @@ export default function DocumentsPage() {
               Submit Application
             </Button>
           </div>
-        </div>
       </div>
     </DashboardLayout>
   );

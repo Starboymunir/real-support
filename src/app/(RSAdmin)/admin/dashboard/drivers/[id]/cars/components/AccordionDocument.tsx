@@ -56,7 +56,7 @@ const AccordionDocument = ({
         : "Rejected";
       setStatus(approveStatus);
     }
-  }, [info?.id, documentTitle]);
+  }, [info, documentTitle]);
 
   const acceptDocument = async (documentType: string) => {
     setIsAccepting(true);

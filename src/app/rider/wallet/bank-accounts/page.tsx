@@ -76,6 +76,10 @@ export default function BankAccountsPage() {
 
   const handleSubmit = useCallback(async () => {
     if (!user?.id || !form.bankName.trim() || !form.accountName.trim() || !form.accountNumber.trim() || !form.sortCode.trim()) return;
+    if (!editingId && !docFile) {
+      setError('Please upload a proof document (bank statement or screenshot)');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
@@ -314,7 +318,7 @@ export default function BankAccountsPage() {
 
                   {/* Proof of Account Upload */}
                   <div>
-                    <label className="block text-sm font-medium text-white/50 mb-2">Proof of Account (optional)</label>
+                    <label className="block text-sm font-medium text-white/50 mb-2">Proof of Account <span className="text-red-400">*</span></label>
                     <p className="text-xs text-white/25 mb-3">Upload a bank statement or screenshot showing your name, sort code and account number</p>
                     <label className="flex flex-col items-center gap-2 p-5 rounded-xl border-2 border-dashed border-white/[0.08] bg-white/[0.02] hover:border-secondary/30 hover:bg-secondary/[0.02] transition-all cursor-pointer">
                       <Upload size={22} className="text-white/20" />
@@ -352,7 +356,7 @@ export default function BankAccountsPage() {
                     size="lg"
                     className="flex-1"
                     onClick={handleSubmit}
-                    disabled={submitting || !form.bankName.trim() || !form.accountName.trim() || !form.accountNumber.trim() || !form.sortCode.trim()}
+                    disabled={submitting || !form.bankName.trim() || !form.accountName.trim() || !form.accountNumber.trim() || !form.sortCode.trim() || (!editingId && !docFile)}
                   >
                     {submitting ? (
                       <><Loader2 size={16} className="animate-spin" /> Saving...</>

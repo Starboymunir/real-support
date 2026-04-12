@@ -142,6 +142,7 @@ export default function VehiclePage() {
   const [vehicleDocs, setVehicleDocs] = useState<VehicleDocument[]>(initialVehicleDocuments);
   const [docUploading, setDocUploading] = useState<string | null>(null);
   const [docUploadError, setDocUploadError] = useState('');
+  const [docDates, setDocDates] = useState<Record<string, string>>({});
 
   // Existing cars from the driver profile
   const existingCars: CarType[] = user?.driver?.cars || [];
@@ -216,20 +217,21 @@ export default function VehiclePage() {
           await documentsApi.uploadInsurance({
             carId,
             insuranceDoc: fileUrl,
-            insuranceExpiryDate: new Date(Date.now() + 365 * 86400000).toISOString(),
+            ...(docDates['vehicle-insurance'] ? { insuranceExpiryDate: new Date(docDates['vehicle-insurance']).toISOString() } : {}),
           });
           break;
         case 'mot-certificate':
           await documentsApi.uploadMot({
             carId,
             motDoc: fileUrl,
-            motPassDate: new Date().toISOString(),
+            ...(docDates['mot-certificate'] ? { motPassDate: new Date(docDates['mot-certificate']).toISOString() } : {}),
           });
           break;
         case 'pco-vehicle-license':
           await documentsApi.uploadCarPCO({
             carId,
             pcoVehicleLicenseDoc: fileUrl,
+            ...(docDates['pco-vehicle-license'] ? { pcoVehicleLicenseExpiryDate: new Date(docDates['pco-vehicle-license']).toISOString() } : {}),
           });
           break;
         case 'vehicle-log-book':
@@ -778,11 +780,18 @@ export default function VehiclePage() {
                         </p>
                       </label>
 
-                      {(doc.expiry || doc.status !== 'not_uploaded') && (
+                      {doc.id !== 'vehicle-log-book' && (
                         <div className="flex items-center gap-2">
                           <Calendar size={16} className="text-white/40" />
-                          <label className="text-sm font-medium text-white/60">Expiry Date</label>
-                          <input type="date" className="input-field max-w-[200px] text-sm py-2 px-3" defaultValue={doc.expiry || ''} />
+                          <label className="text-sm font-medium text-white/60">
+                            {doc.id === 'vehicle-insurance' ? 'Insurance Expiry' : doc.id === 'mot-certificate' ? 'MOT Pass Date' : 'PCO Expiry'}
+                          </label>
+                          <input
+                            type="date"
+                            className="input-field max-w-[200px] text-sm py-2 px-3"
+                            value={docDates[doc.id] || doc.expiry?.slice(0, 10) || ''}
+                            onChange={(e) => setDocDates(prev => ({ ...prev, [doc.id]: e.target.value }))}
+                          />
                         </div>
                       )}
                     </div>

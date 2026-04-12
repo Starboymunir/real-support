@@ -51,6 +51,7 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import { formattedPrice } from "@/lib/utils";
+import { resolveS3Url } from "@/lib/api";
 
 // ----------------------------------------------------------------------
 
@@ -470,11 +471,54 @@ export default function WithDrawalListView() {
                             {account.sortCode}
                           </Typography>
                         </Box>
-                        {account.isDefault && (
-                          <Label variant="soft" color="info" sx={{ alignSelf: "flex-start" }}>
-                            Default Account
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          {account.isDefault && (
+                            <Label variant="soft" color="info">
+                              Default Account
+                            </Label>
+                          )}
+                          <Label
+                            variant="soft"
+                            color={
+                              (account.status === "ACTIVE" && "success") ||
+                              (account.status === "PENDING" && "warning") ||
+                              (account.status === "REJECTED" && "error") ||
+                              "default"
+                            }
+                          >
+                            {account.status?.toLowerCase() || "unknown"}
                           </Label>
-                        )}
+                        </Stack>
+                        {account.document && (() => {
+                          const docUrl = resolveS3Url(account.document);
+                          const ext = account.document?.split(".").pop()?.toLowerCase();
+                          const isImg = docUrl && !["pdf", "heic", "heif"].includes(ext || "");
+                          return (
+                            <Box
+                              sx={{
+                                mt: 1,
+                                borderRadius: 1,
+                                overflow: "hidden",
+                                border: (theme: any) => `1px solid ${theme.palette.divider}`,
+                                cursor: "pointer",
+                              }}
+                              onClick={() => window.open(docUrl || "", "_blank")}
+                            >
+                              {isImg ? (
+                                <Box
+                                  component="img"
+                                  src={docUrl || ""}
+                                  alt="Bank proof"
+                                  sx={{ width: "100%", maxHeight: 150, objectFit: "contain", display: "block" }}
+                                />
+                              ) : (
+                                <Typography variant="caption" sx={{ p: 1, display: "block" }}>
+                                  📄 View proof document ({ext?.toUpperCase()})
+                                </Typography>
+                              )}
+                            </Box>
+                          );
+                        })()}
                       </Stack>
                     </Box>
                   ))

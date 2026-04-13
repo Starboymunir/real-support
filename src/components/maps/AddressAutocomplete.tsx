@@ -25,12 +25,13 @@ interface AddressAutocompleteProps {
   className?: string;
 }
 
-interface MapboxFeature {
-  id: string;
-  place_name: string;
-  center: [number, number];
-  text: string;
-  context?: { id: string; text: string; short_code?: string }[];
+interface GooglePrediction {
+  place_id: string;
+  description: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text: string;
+  };
 }
 
 export default function AddressAutocomplete({
@@ -44,12 +45,13 @@ export default function AddressAutocomplete({
   className = '',
 }: AddressAutocompleteProps) {
   const [query, setQuery] = useState(value);
-  const [results, setResults] = useState<MapboxFeature[]>([]);
+  const [results, setResults] = useState<GooglePrediction[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [geolocating, setGeolocating] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const sessionTokenRef = useRef<string>(crypto.randomUUID());
 
   // Sync external value
   useEffect(() => {
@@ -68,18 +70,20 @@ export default function AddressAutocomplete({
   }, []);
 
   const search = useCallback(async (text: string) => {
-    if (!text || text.length < 3 || !MAPBOX_TOKEN) {
+    if (!text || text.length < 2) {
       setResults([]);
       return;
     }
 
     setLoading(true);
     try {
-      const res = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json?access_token=${MAPBOX_TOKEN}&country=gb&types=address,poi,place,locality,neighborhood&limit=5&language=en`
-      );
+      const params = new URLSearchParams({
+        input: text,
+        sessiontoken: sessionTokenRef.current,
+      });
+      const res = await fetch(`/api/places/autocomplete?${params}`);
       const data = await res.json();
-      setResults(data.features || []);
+      setResults(data.predictions || []);
       setIsOpen(true);
     } catch {
       setResults([]);
@@ -93,27 +97,49 @@ export default function AddressAutocomplete({
     onChange?.(text);
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(text), 350);
+    debounceRef.current = setTimeout(() => search(text), 300);
   };
 
-  const handleSelect = (feature: MapboxFeature) => {
-    const cityFromContext = feature.context?.find((c) => c.id.startsWith('place'))?.text;
-    // If the selected feature IS a city (type=place), use its own name
-    const city = cityFromContext || (feature.id.startsWith('place') ? feature.text : feature.place_name.split(',').slice(-2, -1)[0]?.trim() || feature.text);
-    const postcode = feature.context?.find((c) => c.id.startsWith('postcode'))?.text || '';
-
-    const place: PlaceResult = {
-      name: feature.text,
-      fullAddress: feature.place_name,
-      lng: feature.center[0],
-      lat: feature.center[1],
-      city,
-      postcode,
-    };
-
-    setQuery(feature.place_name);
+  const handleSelect = async (prediction: GooglePrediction) => {
+    setQuery(prediction.description);
     setIsOpen(false);
-    onSelect(place);
+    setLoading(true);
+
+    try {
+      const params = new URLSearchParams({
+        place_id: prediction.place_id,
+        sessiontoken: sessionTokenRef.current,
+      });
+      const res = await fetch(`/api/places/details?${params}`);
+      const data = await res.json();
+      const result = data.result;
+
+      // New session token for next search+select cycle
+      sessionTokenRef.current = crypto.randomUUID();
+
+      let city = '';
+      let postcode = '';
+      for (const comp of result.address_components || []) {
+        if (comp.types.includes('postal_code')) postcode = comp.short_name;
+        if (comp.types.includes('locality') || comp.types.includes('postal_town'))
+          city = city || comp.long_name;
+      }
+
+      const place: PlaceResult = {
+        name: prediction.structured_formatting.main_text,
+        fullAddress: prediction.description,
+        lat: result.geometry.location.lat,
+        lng: result.geometry.location.lng,
+        city,
+        postcode,
+      };
+
+      onSelect(place);
+    } catch {
+      // If place details fail, still update text
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUseCurrentLocation = () => {
@@ -124,12 +150,25 @@ export default function AddressAutocomplete({
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         try {
+          // Reverse geocode with Mapbox (no CORS issues)
           const res = await fetch(
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_TOKEN}&types=address,poi,place&limit=1&language=en`
           );
           const data = await res.json();
-          if (data.features?.[0]) {
-            handleSelect(data.features[0]);
+          const feature = data.features?.[0];
+          if (feature) {
+            const cityCtx = feature.context?.find((c: { id: string }) => c.id.startsWith('place'))?.text;
+            const postcodeCtx = feature.context?.find((c: { id: string }) => c.id.startsWith('postcode'))?.text;
+            const place: PlaceResult = {
+              name: feature.text,
+              fullAddress: feature.place_name,
+              lng: feature.center[0],
+              lat: feature.center[1],
+              city: cityCtx || feature.text,
+              postcode: postcodeCtx || '',
+            };
+            setQuery(feature.place_name);
+            onSelect(place);
           }
         } catch {
           // fallback
@@ -188,19 +227,22 @@ export default function AddressAutocomplete({
       {/* Dropdown */}
       {isOpen && results.length > 0 && (
         <div className="absolute z-50 w-full mt-2 rounded-xl border border-white/[0.08] bg-[#0D1420] shadow-2xl overflow-hidden">
-          {results.map((feature) => (
+          {results.map((prediction) => (
             <button
-              key={feature.id}
-              onClick={() => handleSelect(feature)}
+              key={prediction.place_id}
+              onClick={() => handleSelect(prediction)}
               className="w-full flex items-start gap-3 px-4 py-3 hover:bg-white/[0.04] transition-colors text-left border-b border-white/[0.04] last:border-0"
             >
               <MapPin className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
               <div className="min-w-0">
-                <p className="text-sm text-white font-medium truncate">{feature.text}</p>
-                <p className="text-xs text-white/40 truncate">{feature.place_name}</p>
+                <p className="text-sm text-white font-medium truncate">{prediction.structured_formatting.main_text}</p>
+                <p className="text-xs text-white/40 truncate">{prediction.structured_formatting.secondary_text}</p>
               </div>
             </button>
           ))}
+          <div className="px-4 py-2 border-t border-white/[0.04] flex justify-end">
+            <img src="https://maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-non-white.png" alt="Powered by Google" className="h-3 opacity-50" />
+          </div>
         </div>
       )}
     </div>

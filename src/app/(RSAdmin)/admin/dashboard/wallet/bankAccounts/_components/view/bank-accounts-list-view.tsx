@@ -8,6 +8,9 @@ import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
 import IconButton from "@mui/material/IconButton";
 import TableContainer from "@mui/material/TableContainer";
+import InputAdornment from "@mui/material/InputAdornment";
+import TextField from "@mui/material/TextField";
+import Stack from "@mui/material/Stack";
 import { alpha, Tab, Tabs } from "@mui/material";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { useBoolean } from "@/app/(RSAdmin)/admin/hooks/use-boolean";
@@ -59,6 +62,7 @@ export default function BankAccountsListView() {
   const { enqueueSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("PENDING");
+  const [searchQuery, setSearchQuery] = useState("");
   const [detailAccount, setDetailAccount] = useState<any | null>(null);
 
   const { data: allAccounts = [], isPending } = useQuery<any[]>({
@@ -69,10 +73,17 @@ export default function BankAccountsListView() {
     },
   });
 
-  const dataFiltered =
-    statusFilter === "all"
-      ? allAccounts
-      : allAccounts.filter((a: any) => a.status === statusFilter);
+  const dataFiltered = allAccounts.filter((a: any) => {
+    if (statusFilter !== "all" && a.status !== statusFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const name = `${a.user?.firstName || ""} ${a.user?.lastName || ""}`.toLowerCase();
+      const email = (a.user?.emailAddress || "").toLowerCase();
+      const phone = (a.user?.phone_number || "").toLowerCase();
+      if (!name.includes(q) && !email.includes(q) && !phone.includes(q)) return false;
+    }
+    return true;
+  });
 
   const dataInPage = dataFiltered.slice(
     table.page * table.rowsPerPage,
@@ -159,6 +170,26 @@ export default function BankAccountsListView() {
                 />
               ))}
             </Tabs>
+
+            <Stack direction="row" sx={{ px: 2.5, py: 2 }}>
+              <TextField
+                size="small"
+                placeholder="Search by name, email or phone…"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  table.onResetPage();
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Iconify icon="eva:search-fill" sx={{ color: "text.disabled" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ width: { xs: "100%", sm: 320 } }}
+              />
+            </Stack>
 
             <TableContainer sx={{ position: "relative", overflow: "unset" }}>
               <Scrollbar>

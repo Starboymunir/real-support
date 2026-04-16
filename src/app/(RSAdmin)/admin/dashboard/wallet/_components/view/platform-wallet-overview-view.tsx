@@ -15,6 +15,10 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Avatar from "@mui/material/Avatar";
 import Chip from "@mui/material/Chip";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import InputAdornment from "@mui/material/InputAdornment";
+import CircularProgress from "@mui/material/CircularProgress";
 import { alpha, useTheme } from "@mui/material/styles";
 import Iconify from "@/components/iconify/iconify";
 import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
@@ -22,6 +26,7 @@ import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
 import { useAdminTransactionsQuery, useUsersTransactionsQuery, useWithdrawalRequestsQuery } from "@/hooks/Transaction";
 import axiosInstance from "@/lib/admin-axios";
+import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 
 function formatGBP(value: number) {
   return new Intl.NumberFormat("en-GB", {
@@ -80,6 +85,7 @@ function StatCard({
 
 export default function PlatformWalletOverviewView() {
   const theme = useTheme();
+  const { enqueueSnackbar } = useSnackbar();
   const { data: adminTransactions = [], isPending: adminPending } = useAdminTransactionsQuery();
   const { data: userTransactions = [], isPending: usersPending } = useUsersTransactionsQuery();
   const { data: withdrawalRequests = [], isPending: withdrawalPending } = useWithdrawalRequestsQuery();
@@ -87,6 +93,10 @@ export default function PlatformWalletOverviewView() {
   const [shareData, setShareData] = useState<any>(null);
   const [shareholders, setShareholders] = useState<any[]>([]);
   const [sharesPending, setSharesPending] = useState(true);
+
+  // Valuation adjustment form state
+  const [valForm, setValForm] = useState({ assetValue: "", earningsValue: "", futureValue: "" });
+  const [valSaving, setValSaving] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -98,6 +108,36 @@ export default function PlatformWalletOverviewView() {
       setSharesPending(false);
     });
   }, []);
+
+  // Sync form with loaded share data
+  useEffect(() => {
+    if (shareData) {
+      setValForm({
+        assetValue: String(shareData.assetValue ?? ""),
+        earningsValue: String(shareData.earningsValue ?? ""),
+        futureValue: String(shareData.futureValue ?? ""),
+      });
+    }
+  }, [shareData]);
+
+  const handleValuationSave = async () => {
+    setValSaving(true);
+    try {
+      const payload = {
+        assetValue: Number(valForm.assetValue) || 0,
+        earningsValue: Number(valForm.earningsValue) || 0,
+        futureValue: Number(valForm.futureValue) || 0,
+      };
+      const res = await axiosInstance.patch("/company-shares/valuation", payload);
+      const updated = res.data?.data || res.data;
+      if (updated) setShareData(updated);
+      enqueueSnackbar("Valuation updated successfully");
+    } catch (err: any) {
+      enqueueSnackbar(err?.message || "Failed to update valuation", { variant: "error" });
+    } finally {
+      setValSaving(false);
+    }
+  };
 
   const isLoading = adminPending || usersPending || withdrawalPending || sharesPending;
 
@@ -222,7 +262,7 @@ export default function PlatformWalletOverviewView() {
 
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, mb: 2 }}>
         <StatCard title="Share Price" value={formatGBP(metrics.sharePrice)} icon="solar:tag-price-bold-duotone" color={theme.palette.primary.main} helper={`Sell price: ${formatGBP(metrics.sellPrice)}`} />
-        <StatCard title="Shares Sold" value={metrics.sharesSold.toLocaleString()} icon="solar:users-group-rounded-bold-duotone" color={theme.palette.info.main} helper={`of ${metrics.totalSharesIssued.toLocaleString()} total issued`} />
+        <StatCard title="Total Shares" value={metrics.totalSharesIssued.toLocaleString()} icon="solar:users-group-rounded-bold-duotone" color={theme.palette.info.main} helper="All shares belong to a holder" />
         <StatCard title="Shares Revenue" value={formatGBP(metrics.sharesRevenue)} icon="solar:card-recive-bold-duotone" color={theme.palette.success.main} helper="Total revenue from shares sold" />
         <StatCard title="Company Valuation" value={formatGBP(metrics.companyValuation)} icon="solar:buildings-bold-duotone" color={theme.palette.warning.dark} helper="Based on share valuation model" />
       </Box>
@@ -248,6 +288,52 @@ export default function PlatformWalletOverviewView() {
             <Typography variant="caption" color="text.secondary">(Asset + Earnings + Future) / 3</Typography>
           </Box>
         </Stack>
+      </Card>
+
+      {/* Valuation Adjustment Form */}
+      <Card sx={{ p: 2.5, mb: 4, border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`, boxShadow: "none" }}>
+        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Adjust Valuation Inputs</Typography>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="flex-end">
+          <TextField
+            label="Asset Value"
+            type="number"
+            size="small"
+            value={valForm.assetValue}
+            onChange={(e) => setValForm((f) => ({ ...f, assetValue: e.target.value }))}
+            InputProps={{ startAdornment: <InputAdornment position="start">£</InputAdornment> }}
+            sx={{ flex: 1 }}
+          />
+          <TextField
+            label="Earnings Value"
+            type="number"
+            size="small"
+            value={valForm.earningsValue}
+            onChange={(e) => setValForm((f) => ({ ...f, earningsValue: e.target.value }))}
+            InputProps={{ startAdornment: <InputAdornment position="start">£</InputAdornment> }}
+            sx={{ flex: 1 }}
+          />
+          <TextField
+            label="Future Value"
+            type="number"
+            size="small"
+            value={valForm.futureValue}
+            onChange={(e) => setValForm((f) => ({ ...f, futureValue: e.target.value }))}
+            InputProps={{ startAdornment: <InputAdornment position="start">£</InputAdornment> }}
+            sx={{ flex: 1 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleValuationSave}
+            disabled={valSaving}
+            startIcon={valSaving ? <CircularProgress size={16} color="inherit" /> : <Iconify icon="solar:pen-bold" width={18} />}
+            sx={{ minWidth: 140, height: 40 }}
+          >
+            {valSaving ? "Saving…" : "Update"}
+          </Button>
+        </Stack>
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+          Final valuation = (Asset + Earnings + Future) / 3. This recalculates share prices automatically.
+        </Typography>
       </Card>
 
       {/* Shareholders table */}

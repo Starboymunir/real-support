@@ -131,15 +131,6 @@ export default function PassengersTableRow({
           <Iconify icon="solar:pen-bold" />
           Edit
         </MenuItem>
-        <MenuItem
-          onClick={() => {
-            onPromoteToAdminRow();
-            popover.onClose();
-          }}
-        >
-          <Iconify icon="mdi:account-arrow-up" />
-          Promote to Admin
-        </MenuItem>
 
         <MenuItem
           onClick={() => {
@@ -150,16 +141,6 @@ export default function PassengersTableRow({
           <Iconify icon="mdi:account-reactivate" />
           Active User
         </MenuItem>
-        {showChatButton && (
-          <MenuItem
-            onClick={() => {
-              router.push(`/admin/dashboard/chat?adminChatUserId=${row.id}`);
-            }}
-          >
-            <Iconify icon="mdi:chat-plus" />
-            Chat with User
-          </MenuItem>
-        )}
         <MenuItem
           onClick={() => {
             confirm.onTrue();

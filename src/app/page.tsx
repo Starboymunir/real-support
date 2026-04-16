@@ -214,17 +214,25 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-2.5">
-                    <div className="relative">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-secondary" />
-                      <input type="text" placeholder="Pickup location" className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl py-3 pl-9 pr-4 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-secondary/40 transition-colors" readOnly />
-                    </div>
-                    <div className="relative">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-accent" />
-                      <input type="text" placeholder="Where to?" className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl py-3 pl-9 pr-4 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-accent/40 transition-colors" readOnly />
-                    </div>
+                    <Link href="/rider/book" className="block">
+                      <div className="relative cursor-pointer group/input">
+                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-secondary" />
+                        <div className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl py-3 pl-9 pr-4 text-sm text-white/25 group-hover/input:border-secondary/40 transition-colors">
+                          Pickup location
+                        </div>
+                      </div>
+                    </Link>
+                    <Link href="/rider/book" className="block">
+                      <div className="relative cursor-pointer group/input">
+                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-accent" />
+                        <div className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl py-3 pl-9 pr-4 text-sm text-white/25 group-hover/input:border-accent/40 transition-colors">
+                          Where to?
+                        </div>
+                      </div>
+                    </Link>
 
                     <Link href="/rider/book" className="block w-full text-center bg-white text-black font-semibold py-3 rounded-xl text-sm hover:bg-white/90 transition-colors mt-1">
-                      Get Quote ?
+                      Get Quote
                     </Link>
                   </div>
 

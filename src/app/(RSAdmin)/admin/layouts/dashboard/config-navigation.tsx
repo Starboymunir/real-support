@@ -18,6 +18,7 @@ const ICONS = {
   content: icon("solar:document-text-bold-duotone"),
   coupons: icon("solar:ticket-sale-bold-duotone"),
   wallet: icon("solar:wallet-bold-duotone"),
+  shares: icon("solar:chart-bold-duotone"),
   support: icon("solar:chat-round-dots-bold-duotone"),
   workSummary: icon("solar:chart-square-bold-duotone"),
   feedbacks: icon("solar:chat-line-bold-duotone"),
@@ -63,7 +64,7 @@ export function useNavData() {
       ...(isSuperAdmin || isAdmin
         ? [
             {
-              title: "Wallet",
+              title: "Finances",
               path: paths.dashboard.wallet.root,
               icon: ICONS.wallet,
               children: [

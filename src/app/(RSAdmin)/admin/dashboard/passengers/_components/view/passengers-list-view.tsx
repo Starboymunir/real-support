@@ -79,6 +79,8 @@ export default function PassengersListView() {
   const [count, setCount] = useState(10);
   const [status, setStatus] = useState("");
 
+  const [filters, setFilters] = useState(defaultFilters);
+
   const queryParams = Object.fromEntries(
     Object.entries({
       page,
@@ -89,7 +91,6 @@ export default function PassengersListView() {
     }).filter(([_, v]) => v !== "" && v !== null && v !== undefined)
   );
 
-  const [filters, setFilters] = useState(defaultFilters);
   const { data: response = { list: [], total: 0 }, isLoading } = useUsersQuery(
     queryParams,
     {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 import Container from "@mui/material/Container";
 import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
@@ -19,6 +19,8 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import InputAdornment from "@mui/material/InputAdornment";
 import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import MenuItem from "@mui/material/MenuItem";
 import { alpha, useTheme } from "@mui/material/styles";
 import Iconify from "@/components/iconify/iconify";
 import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
@@ -98,13 +100,25 @@ export default function PlatformWalletOverviewView() {
   const [valForm, setValForm] = useState({ assetValue: "", earningsValue: "", futureValue: "" });
   const [valSaving, setValSaving] = useState(false);
 
+  // Expenses & outside earnings
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [earnings, setEarnings] = useState<any[]>([]);
+  const [expForm, setExpForm] = useState({ description: "", amount: "", category: "General" });
+  const [earnForm, setEarnForm] = useState({ description: "", amount: "", category: "General" });
+  const [expSaving, setExpSaving] = useState(false);
+  const [earnSaving, setEarnSaving] = useState(false);
+
   useEffect(() => {
     Promise.all([
       axiosInstance.get("/company-shares").then((res) => res.data?.data || res.data).catch(() => null),
       axiosInstance.get("/company-shares/holdings").then((res) => res.data?.data || res.data || []).catch(() => []),
-    ]).then(([share, holders]) => {
+      axiosInstance.get("/company-shares/expenses").then((res) => res.data?.data || res.data || []).catch(() => []),
+      axiosInstance.get("/company-shares/earnings").then((res) => res.data?.data || res.data || []).catch(() => []),
+    ]).then(([share, holders, exps, earns]) => {
       setShareData(share);
       setShareholders(Array.isArray(holders) ? holders : []);
+      setExpenses(Array.isArray(exps) ? exps : []);
+      setEarnings(Array.isArray(earns) ? earns : []);
       setSharesPending(false);
     });
   }, []);
@@ -136,6 +150,66 @@ export default function PlatformWalletOverviewView() {
       enqueueSnackbar(err?.message || "Failed to update valuation", { variant: "error" });
     } finally {
       setValSaving(false);
+    }
+  };
+
+  const handleAddExpense = async () => {
+    if (!expForm.description || !expForm.amount) return;
+    setExpSaving(true);
+    try {
+      const res = await axiosInstance.post("/company-shares/expenses", {
+        description: expForm.description,
+        amount: Number(expForm.amount),
+        category: expForm.category,
+      });
+      const created = res.data?.data || res.data;
+      setExpenses((prev) => [created, ...prev]);
+      setExpForm({ description: "", amount: "", category: "General" });
+      enqueueSnackbar("Expense added");
+    } catch (err: any) {
+      enqueueSnackbar(err?.message || "Failed to add expense", { variant: "error" });
+    } finally {
+      setExpSaving(false);
+    }
+  };
+
+  const handleDeleteExpense = async (id: string) => {
+    try {
+      await axiosInstance.delete(`/company-shares/expenses/${id}`);
+      setExpenses((prev) => prev.filter((e) => e.id !== id));
+      enqueueSnackbar("Expense removed");
+    } catch (err: any) {
+      enqueueSnackbar(err?.message || "Failed to delete", { variant: "error" });
+    }
+  };
+
+  const handleAddEarning = async () => {
+    if (!earnForm.description || !earnForm.amount) return;
+    setEarnSaving(true);
+    try {
+      const res = await axiosInstance.post("/company-shares/earnings", {
+        description: earnForm.description,
+        amount: Number(earnForm.amount),
+        category: earnForm.category,
+      });
+      const created = res.data?.data || res.data;
+      setEarnings((prev) => [created, ...prev]);
+      setEarnForm({ description: "", amount: "", category: "General" });
+      enqueueSnackbar("Earning added");
+    } catch (err: any) {
+      enqueueSnackbar(err?.message || "Failed to add earning", { variant: "error" });
+    } finally {
+      setEarnSaving(false);
+    }
+  };
+
+  const handleDeleteEarning = async (id: string) => {
+    try {
+      await axiosInstance.delete(`/company-shares/earnings/${id}`);
+      setEarnings((prev) => prev.filter((e) => e.id !== id));
+      enqueueSnackbar("Earning removed");
+    } catch (err: any) {
+      enqueueSnackbar(err?.message || "Failed to delete", { variant: "error" });
     }
   };
 
@@ -182,7 +256,11 @@ export default function PlatformWalletOverviewView() {
     const sharesRevenue = sharesSold * sharePrice;
     const shareSpreadProfit = sharesRevenue * 0.10;
 
-    const totalProfit = totalCommission + shareSpreadProfit;
+    const companyExpenses = expenses.reduce((sum: number, e: any) => sum + Math.abs(Number(e?.amount || 0)), 0);
+    const outsideEarnings = earnings.reduce((sum: number, e: any) => sum + Math.abs(Number(e?.amount || 0)), 0);
+
+    const grossRevenue = totalCommission + shareSpreadProfit + outsideEarnings;
+    const netProfit = grossRevenue - companyExpenses;
 
     return {
       platformBalance,
@@ -206,9 +284,12 @@ export default function PlatformWalletOverviewView() {
       earningsValue: shareData?.earningsValue || 0,
       futureValue: shareData?.futureValue || 0,
       sellPrice: shareData?.sellPrice || 0,
-      totalProfit,
+      companyExpenses,
+      outsideEarnings,
+      grossRevenue,
+      netProfit,
     };
-  }, [adminTransactions, userTransactions, withdrawalRequests, shareData]);
+  }, [adminTransactions, userTransactions, withdrawalRequests, shareData, expenses, earnings]);
 
   if (isLoading) return <LoadingScreen />;
 
@@ -245,11 +326,18 @@ export default function PlatformWalletOverviewView() {
         Company Profit
       </Typography>
 
+      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, mb: 2 }}>
+        <StatCard title="Net Profit" value={formatGBP(metrics.netProfit)} icon="solar:dollar-minimalistic-bold-duotone" color={metrics.netProfit >= 0 ? theme.palette.success.dark : theme.palette.error.main} helper="Gross revenue minus company expenses" />
+        <StatCard title="Gross Revenue" value={formatGBP(metrics.grossRevenue)} icon="solar:chart-bold-duotone" color={theme.palette.success.main} helper="Commission + share margin + outside earnings" />
+        <StatCard title="Company Expenses" value={formatGBP(metrics.companyExpenses)} icon="solar:bill-list-bold-duotone" color={theme.palette.error.main} helper="All recorded company expenses" />
+        <StatCard title="Outside Earnings" value={formatGBP(metrics.outsideEarnings)} icon="solar:hand-money-bold-duotone" color={theme.palette.info.main} helper="Revenue from non-platform sources" />
+      </Box>
+
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, mb: 4 }}>
-        <StatCard title="Total Profit" value={formatGBP(metrics.totalProfit)} icon="solar:dollar-minimalistic-bold-duotone" color={theme.palette.success.dark} helper="All profit sources combined" />
         <StatCard title="Booking Commission" value={formatGBP(metrics.bookingCommission)} icon="solar:ticket-bold-duotone" color={theme.palette.warning.main} helper="Commission from ride bookings" />
         <StatCard title="Cancellation Fees" value={formatGBP(metrics.cancellationFees)} icon="solar:close-circle-bold-duotone" color={theme.palette.error.light} helper="Fees collected from cancellations" />
         <StatCard title="Share Spread Margin" value={formatGBP(metrics.shareSpreadProfit)} icon="solar:graph-up-bold-duotone" color={theme.palette.secondary.main} helper="10% margin on share sell-backs" />
+        <StatCard title="Admin Charges" value={formatGBP(metrics.adminCharges)} icon="solar:shield-user-bold-duotone" color={theme.palette.primary.main} helper="Manual admin charges to users" />
       </Box>
 
       <Divider sx={{ mb: 4 }} />
@@ -392,6 +480,118 @@ export default function PlatformWalletOverviewView() {
           </TableContainer>
         </Card>
       )}
+
+      <Divider sx={{ mb: 4 }} />
+
+      {/* ═══════ Company Expenses & Outside Earnings ═══════ */}
+      <Box sx={{ display: "grid", gap: 3, gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, mb: 4 }}>
+
+        {/* ── Expenses ── */}
+        <Card sx={{ border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`, boxShadow: "none", overflow: "hidden" }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2.5, pb: 1.5 }}>
+            <Typography variant="subtitle1" fontWeight={700}>
+              <Iconify icon="solar:bill-list-bold-duotone" width={20} sx={{ mr: 1, verticalAlign: "text-bottom", color: "error.main" }} />
+              Company Expenses
+            </Typography>
+            <Chip label={formatGBP(metrics.companyExpenses)} size="small" color="error" variant="outlined" />
+          </Stack>
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ px: 2.5, pb: 2 }}>
+            <TextField size="small" placeholder="Description" value={expForm.description} onChange={(e) => setExpForm((f) => ({ ...f, description: e.target.value }))} sx={{ flex: 2 }} />
+            <TextField size="small" placeholder="Amount" type="number" value={expForm.amount} onChange={(e) => setExpForm((f) => ({ ...f, amount: e.target.value }))} InputProps={{ startAdornment: <InputAdornment position="start">£</InputAdornment> }} sx={{ flex: 1 }} />
+            <TextField size="small" select value={expForm.category} onChange={(e) => setExpForm((f) => ({ ...f, category: e.target.value }))} sx={{ flex: 1, minWidth: 120 }}>
+              {["General", "Web Development", "Marketing", "Office", "Salary", "Legal", "Insurance", "Other"].map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+            </TextField>
+            <Button variant="contained" color="error" onClick={handleAddExpense} disabled={expSaving} sx={{ minWidth: 80 }}>
+              {expSaving ? <CircularProgress size={18} color="inherit" /> : "Add"}
+            </Button>
+          </Stack>
+
+          {expenses.length > 0 && (
+            <TableContainer sx={{ maxHeight: 300 }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Category</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>Amount</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>Date</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600, width: 50 }} />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {expenses.map((e: any) => (
+                    <TableRow key={e.id} hover>
+                      <TableCell><Typography variant="body2">{e.description}</Typography></TableCell>
+                      <TableCell><Chip label={e.category} size="small" variant="outlined" /></TableCell>
+                      <TableCell align="right"><Typography variant="body2" fontWeight={600} color="error.main">{formatGBP(e.amount)}</Typography></TableCell>
+                      <TableCell align="right"><Typography variant="caption" color="text.secondary">{new Date(e.date || e.createdAt).toLocaleDateString("en-GB")}</Typography></TableCell>
+                      <TableCell align="center">
+                        <IconButton size="small" color="error" onClick={() => handleDeleteExpense(e.id)}>
+                          <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Card>
+
+        {/* ── Outside Earnings ── */}
+        <Card sx={{ border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`, boxShadow: "none", overflow: "hidden" }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2.5, pb: 1.5 }}>
+            <Typography variant="subtitle1" fontWeight={700}>
+              <Iconify icon="solar:hand-money-bold-duotone" width={20} sx={{ mr: 1, verticalAlign: "text-bottom", color: "info.main" }} />
+              Outside Earnings
+            </Typography>
+            <Chip label={formatGBP(metrics.outsideEarnings)} size="small" color="info" variant="outlined" />
+          </Stack>
+
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ px: 2.5, pb: 2 }}>
+            <TextField size="small" placeholder="Description" value={earnForm.description} onChange={(e) => setEarnForm((f) => ({ ...f, description: e.target.value }))} sx={{ flex: 2 }} />
+            <TextField size="small" placeholder="Amount" type="number" value={earnForm.amount} onChange={(e) => setEarnForm((f) => ({ ...f, amount: e.target.value }))} InputProps={{ startAdornment: <InputAdornment position="start">£</InputAdornment> }} sx={{ flex: 1 }} />
+            <TextField size="small" select value={earnForm.category} onChange={(e) => setEarnForm((f) => ({ ...f, category: e.target.value }))} sx={{ flex: 1, minWidth: 120 }}>
+              {["General", "Consulting", "Partnership", "Investment", "Sponsorship", "Other"].map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+            </TextField>
+            <Button variant="contained" color="info" onClick={handleAddEarning} disabled={earnSaving} sx={{ minWidth: 80 }}>
+              {earnSaving ? <CircularProgress size={18} color="inherit" /> : "Add"}
+            </Button>
+          </Stack>
+
+          {earnings.length > 0 && (
+            <TableContainer sx={{ maxHeight: 300 }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Category</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>Amount</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>Date</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600, width: 50 }} />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {earnings.map((e: any) => (
+                    <TableRow key={e.id} hover>
+                      <TableCell><Typography variant="body2">{e.description}</Typography></TableCell>
+                      <TableCell><Chip label={e.category} size="small" variant="outlined" /></TableCell>
+                      <TableCell align="right"><Typography variant="body2" fontWeight={600} color="info.main">{formatGBP(e.amount)}</Typography></TableCell>
+                      <TableCell align="right"><Typography variant="caption" color="text.secondary">{new Date(e.date || e.createdAt).toLocaleDateString("en-GB")}</Typography></TableCell>
+                      <TableCell align="center">
+                        <IconButton size="small" color="error" onClick={() => handleDeleteEarning(e.id)}>
+                          <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Card>
+      </Box>
 
       <Divider sx={{ mb: 4 }} />
 

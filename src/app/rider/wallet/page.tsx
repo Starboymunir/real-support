@@ -18,12 +18,14 @@ import {
   ArrowRight,
   Sparkles,
   RefreshCw,
+  BarChart3,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi } from '@/lib/services/wallet';
+import { sharesApi } from '@/lib/services/shares';
 import type { Transaction as ApiTransaction } from '@/lib/types';
 
 const fadeUp = {
@@ -125,6 +127,7 @@ export default function WalletPage() {
   const [lastTopup, setLastTopup] = useState<number | null>(null);
   const [, setLoading] = useState(true);
   const [monthlySpend, setMonthlySpend] = useState<{ month: string; amount: number }[]>([]);
+  const [userShares, setUserShares] = useState(0);
 
   const balance = useCounter(walletBalance, 1000);
   const spent = useCounter(monthSpent);
@@ -140,6 +143,12 @@ export default function WalletPage() {
         walletApi.getUserTransactions(user.id),
       ]);
       setWalletBalance(wallet.balance ?? 0);
+
+      // Fetch share holdings
+      try {
+        const holdingData = await sharesApi.getUserHolding(user.id);
+        setUserShares(holdingData?.holding?.quantity ?? 0);
+      } catch { /* no shares yet */ }
 
       if (txList && txList.length > 0) {
         setTxCount(txList.length);
@@ -266,6 +275,17 @@ export default function WalletPage() {
                       <span className="text-white/25 text-xs">last top-up</span>
                     </div>
                   )}
+
+                  {/* Holding Shares */}
+                  <Link
+                    href="/rider/wallet/shares"
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 hover:border-purple-400/40 hover:from-purple-500/15 hover:to-blue-500/15 transition-all group"
+                  >
+                    <BarChart3 size={16} className="text-purple-400 group-hover:text-purple-300" />
+                    <span className="text-sm font-bold text-white">{userShares}</span>
+                    <span className="text-xs text-white/40">Shares Held</span>
+                    <ArrowRight size={14} className="text-white/30 group-hover:text-purple-400 group-hover:translate-x-0.5 transition-all" />
+                  </Link>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -280,6 +300,9 @@ export default function WalletPage() {
                   </Button>
                   <Button href="/rider/wallet/requests" variant="outline" size="md">
                     <CreditCard size={16} /> Request
+                  </Button>
+                  <Button href="/rider/wallet/shares" variant="outline" size="md">
+                    <BarChart3 size={16} /> Shares
                   </Button>
                 </div>
               </div>

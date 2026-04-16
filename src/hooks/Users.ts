@@ -12,6 +12,7 @@ interface PassengerQueryParams {
   count?: number;
   status?: string;
   sort?: "asc" | "desc";
+  search?: string;
 }
 
 // -----------------------

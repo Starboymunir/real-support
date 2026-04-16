@@ -85,6 +85,7 @@ export default function PassengersListView() {
       count,
       status,
       sort: "asc",
+      search: filters.search || undefined,
     }).filter(([_, v]) => v !== "" && v !== null && v !== undefined)
   );
 
@@ -418,11 +419,13 @@ function applyFilter({
   let filteredData: IUser[] = stabilizedThis?.map<IUser>((el: any) => el[0]);
 
   if (search) {
+    const lowerSearch = search.toLowerCase();
     filteredData = filteredData?.filter((user: IUser) => {
       return (
-        user.firstName.toLowerCase().indexOf(search.toLowerCase()) !== -1 ||
-        user.lastName.toLowerCase().indexOf(search.toLowerCase()) !== -1 ||
-        user.emailAddress.toLowerCase().indexOf(search.toLowerCase()) !== -1
+        user.firstName?.toLowerCase().includes(lowerSearch) ||
+        user.lastName?.toLowerCase().includes(lowerSearch) ||
+        user.emailAddress?.toLowerCase().includes(lowerSearch) ||
+        String(user.phone_number || "").includes(search)
       );
     });
   }

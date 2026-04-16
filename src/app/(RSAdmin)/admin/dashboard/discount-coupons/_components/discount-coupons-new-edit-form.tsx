@@ -115,7 +115,7 @@ export default function DiscountCouponsNewEditForm({
             >
               <RHFTextField
                 type="number"
-                name="Useability"
+                name="useability"
                 label="Usage Limit"
               />
               <Controller

@@ -4,8 +4,10 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AddressAutocomplete, { PlaceResult } from '@/components/maps/AddressAutocomplete';
+import { getRoute, formatDistance, formatDuration, estimateFare } from '@/lib/mapbox';
 import {
   Shield,
   MapPin,
@@ -132,6 +134,138 @@ function Stat({ value, suffix, label }: { value: number; suffix: string; label: 
   );
 }
 
+/* ── Quick Book Card (no auth required) ── */
+function QuickBookCard() {
+  const [pickup, setPickup] = useState<PlaceResult | null>(null);
+  const [dropoff, setDropoff] = useState<PlaceResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [routeInfo, setRouteInfo] = useState<{ distance: number; duration: number } | null>(null);
+  const [fares, setFares] = useState<Record<string, { min: number; max: number }> | null>(null);
+
+  const computeQuote = useCallback(async (p: PlaceResult, d: PlaceResult) => {
+    setLoading(true);
+    setFares(null);
+    setRouteInfo(null);
+    try {
+      const route = await getRoute(
+        { lat: p.lat, lng: p.lng },
+        { lat: d.lat, lng: d.lng }
+      );
+      if (route) {
+        setRouteInfo({ distance: route.distance, duration: route.duration });
+        setFares({
+          economy: estimateFare(route.distance, 'economy'),
+          comfort: estimateFare(route.distance, 'comfort'),
+          premium: estimateFare(route.distance, 'premium'),
+          xl: estimateFare(route.distance, 'xl'),
+        });
+      }
+    } catch {
+      // fail silently
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handlePickup = (place: PlaceResult) => {
+    setPickup(place);
+    if (dropoff) computeQuote(place, dropoff);
+  };
+
+  const handleDropoff = (place: PlaceResult) => {
+    setDropoff(place);
+    if (pickup) computeQuote(pickup, place);
+  };
+
+  const vehicleLabels: Record<string, { label: string; icon: string }> = {
+    economy: { label: 'Economy', icon: '🚗' },
+    comfort: { label: 'Comfort', icon: '🚙' },
+    premium: { label: 'Premium', icon: '✨' },
+    xl: { label: 'XL', icon: '🚐' },
+  };
+
+  return (
+    <div className="relative w-full max-w-sm">
+      <div className="absolute -inset-px rounded-[28px] bg-gradient-to-b from-white/[0.12] to-white/[0.02] pointer-events-none" />
+
+      <div className="relative rounded-[28px] border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-7 shadow-2xl shadow-black/40">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center">
+            <Navigation size={18} className="text-secondary" />
+          </div>
+          <div>
+            <p className="text-white font-semibold text-sm">Quick Book</p>
+            <p className="text-white/30 text-xs">Get an instant quote</p>
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+          <AddressAutocomplete
+            placeholder="Pickup location"
+            onSelect={handlePickup}
+            iconColor="text-secondary"
+          />
+          <AddressAutocomplete
+            placeholder="Where to?"
+            onSelect={handleDropoff}
+            iconColor="text-accent"
+          />
+        </div>
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center justify-center gap-2 mt-4 py-3">
+            <div className="w-4 h-4 border-2 border-white/20 border-t-secondary rounded-full animate-spin" />
+            <span className="text-white/40 text-sm">Calculating fares...</span>
+          </div>
+        )}
+
+        {/* Quote results */}
+        {fares && routeInfo && !loading && (
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center justify-between text-xs text-white/40 px-1">
+              <span>{formatDistance(routeInfo.distance)}</span>
+              <span>{formatDuration(routeInfo.duration)}</span>
+            </div>
+
+            <div className="space-y-1.5">
+              {Object.entries(fares).map(([key, fare]) => (
+                <div
+                  key={key}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:border-secondary/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base">{vehicleLabels[key].icon}</span>
+                    <span className="text-sm text-white font-medium">{vehicleLabels[key].label}</span>
+                  </div>
+                  <span className="text-sm text-white font-semibold">
+                    £{fare.min.toFixed(2)} – £{fare.max.toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              href="/rider/book"
+              className="block w-full text-center bg-white text-black font-semibold py-3 rounded-xl text-sm hover:bg-white/90 transition-colors"
+            >
+              Book Now
+            </Link>
+          </div>
+        )}
+
+        {/* Initial state — no quote yet */}
+        {!fares && !loading && (
+          <p className="text-white/20 text-[11px] text-center mt-4 flex items-center justify-center gap-1.5">
+            <Shield size={10} />
+            No surge pricing · No signup required
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
@@ -198,42 +332,7 @@ export default function Home() {
             <div
               className="flex justify-center lg:justify-end animate-slide-up"
             >
-              <div className="relative w-full max-w-sm">
-                {/* Subtle glow behind card */}
-                <div className="absolute -inset-px rounded-[28px] bg-gradient-to-b from-white/[0.12] to-white/[0.02] pointer-events-none" />
-                
-                <div className="relative rounded-[28px] border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-7 shadow-2xl shadow-black/40">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center">
-                      <Navigation size={18} className="text-secondary" />
-                    </div>
-                    <div>
-                      <p className="text-white font-semibold text-sm">Quick Book</p>
-                      <p className="text-white/30 text-xs">Get an instant quote</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    <div className="relative">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-secondary" />
-                      <input type="text" placeholder="Pickup location" className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl py-3 pl-9 pr-4 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-secondary/40 transition-colors" readOnly />
-                    </div>
-                    <div className="relative">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-accent" />
-                      <input type="text" placeholder="Where to?" className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl py-3 pl-9 pr-4 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-accent/40 transition-colors" readOnly />
-                    </div>
-
-                    <Link href="/rider/book" className="block w-full text-center bg-white text-black font-semibold py-3 rounded-xl text-sm hover:bg-white/90 transition-colors mt-1">
-                      Get Quote ?
-                    </Link>
-                  </div>
-
-                  <p className="text-white/20 text-[11px] text-center mt-3 flex items-center justify-center gap-1.5">
-                    <Shield size={10} />
-                    No surge pricing · Instant confirmation
-                  </p>
-                </div>
-              </div>
+              <QuickBookCard />
             </div>
           </div>
         </div>

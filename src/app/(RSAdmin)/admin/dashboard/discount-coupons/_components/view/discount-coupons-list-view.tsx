@@ -8,6 +8,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Container from "@mui/material/Container";
 import TableBody from "@mui/material/TableBody";
 import IconButton from "@mui/material/IconButton";
+import Button from "@mui/material/Button";
 import TableContainer from "@mui/material/TableContainer";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
@@ -34,6 +35,8 @@ import {
 import { useRouter } from "next/navigation";
 import { useBoolean } from "@/app/(RSAdmin)/admin/hooks/use-boolean";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
+import { RouterLink } from "@/app/(RSAdmin)/admin/routes/components";
+import Iconify from "@/components/iconify/iconify";
 import { useGetAllDiscountCoupons } from "@/hooks/Coupons";
 import { DiscountCoupons } from "@/lib/types";
 
@@ -170,6 +173,16 @@ export default function DiscountCouponsListView() {
                 },
                 { name: "List" },
               ]}
+              action={
+                <Button
+                  component={RouterLink}
+                  href={paths.dashboard.discountCoupons.new}
+                  variant="contained"
+                  startIcon={<Iconify icon="mingcute:add-line" />}
+                >
+                  New Coupon
+                </Button>
+              }
               sx={{
                 mb: { xs: 3, md: 5 },
               }}

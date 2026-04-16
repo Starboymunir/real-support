@@ -37,7 +37,7 @@ export default function PassengersTableToolbar({ filters, onFilters }: { filters
             fullWidth
             value={filters.search}
             onChange={handleFilterName}
-            placeholder="Search..."
+            placeholder="Search by name, email or phone..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

@@ -284,7 +284,7 @@ export default function PlatformWalletOverviewView() {
           </Box>
           <Box sx={{ flex: 1 }}>
             <Typography variant="caption" color="text.secondary">Final Valuation</Typography>
-            <Typography variant="h6" color="primary">{formatGBP(metrics.companyValuation)}</Typography>
+            <Typography variant="h6" sx={{ color: "success.main" }}>{formatGBP(metrics.companyValuation)}</Typography>
             <Typography variant="caption" color="text.secondary">(Asset + Earnings + Future) / 3</Typography>
           </Box>
         </Stack>

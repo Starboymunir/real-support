@@ -7,6 +7,14 @@ import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Avatar from "@mui/material/Avatar";
+import Chip from "@mui/material/Chip";
 import { alpha, useTheme } from "@mui/material/styles";
 import Iconify from "@/components/iconify/iconify";
 import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
@@ -77,14 +85,18 @@ export default function PlatformWalletOverviewView() {
   const { data: withdrawalRequests = [], isPending: withdrawalPending } = useWithdrawalRequestsQuery();
 
   const [shareData, setShareData] = useState<any>(null);
+  const [shareholders, setShareholders] = useState<any[]>([]);
   const [sharesPending, setSharesPending] = useState(true);
 
   useEffect(() => {
-    axiosInstance
-      .get("/company-shares")
-      .then((res) => setShareData(res.data?.data || res.data))
-      .catch(() => setShareData(null))
-      .finally(() => setSharesPending(false));
+    Promise.all([
+      axiosInstance.get("/company-shares").then((res) => res.data?.data || res.data).catch(() => null),
+      axiosInstance.get("/company-shares/holdings").then((res) => res.data?.data || res.data || []).catch(() => []),
+    ]).then(([share, holders]) => {
+      setShareData(share);
+      setShareholders(Array.isArray(holders) ? holders : []);
+      setSharesPending(false);
+    });
   }, []);
 
   const isLoading = adminPending || usersPending || withdrawalPending || sharesPending;
@@ -237,6 +249,63 @@ export default function PlatformWalletOverviewView() {
           </Box>
         </Stack>
       </Card>
+
+      {/* Shareholders table */}
+      {shareholders.length > 0 && (
+        <Card sx={{ mb: 4, border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`, boxShadow: "none", overflow: "hidden" }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2.5, pb: 0 }}>
+            <Typography variant="subtitle1" fontWeight={700}>
+              Shareholders
+            </Typography>
+            <Chip label={`${shareholders.length} holders`} size="small" color="primary" variant="outlined" />
+          </Stack>
+          <TableContainer sx={{ px: 1 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>User</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>Shares</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>Value</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {shareholders.map((h: any) => {
+                  const user = h.user || {};
+                  const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Unknown";
+                  const initials = name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+                  const holdingValue = (h.quantity || 0) * (metrics.sharePrice || 0);
+                  return (
+                    <TableRow key={h.id || h.userId} hover>
+                      <TableCell>
+                        <Stack direction="row" alignItems="center" spacing={1.5}>
+                          <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: alpha(theme.palette.primary.main, 0.12), color: "primary.main" }}>
+                            {initials}
+                          </Avatar>
+                          <Typography variant="body2" fontWeight={500}>{name}</Typography>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">{user.emailAddress || "-"}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">{user.phone_number || "-"}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" fontWeight={600}>{(h.quantity || 0).toLocaleString()}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" fontWeight={600}>{formatGBP(holdingValue)}</Typography>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
 
       <Divider sx={{ mb: 4 }} />
 

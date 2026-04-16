@@ -66,7 +66,7 @@ export default function SharesPage() {
 
   // Trade state
   const [tradeMode, setTradeMode] = useState<'buy' | 'sell'>('buy');
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(50);
   const [trading, setTrading] = useState(false);
   const [tradeResult, setTradeResult] = useState<{ success: boolean; message: string } | null>(null);
 
@@ -111,7 +111,7 @@ export default function SharesPage() {
         ? await sharesApi.buyShares(user.id, quantity)
         : await sharesApi.sellShares(user.id, quantity);
       setTradeResult({ success: true, message: result.message });
-      setQuantity(1);
+      setQuantity(50);
       await fetchData(); // refresh data
     } catch (err: any) {
       setTradeResult({ success: false, message: err?.message || 'Transaction failed. Please try again.' });
@@ -256,7 +256,7 @@ export default function SharesPage() {
                 {/* Buy / Sell Toggle */}
                 <div className="flex rounded-xl bg-white/[0.04] border border-white/[0.06] p-1 mb-6">
                   <button
-                    onClick={() => { setTradeMode('buy'); setTradeResult(null); setQuantity(1); }}
+                    onClick={() => { setTradeMode('buy'); setTradeResult(null); setQuantity(50); }}
                     className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${
                       tradeMode === 'buy'
                         ? 'bg-secondary/20 text-secondary border border-secondary/30 shadow-lg shadow-secondary/5'
@@ -267,7 +267,7 @@ export default function SharesPage() {
                   </button>
                   {holdingQty > 0 && (
                     <button
-                      onClick={() => { setTradeMode('sell'); setTradeResult(null); setQuantity(1); }}
+                      onClick={() => { setTradeMode('sell'); setTradeResult(null); setQuantity(50); }}
                       className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${
                         tradeMode === 'sell'
                           ? 'bg-accent/20 text-accent border border-accent/30 shadow-lg shadow-accent/5'
@@ -286,19 +286,19 @@ export default function SharesPage() {
                   </label>
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      onClick={() => setQuantity(Math.max(50, quantity - 1))}
                       className="w-10 h-10 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white/60 hover:bg-white/[0.10] hover:text-white flex items-center justify-center transition-all"
                     >
                       <Minus size={16} />
                     </button>
                     <input
                       type="number"
-                      min={1}
+                      min={50}
                       max={tradeMode === 'sell' ? holdingQty : 99999}
                       value={quantity}
                       onChange={(e) => {
-                        const v = parseInt(e.target.value) || 1;
-                        setQuantity(Math.max(1, tradeMode === 'sell' ? Math.min(v, holdingQty) : v));
+                        const v = parseInt(e.target.value) || 50;
+                        setQuantity(Math.max(50, tradeMode === 'sell' ? Math.min(v, holdingQty) : v));
                       }}
                       className="flex-1 text-center text-2xl font-black text-white bg-white/[0.04] border border-white/[0.08] rounded-xl py-2 focus:outline-none focus:border-purple-500/40 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
@@ -311,7 +311,7 @@ export default function SharesPage() {
                   </div>
                   {/* Quick amounts */}
                   <div className="flex gap-2 mt-3">
-                    {[1, 5, 10, 25, 50].map((amt) => (
+                    {[50, 100, 500, 1000, 5000].map((amt) => (
                       <button
                         key={amt}
                         onClick={() => setQuantity(tradeMode === 'sell' ? Math.min(amt, holdingQty) : amt)}

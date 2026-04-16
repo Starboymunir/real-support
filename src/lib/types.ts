@@ -78,8 +78,30 @@ export interface User {
   status: UserStatus;
   driver?: Driver;
   bankAccounts?: BankAccount[];
+  shareHoldings?: UserShareHolding[];
+  shareTransactions?: ShareTransaction[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UserShareHolding {
+  id: string;
+  userId: string;
+  shareId: string;
+  quantity: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ShareTransaction {
+  id: string;
+  userId: string;
+  shareId: string;
+  type: 'BUY' | 'SELL';
+  quantity: number;
+  price: number;
+  total: number;
+  createdAt: string;
 }
 
 export interface Driver {

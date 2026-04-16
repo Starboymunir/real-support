@@ -41,11 +41,13 @@ const fadeUp = {
 function useCounter(end: number, dur = 1200) {
   const [n, setN] = useState(0);
   useEffect(() => {
+    const rounded = Math.round(end * 100) / 100;
     let s = 0;
-    const step = end / (dur / 16);
+    const step = rounded / (dur / 16);
+    const dir = rounded >= 0 ? 1 : -1;
     const id = setInterval(() => {
       s += step;
-      if (s >= end) { setN(end); clearInterval(id); } else setN(Math.floor(s));
+      if (dir > 0 ? s >= rounded : s <= rounded) { setN(rounded); clearInterval(id); } else setN(Math.round(s * 100) / 100);
     }, 16);
     return () => clearInterval(id);
   }, [end, dur]);
@@ -172,7 +174,7 @@ export default function WalletPage() {
           }
           const txDate = new Date(tx.createdAt);
           if (tx.type === 'EXPENSE' && txDate.getMonth() === thisMonth && txDate.getFullYear() === thisYear) {
-            spentTotal += tx.amount;
+            spentTotal += Math.abs(tx.amount);
           }
 
           return {
@@ -204,7 +206,7 @@ export default function WalletPage() {
               const td = new Date(t.createdAt);
               return t.type === 'EXPENSE' && td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
             })
-            .reduce((sum, t) => sum + t.amount, 0);
+            .reduce((sum, t) => sum + Math.abs(t.amount), 0);
           months.push({ month: label, amount: Math.round(monthExpenses) });
         }
         setMonthlySpend(months);
@@ -342,7 +344,7 @@ export default function WalletPage() {
               <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                 <TrendingDown size={20} className="text-accent" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-white tabular-nums">£{spent}</p>
+              <p className="text-2xl sm:text-3xl font-black text-white tabular-nums">£{spent.toFixed(2)}</p>
               <p className="text-white/30 text-xs font-medium mt-1">Spent This Month</p>
             </div>
           </motion.div>

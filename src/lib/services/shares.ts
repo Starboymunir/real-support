@@ -3,6 +3,7 @@
    ═══════════════════════════════════════════ */
 
 import { api } from '../api';
+import type { User } from '../types';
 
 export interface CompanyShare {
   id: string;
@@ -18,37 +19,25 @@ export interface CompanyShare {
   updatedAt: string;
 }
 
-export interface UserShareHolding {
-  id: string;
-  userId: string;
-  shareId: string;
-  quantity: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ShareTransaction {
-  id: string;
-  userId: string;
-  shareId: string;
-  type: 'BUY' | 'SELL';
-  quantity: number;
-  price: number;
-  total: number;
-  createdAt: string;
-}
+export type { UserShareHolding, ShareTransaction } from '../types';
 
 export interface UserHoldingResponse {
-  holding: UserShareHolding | null;
-  transactions: ShareTransaction[];
+  holding: import('../types').UserShareHolding | null;
+  transactions: import('../types').ShareTransaction[];
 }
 
 export const sharesApi = {
   getShareInfo: () =>
     api.get<CompanyShare>('/company-shares'),
 
-  getUserHolding: (userId: string) =>
-    api.get<UserHoldingResponse>(`/company-shares/holdings/${userId}`),
+  getUserHolding: async (userId: string): Promise<UserHoldingResponse> => {
+    // Use the /users/:id endpoint which already includes shareHoldings & shareTransactions
+    const user = await api.get<User>(`/users/${userId}`);
+    return {
+      holding: user.shareHoldings?.[0] ?? null,
+      transactions: user.shareTransactions ?? [],
+    };
+  },
 
   buyShares: (userId: string, quantity: number) =>
     api.post<{ success: boolean; message: string }>('/company-shares/buy', { userId, quantity }),

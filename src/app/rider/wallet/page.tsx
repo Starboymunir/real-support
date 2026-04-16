@@ -174,7 +174,7 @@ export default function WalletPage() {
           }
           const txDate = new Date(tx.createdAt);
           if (tx.type === 'EXPENSE' && txDate.getMonth() === thisMonth && txDate.getFullYear() === thisYear) {
-            spentTotal += tx.amount;
+            spentTotal += Math.abs(tx.amount);
           }
 
           return {
@@ -206,7 +206,7 @@ export default function WalletPage() {
               const td = new Date(t.createdAt);
               return t.type === 'EXPENSE' && td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
             })
-            .reduce((sum, t) => sum + t.amount, 0);
+            .reduce((sum, t) => sum + Math.abs(t.amount), 0);
           months.push({ month: label, amount: Math.round(monthExpenses) });
         }
         setMonthlySpend(months);

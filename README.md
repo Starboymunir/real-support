@@ -144,8 +144,4 @@ Profile updates follow the **same structure as regular user profiles**.
 | ------------ | --------------------- | ------------------------- | --------------------------------- |
 | SuperAdmin   | Admin                 | Everything                | Only one allowed                  |
 | Admin        | Company, CompanyAdmin | Companies & CompanyAdmins | Cannot create SuperAdmin or Admin |
-| CompanyAdmin | None                  | Company & Drivers     
-
-
-
-update
+| CompanyAdmin | None                         

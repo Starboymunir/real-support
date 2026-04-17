@@ -1,13 +1,98 @@
-name: Node.js Deploy
+# name: Node.js Deploy
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   deploy:
+#     runs-on: self-hosted
+
+#     env:
+#       NEXT_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY }}
+#       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+#       NEXT_PUBLIC_STRIPE_SECRET_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_SECRET_KEY }}
+#       NEXT_PUBLIC_BACKEND_API: ${{ secrets.NEXT_PUBLIC_BACKEND_API }}
+#       NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
+
+#     steps:
+#       # 1. Checkout (required for hashFiles)
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       # 2. Prepare /app folder (self-healing)
+#       - name: Prepare app folder
+#         run: |
+#           if [ ! -d "/var/www/html/rs-web-admin/app/.git" ]; then
+#             echo "📁 /app missing — cloning fresh"
+#             rm -rf /var/www/html/rs-web-admin/app
+#             git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Ferujahammed/web-admin.git /var/www/html/rs-web-admin/app
+#           else
+#             echo "🔄 /app exists — pulling latest"
+#             cd /var/www/html/rs-web-admin/app
+#             git fetch --all
+#             git reset --hard origin/main
+#           fi
+
+#       # 3. Setup Node.js
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 22
+
+#       # 4. Cache node_modules
+#       - name: Cache node_modules
+#         uses: actions/cache@v3
+#         with:
+#           path: /var/www/html/rs-web-admin/app/node_modules
+#           key: node-modules-${{ hashFiles('**/package-lock.json') }}
+#           restore-keys: node-modules-
+
+#       # 5. Install dependencies
+#       - name: Install dependencies
+#         run: |
+#           cd /var/www/html/rs-web-admin/app
+#           npm install
+
+#       # 6. Create .env file
+#       - name: Create .env file
+#         run: |
+#           sudo tee /var/www/html/rs-web-admin/app/.env > /dev/null <<EOF
+#           NEXT_PUBLIC_GOOGLE_PLACES_API_KEY=${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}
+#           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+#           NEXT_PUBLIC_STRIPE_SECRET_KEY=${NEXT_PUBLIC_STRIPE_SECRET_KEY}
+#           NEXT_PUBLIC_BACKEND_API=${NEXT_PUBLIC_BACKEND_API}
+#           NEXT_PUBLIC_MAPBOX_TOKEN=${NEXT_PUBLIC_MAPBOX_TOKEN}
+#           EOF
+
+#       # 7. Build Next.js
+#       - name: Build Next.js
+#         run: |
+#           cd /var/www/html/rs-web-admin/app
+#           npm run build 2>&1 | tee build.log
+
+#       # 8. Restart PM2 (zero downtime)
+#       - name: Restart PM2
+#         run: |
+#           cd /var/www/html/rs-web-admin/app
+#           if pm2 list | grep -q rs_web_admin; then
+#             echo "♻️ Restarting PM2 process"
+#             sudo pm2 restart rs_web_admin
+#           else
+#             echo "🚀 Starting PM2 process"
+#             sudo pm2 start npm --name "rs_web_admin" -- start
+#           fi
+#           sudo pm2 save
+name: Next.js CI/CD Deployment
 
 on:
   push:
-    branches:
-      - main
+    branches: ["main"]
 
 jobs:
-  deploy:
-    runs-on: self-hosted
+  build:
+    runs-on: ubuntu-latest
 
     env:
       NEXT_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY }}
@@ -17,70 +102,101 @@ jobs:
       NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
 
     steps:
-      # 1. Checkout (required for hashFiles)
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2. Prepare /app folder (self-healing)
-      - name: Prepare app folder
-        run: |
-          if [ ! -d "/var/www/html/rs-web-admin/app/.git" ]; then
-            echo "📁 /app missing — cloning fresh"
-            rm -rf /var/www/html/rs-web-admin/app
-            git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/Ferujahammed/web-admin.git /var/www/html/rs-web-admin/app
-          else
-            echo "🔄 /app exists — pulling latest"
-            cd /var/www/html/rs-web-admin/app
-            git fetch --all
-            git reset --hard origin/main
-          fi
-
-      # 3. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "20"
+          cache: "npm"
 
-      # 4. Cache node_modules
-      - name: Cache node_modules
-        uses: actions/cache@v3
-        with:
-          path: /var/www/html/rs-web-admin/app/node_modules
-          key: node-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: node-modules-
-
-      # 5. Install dependencies
       - name: Install dependencies
-        run: |
-          cd /var/www/html/rs-web-admin/app
-          npm install
+        run: npm ci
 
-      # 6. Create .env file
       - name: Create .env file
         run: |
-          sudo tee /var/www/html/rs-web-admin/app/.env > /dev/null <<EOF
-          NEXT_PUBLIC_GOOGLE_PLACES_API_KEY=${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}
-          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
-          NEXT_PUBLIC_STRIPE_SECRET_KEY=${NEXT_PUBLIC_STRIPE_SECRET_KEY}
-          NEXT_PUBLIC_BACKEND_API=${NEXT_PUBLIC_BACKEND_API}
-          NEXT_PUBLIC_MAPBOX_TOKEN=${NEXT_PUBLIC_MAPBOX_TOKEN}
+          cat <<EOF > .env
+          NEXT_PUBLIC_GOOGLE_PLACES_API_KEY="${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}"
+          NEXT_PUBLIC_STRIPE_SECRET_KEY="${NEXT_PUBLIC_STRIPE_SECRET_KEY}"
+          NEXT_PUBLIC_BACKEND_API="${NEXT_PUBLIC_BACKEND_API}"
+          NEXT_PUBLIC_MAPBOX_TOKEN="${NEXT_PUBLIC_MAPBOX_TOKEN}"
           EOF
 
-      # 7. Build Next.js
       - name: Build Next.js
         run: |
-          cd /var/www/html/rs-web-admin/app
-          npm run build 2>&1 | tee build.log
+          NODE_ENV=production npm run build
 
-      # 8. Restart PM2 (zero downtime)
-      - name: Restart PM2
+      - name: Package artifact
         run: |
-          cd /var/www/html/rs-web-admin/app
-          if pm2 list | grep -q rs_web_admin; then
-            echo "♻️ Restarting PM2 process"
-            sudo pm2 restart rs_web_admin
+          tar -czf nextjs-deploy.tar.gz \
+            .next \
+            public \
+            package.json \
+            package-lock.json \
+            .env
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-artifact
+          path: nextjs-deploy.tar.gz
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-artifact
+
+      - name: Deploy Next.js App
+        run: |
+          set -e
+
+          APP_DIR=/var/www/html/rs-web-admin/app
+
+          echo "📁 Preparing directory..."
+          mkdir -p $APP_DIR
+
+          echo "🧹 Cleaning old build files..."
+          rm -rf $APP_DIR/.next
+          rm -rf $APP_DIR/node_modules
+          rm -f $APP_DIR/package.json
+          rm -f $APP_DIR/package-lock.json
+          rm -f $APP_DIR/.env
+
+          echo "📦 Extracting new build..."
+          tar -xzf nextjs-deploy.tar.gz -C $APP_DIR
+
+          cd $APP_DIR
+
+          echo "📥 Installing production dependencies..."
+          npm ci --omit=dev
+
+          echo "🚀 Starting or reloading PM2..."
+          if pm2 describe rs_web_admin > /dev/null; then
+            echo "♻️ Reloading existing process..."
+            pm2 reload rs_web_admin --update-env
           else
-            echo "🚀 Starting PM2 process"
-            sudo pm2 start npm --name "rs_web_admin" -- start
+            echo "🆕 Starting new process..."
+            pm2 start npm --name rs_web_admin -- start
           fi
-          sudo pm2 save
+
+          echo "💾 Saving PM2 state..."
+          pm2 save
+
+          echo "🔍 Verifying deployment..."
+          sleep 5
+
+          echo "🩺 Running health check..."
+          if ! curl -fs http://localhost:3000 > /dev/null; then
+            echo "❌ Health check failed!"
+            pm2 logs rs_web_admin --lines 50
+            exit 1
+          fi
+
+          echo "✅ Deployment successful!"

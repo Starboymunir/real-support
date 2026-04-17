@@ -21,6 +21,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
 import MenuItem from "@mui/material/MenuItem";
+import TablePagination from "@mui/material/TablePagination";
 import { alpha, useTheme } from "@mui/material/styles";
 import Iconify from "@/components/iconify/iconify";
 import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
@@ -107,6 +108,11 @@ export default function PlatformWalletOverviewView() {
   const [earnForm, setEarnForm] = useState({ description: "", amount: "", category: "General" });
   const [expSaving, setExpSaving] = useState(false);
   const [earnSaving, setEarnSaving] = useState(false);
+
+  // Shareholders search & pagination
+  const [shSearch, setShSearch] = useState("");
+  const [shPage, setShPage] = useState(0);
+  const [shRowsPerPage, setShRowsPerPage] = useState(10);
 
   useEffect(() => {
     Promise.all([
@@ -445,14 +451,42 @@ export default function PlatformWalletOverviewView() {
       </Card>
 
       {/* Shareholders table */}
-      {shareholders.length > 0 && (
+      {shareholders.length > 0 && (() => {
+        const q = shSearch.toLowerCase().trim();
+        const filtered = q
+          ? shareholders.filter((h: any) => {
+              const u = h.user || {};
+              const name = [u.firstName, u.lastName].filter(Boolean).join(" ").toLowerCase();
+              return name.includes(q) || (u.emailAddress || "").toLowerCase().includes(q) || (u.phone_number || "").includes(q);
+            })
+          : shareholders;
+        const paged = filtered.slice(shPage * shRowsPerPage, shPage * shRowsPerPage + shRowsPerPage);
+        return (
         <Card sx={{ mb: 4, border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`, boxShadow: "none", overflow: "hidden" }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2.5, pb: 0 }}>
             <Typography variant="subtitle1" fontWeight={700}>
               Shareholders
             </Typography>
-            <Chip label={`${shareholders.length} holders`} size="small" color="primary" variant="outlined" />
+            <Chip label={`${filtered.length} holders`} size="small" color="primary" variant="outlined" />
           </Stack>
+
+          <Box sx={{ px: 2.5, pt: 2, pb: 1 }}>
+            <TextField
+              size="small"
+              fullWidth
+              placeholder="Search by name, email or phone…"
+              value={shSearch}
+              onChange={(e) => { setShSearch(e.target.value); setShPage(0); }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Iconify icon="eva:search-fill" width={20} sx={{ color: "text.disabled" }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Box>
+
           <TableContainer sx={{ px: 1 }}>
             <Table size="small">
               <TableHead>
@@ -465,7 +499,7 @@ export default function PlatformWalletOverviewView() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {shareholders.map((h: any) => {
+                {paged.map((h: any) => {
                   const user = h.user || {};
                   const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Unknown";
                   const initials = name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -498,8 +532,19 @@ export default function PlatformWalletOverviewView() {
               </TableBody>
             </Table>
           </TableContainer>
+
+          <TablePagination
+            component="div"
+            count={filtered.length}
+            page={shPage}
+            onPageChange={(_, p) => setShPage(p)}
+            rowsPerPage={shRowsPerPage}
+            onRowsPerPageChange={(e) => { setShRowsPerPage(parseInt(e.target.value, 10)); setShPage(0); }}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+          />
         </Card>
-      )}
+        );
+      })()}
 
       <Divider sx={{ mb: 4 }} />
 

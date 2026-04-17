@@ -61,7 +61,7 @@ export default function BankAccountsListView() {
   const table = useTable({ defaultOrderBy: "createdAt" });
   const { enqueueSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState("PENDING");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [detailAccount, setDetailAccount] = useState<any | null>(null);
 

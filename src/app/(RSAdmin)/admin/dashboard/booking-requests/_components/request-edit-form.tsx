@@ -276,6 +276,7 @@ export default function BookingNewEditForm({
         time: values.totalDuration,
         couponDiscount: values.couponPercentage ?? 0,
         packageId: values.packageId,
+        useAdmin: true,
       });
       setValue("discountAmount", result?.discountAmount ?? 0, {
         shouldValidate: true,

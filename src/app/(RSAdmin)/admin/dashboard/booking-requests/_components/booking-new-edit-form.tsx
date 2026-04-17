@@ -132,6 +132,7 @@ export default function BookingNewEditForm() {
           time: values.totalDuration,
           couponDiscount: values.couponPercentage ?? 0,
           packageId: values.packageId,
+          useAdmin: true,
         });
 
         setPriceDetails({
@@ -230,6 +231,7 @@ export default function BookingNewEditForm() {
         time: values.totalDuration,
         couponDiscount: values.couponPercentage ?? 0,
         packageId: values.packageId,
+        useAdmin: true,
       });
       setPriceDetails({
         serviceFee: result.serviceFee ?? 0,

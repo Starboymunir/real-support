@@ -114,11 +114,31 @@ export default function PlatformWalletOverviewView() {
       axiosInstance.get("/company-shares/holdings").then((res) => res.data?.data || res.data || []).catch(() => []),
       axiosInstance.get("/company-shares/expenses").then((res) => res.data?.data || res.data || []).catch(() => []),
       axiosInstance.get("/company-shares/earnings").then((res) => res.data?.data || res.data || []).catch(() => []),
-    ]).then(([share, holders, exps, earns]) => {
+    ]).then(async ([share, holders, exps, earns]) => {
       setShareData(share);
-      setShareholders(Array.isArray(holders) ? holders : []);
       setExpenses(Array.isArray(exps) ? exps : []);
       setEarnings(Array.isArray(earns) ? earns : []);
+
+      // If dedicated holdings endpoint returned data, use it; otherwise fall back to passengers list
+      let finalHolders = Array.isArray(holders) ? holders : [];
+      if (finalHolders.length === 0) {
+        try {
+          const passRes = await axiosInstance.get("/admin/passengers/all");
+          const allPassengers = passRes.data?.data || passRes.data || [];
+          finalHolders = allPassengers
+            .filter((p: any) => p.shareHoldings?.some((h: any) => h.quantity > 0))
+            .map((p: any) => {
+              const holding = p.shareHoldings.find((h: any) => h.quantity > 0);
+              return {
+                id: holding?.id || p.id,
+                userId: p.id,
+                quantity: holding?.quantity || 0,
+                user: { id: p.id, firstName: p.firstName, lastName: p.lastName, emailAddress: p.emailAddress, phone_number: p.phone_number },
+              };
+            });
+        } catch {}
+      }
+      setShareholders(finalHolders);
       setSharesPending(false);
     });
   }, []);

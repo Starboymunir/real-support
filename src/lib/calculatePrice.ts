@@ -1,4 +1,5 @@
 import axiosInstance from "./axios";
+import adminAxios from "./admin-axios";
 
 interface PriceData {
   pricePerMilage: number;
@@ -56,13 +57,16 @@ export const calculatePrice = async ({
   time,
   couponDiscount,
   packageId,
+  useAdmin,
 }: {
   distance: number;
   time: number;
   couponDiscount: number;
   packageId: string;
+  useAdmin?: boolean;
 }) => {
-  const { data } = await axiosInstance.post("/others/calculate-price", {
+  const client = useAdmin ? adminAxios : axiosInstance;
+  const { data } = await client.post("/others/calculate-price", {
     distance,
     time,
     couponDiscount,

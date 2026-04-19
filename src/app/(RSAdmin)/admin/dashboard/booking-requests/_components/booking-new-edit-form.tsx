@@ -5,6 +5,8 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
+import Divider from "@mui/material/Divider";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useRouter } from "@/app/(RSAdmin)/admin/routes/hook";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import FormProvider, {
@@ -12,14 +14,12 @@ import FormProvider, {
   RHFTextField,
 } from "@/app/(RSAdmin)/admin/common/hook-form";
 
-import { Checkbox, Grid, ListItemText, Typography } from "@mui/material";
+import { Grid, ListItemText, Typography } from "@mui/material";
 import { calculateTotalDistance } from "@/lib/utils/GoogleMapsApi";
 import { DatePicker, TimePicker } from "@mui/x-date-pickers";
-import AwsImageAvatar from "../../../common/aws-image-avatar/Avatar";
 import AwsImageRender from "../../../common/aws-image-avatar/ImageRender";
 import LocationInput from "../../bookings/_components/LocationInput";
 import { calculatePrice } from "@/lib/calculatePrice";
-import Label from "../../../common/label";
 import { formatDistance, formatDuration } from "@/lib/utils";
 import { LoadingScreen } from "../../../common/loading-screen";
 import { usePassengersQuery } from "@/hooks/Users";
@@ -28,15 +28,26 @@ import {
   BookingRequestSchema,
   DefaultRequestValues,
 } from "@/lib/validators/yup-validators";
-// import { useDriversQuery } from "@/hooks/Drivers";
 import { usePackagesQuery } from "@/hooks/Packages";
 import { DiscountCoupons, Package } from "@/lib/types";
 import { formatNumber, parseValidDate } from "@/lib/helper-function";
 import { IRequestType, IUser } from "@/types/type";
 import { apiClient } from "@/lib/ApiClient";
+import Iconify from "@/components/iconify/iconify";
+
+// Smart defaults: today's date, next rounded hour
+function getDefaultDate() {
+  return new Date().toISOString();
+}
+function getDefaultTime() {
+  const now = new Date();
+  now.setHours(now.getHours() + 1, 0, 0, 0);
+  return `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+}
 
 export default function BookingNewEditForm() {
   const router = useRouter();
+  const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
   const [isSubmitting, setIsSubmitting] = useState(false);
   type PlaceDetails = {
@@ -45,7 +56,6 @@ export default function BookingNewEditForm() {
   };
   const [stoppages, setStopages] = useState<PlaceDetails[]>([]);
   const [inputFields, setInputFields] = useState<string[]>([]);
-  const [sameClient, setSameClient] = useState(false);
   const [couponLoading, setCouponLoading] = useState(false);
 
   const [priceDetails, setPriceDetails] = useState<{
@@ -60,13 +70,16 @@ export default function BookingNewEditForm() {
 
   const { data: passengers = [], isPending: isLoadingPassengers } =
     usePassengersQuery();
-  // const { data: drivers = [], isPending: isLoadingDrivers } = useDriversQuery();
   const { data: packages = [], isPending: isLoadingPackages } =
     usePackagesQuery();
 
   const methods = useForm<BookingRequestForm>({
     resolver: yupResolver(BookingRequestSchema),
-    defaultValues: DefaultRequestValues,
+    defaultValues: {
+      ...DefaultRequestValues,
+      bookingDate: getDefaultDate(),
+      bookingTime: getDefaultTime(),
+    },
   });
 
   const {
@@ -90,9 +103,21 @@ export default function BookingNewEditForm() {
   const [hours, minutes] = selectedTime?.split(":");
   const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}:59.999999999Z`;
 
+  // Auto-fill client info when passenger is selected
+  useEffect(() => {
+    const passengerId = values.passengerId;
+    if (!passengerId) return;
+    const passenger = passengers.find((p) => p.id === passengerId);
+    if (passenger) {
+      setValue("clientName", `${passenger.firstName} ${passenger.lastName}`);
+      setValue("clientEmail", passenger.emailAddress || "");
+      setValue("clientPhone", passenger.phone_number ?? "");
+    }
+  }, [values.passengerId, passengers, setValue]);
+
   useEffect(() => {
     (async () => {
-      if (values.startFrom || values.destination) {
+      if (values.startFrom?.description && values.destination?.description) {
         try {
           const data = await calculateTotalDistance(
             {
@@ -163,27 +188,6 @@ export default function BookingNewEditForm() {
     setStopages(stoppages?.filter((_, i) => i !== index));
   };
 
-  const handleSameClientChecked = (isChecked: boolean) => {
-    setSameClient(isChecked);
-    const passengerId = methods.getValues("passengerId"); // latest value
-    const passenger = passengers.find((p) => p.id === passengerId);
-
-    setValue(
-      "clientName",
-      isChecked && passenger
-        ? `${passenger.firstName} ${passenger.lastName}`
-        : ""
-    );
-    setValue(
-      "clientEmail",
-      isChecked && passenger ? passenger.emailAddress : ""
-    );
-    setValue(
-      "clientPhone",
-      isChecked && passenger ? passenger.phone_number ?? "" : ""
-    );
-  };
-
   const onApplyCoupon = async () => {
     const couponCode = values.couponCode?.trim().toUpperCase();
     if (!couponCode) return;
@@ -200,12 +204,9 @@ export default function BookingNewEditForm() {
 
       if (!couponResponse.success) {
         enqueueSnackbar(couponResponse.message, { variant: "error" });
-        // Clear coupon values
         setValue("couponCode", "");
         setValue("couponPercentage", 0);
-        await recalcPrice(); // ✅ recalc after clearing coupon
       } else {
-        // Set coupon values
         setValue("couponCode", couponResponse.data.coupon);
         setValue("couponPercentage", couponResponse.data.discount);
         setValue("couponExpiryDate", couponResponse.data.expiry);
@@ -215,31 +216,8 @@ export default function BookingNewEditForm() {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to apply coupon";
       enqueueSnackbar(errorMessage, { variant: "error" });
-      await recalcPrice(); // ✅ recalc after clearing coupon
     } finally {
       setCouponLoading(false);
-    }
-  };
-
-  const recalcPrice = async () => {
-    if (!values?.totalDistance || !values?.totalDuration || !values?.packageId)
-      return;
-
-    try {
-      const result = await calculatePrice({
-        distance: values.totalDistance,
-        time: values.totalDuration,
-        couponDiscount: values.couponPercentage ?? 0,
-        packageId: values.packageId,
-        useAdmin: true,
-      });
-      setPriceDetails({
-        serviceFee: result.serviceFee ?? 0,
-        discountAmount: result.discountAmount ?? 0,
-        totalFare: result.price ?? 0,
-      });
-    } catch (error) {
-      console.error("Error calculating price:", error);
     }
   };
 
@@ -294,496 +272,351 @@ export default function BookingNewEditForm() {
 
   if (loading) {
     return <LoadingScreen />;
-  } else {
-    return (
-      <FormProvider methods={methods} onSubmit={onSubmit}>
-        <Grid spacing={3}>
-          <Grid xs={12} md={10}>
-            <Card sx={{ p: 3 }}>
-              <Box
-                rowGap={3}
-                columnGap={2}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: "repeat(1, 1fr)",
-                  sm: "repeat(1, 1fr)",
-                }}
-              >
-                <Typography variant="h6" sx={{ color: "text.primary" }}>
-                  Journey Details
-                </Typography>
+  }
 
-                <Box
-                  rowGap={3}
-                  columnGap={2}
-                  display="grid"
-                  gridTemplateColumns={{
-                    xs: "repeat(1, 1fr)",
-                    sm: "repeat(2, 1fr)",
-                  }}
-                >
+  return (
+    <FormProvider methods={methods} onSubmit={onSubmit}>
+      <Box sx={{ display: "grid", gap: 3, gridTemplateColumns: { xs: "1fr", md: "1fr 340px" } }}>
+        {/* ═══════ Left Column — Form ═══════ */}
+        <Stack spacing={3}>
+          {/* 1. Passenger */}
+          <Card sx={{ p: 3 }}>
+            <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+              <Iconify icon="solar:user-bold-duotone" width={22} color={theme.palette.primary.main} />
+              Passenger
+            </Typography>
+            <RHFAutocomplete
+              name="passenger"
+              label="Select Passenger"
+              placeholder="Search by name…"
+              options={passengers.map((option) => option)}
+              isOptionEqualToValue={(option, value) =>
+                option.id === value.id
+              }
+              getOptionLabel={(option) =>
+                `${option?.firstName} ${option?.lastName}`
+              }
+              renderOption={(props, option) => (
+                <li {...props} key={option.id}>
                   <Box>
-                    <LocationInput name="startFrom" label="Pickup Location" />
-
-                    {errors?.startFrom && (
-                      <Typography variant="caption" color="red">
-                        Pickup Location is required
-                      </Typography>
-                    )}
-                  </Box>
-                  <Box>
-                    <LocationInput
-                      name="destination"
-                      label="Drop Of Location"
-                    />
-                    {errors?.destination && (
-                      <Typography variant="caption" color="red">
-                        Drop Of Location is required
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
-                <Box
-                  rowGap={3}
-                  columnGap={1}
-                  display="grid"
-                  gridTemplateColumns={{
-                    xs: "repeat(1, 1fr)",
-                    sm: "repeat(1, 1fr)",
-                  }}
-                >
-                  {inputFields.map((_, index) => (
-                    <div className="!flex !flex-row w-full" key={index}>
-                      <LocationInput
-                        name={`stoppages.${index}`}
-                        label={`Additional Stoppage ${index + 1}`}
-                      />
-                      <LoadingButton
-                        type="button"
-                        variant="contained"
-                        color="error"
-                        sx={{ mt: 2 }}
-                        onClick={() => removeInputField(index)}
-                      >
-                        Remove.
-                      </LoadingButton>
-                    </div>
-                  ))}
-                  <Stack alignItems="flex-end" sx={{ mt: 1 }}>
-                    <LoadingButton variant="contained" onClick={addInputField}>
-                      Add stoppages
-                    </LoadingButton>
-                  </Stack>
-                </Box>
-
-                <Typography variant="h6" sx={{ color: "text.primary" }}>
-                  Date & Time
-                </Typography>
-                <Box
-                  rowGap={3}
-                  columnGap={2}
-                  display="grid"
-                  gridTemplateColumns={{
-                    xs: "repeat(1, 1fr)",
-                    sm: "repeat(2, 1fr)",
-                  }}
-                >
-                  <Controller
-                    name="bookingDate"
-                    control={control}
-                    render={({ field, fieldState: { error } }) => (
-                      <DatePicker
-                        label="Booking Date"
-                        disablePast
-                        value={field.value ? new Date(field.value) : null}
-                        onChange={(newValue) => {
-                          field.onChange(
-                            newValue ? newValue.toISOString() : null
-                          );
-                        }}
-                        format="dd-MM-yyyy"
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            error: !!error,
-                            helperText: error?.message,
-                          },
-                        }}
-                      />
-                    )}
-                  />
-                  <Controller
-                    name="bookingTime"
-                    control={control}
-                    render={({ field, fieldState: { error } }) => {
-                      // Convert stored "HH:mm" string to a Date object for the picker
-                      const timeValue = field.value
-                        ? new Date(`1970-01-01T${field.value}:00`)
-                        : null;
-
-                      return (
-                        <TimePicker
-                          label="Booking Time"
-                          value={timeValue}
-                          ampm={false} // ✅ 24-hour format
-                          onChange={(newValue) => {
-                            if (!newValue) {
-                              field.onChange(null);
-                            } else {
-                              const hours = newValue
-                                .getHours()
-                                .toString()
-                                .padStart(2, "0");
-                              const minutes = newValue
-                                .getMinutes()
-                                .toString()
-                                .padStart(2, "0");
-                              field.onChange(`${hours}:${minutes}`);
-                            }
-                          }}
-                          slotProps={{
-                            textField: {
-                              fullWidth: true,
-                              error: !!error,
-                              helperText: error?.message,
-                            },
-                          }}
-                        />
-                      );
-                    }}
-                  />
-                </Box>
-
-                <Typography variant="h6" sx={{ color: "text.primary" }}>
-                  Package & Persons
-                </Typography>
-
-                <Box
-                  rowGap={3}
-                  columnGap={2}
-                  display="grid"
-                  gridTemplateColumns={{
-                    xs: "repeat(1, 1fr)",
-                    sm: "repeat(2, 1fr)",
-                  }}
-                >
-                  <RHFAutocomplete
-                    name="package"
-                    label="Packages"
-                    placeholder="Select Package"
-                    options={packages}
-                    getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) =>
-                      option.id === value.id
-                    }
-                    renderOption={(props, option) => {
-                      return (
-                        <Box
-                          component="li"
-                          {...props}
-                          sx={{ display: "flex", alignItems: "center" }}
-                        >
-                          {" "}
-                          {/* ✅ unique key */}
-                          <Box sx={{ mr: 2 }}>
-                            <AwsImageRender
-                              placeHolderImage="/webAssets/images/placeholder/car.png"
-                              height={50}
-                              width={50}
-                              alt={option.name}
-                              imageKey={option.coverImage}
-                            />
-                          </Box>
-                          <Box>
-                            <ListItemText
-                              primary={option.name}
-                              secondary={option.summary}
-                              primaryTypographyProps={{ typography: "body2" }}
-                              secondaryTypographyProps={{
-                                component: "span",
-                                color: "text.disabled",
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                      );
-                    }}
-                    onChange={(
-                      _: React.SyntheticEvent<Element, Event>,
-                      newValue: Package
-                    ) => setValue("packageId", newValue?.id || "")} // store id only
-                    value={
-                      packages.find((pkg) => pkg.id === watch("packageId")) ||
-                      null
-                    }
-                  />
-
-                  <Box
-                    rowGap={3}
-                    columnGap={2}
-                    display="grid"
-                    gridTemplateColumns={{
-                      xs: "repeat(1, 1fr)",
-                      sm: "repeat(2, 1fr)",
-                    }}
-                  >
-                    <RHFTextField
-                      type={"number"}
-                      name="totalLuggage"
-                      label={"Total Luggage"}
-                    />
-                    <RHFTextField
-                      type={"number"}
-                      name="totalPersons"
-                      label={"Total Persons"}
-                    />
-                  </Box>
-                </Box>
-                <Box
-                  rowGap={3}
-                  columnGap={2}
-                  display="grid"
-                  gridTemplateColumns={{
-                    xs: "repeat(1, 1fr)",
-                    sm: "repeat(1, 1fr)",
-                  }}
-                >
-                  <Typography variant="h6" sx={{ color: "text.primary" }}>
-                    Passenger Info
-                  </Typography>
-                  <Box
-                    rowGap={3}
-                    columnGap={2}
-                    display="grid"
-                    gridTemplateColumns={{
-                      xs: "repeat(1, 1fr)",
-                      sm: "repeat(2, 1fr)",
-                    }}
-                  >
-                    <RHFAutocomplete
-                      name="passenger"
-                      label="Passenger"
-                      placeholder="Select Rider"
-                      options={passengers.map((option) => option)}
-                      isOptionEqualToValue={(option, value) =>
-                        option.id === value.id
-                      }
-                      getOptionLabel={(option) =>
-                        `${option?.firstName} ${option?.lastName}`
-                      }
-                      renderOption={(props, option) => (
-                        <li {...props} key={option.id}>
-                          {/* <Box sx={{ mr: 1 }}>
-                            <AwsImageAvatar
-                              alt={option?.firstName}
-                              imageKey={option?.coverImage}
-                            />
-                          </Box> */}
-                          <Box>
-                            <ListItemText
-                              primary={
-                                option?.firstName + "" + option?.lastName
-                              }
-                              secondary={option?.emailAddress}
-                              primaryTypographyProps={{ typography: "body2" }}
-                              secondaryTypographyProps={{
-                                component: "span",
-                                color: "text.disabled",
-                              }}
-                            />
-                          </Box>
-                        </li>
-                      )}
-                      onChange={(
-                        _: React.SyntheticEvent<Element, Event>,
-                        newValue: IUser
-                      ) => {
-                        setValue("passengerId", newValue?.id || "");
+                    <ListItemText
+                      primary={`${option?.firstName} ${option?.lastName}`}
+                      secondary={`${option?.emailAddress} • ${option?.phone_number || ""}`}
+                      primaryTypographyProps={{ typography: "body2" }}
+                      secondaryTypographyProps={{
+                        component: "span",
+                        color: "text.disabled",
                       }}
-                      value={
-                        passengers.find((p) => p.id === watch("passengerId")) ||
-                        null
-                      }
-                    />
-                    {/* <RHFAutocomplete
-                      name="driver"
-                      label="Driver"
-                      options={drivers.map((option) => option)}
-                      isOptionEqualToValue={(option, value) =>
-                        option.id === value.id
-                      }
-                      getOptionLabel={(option) =>
-                        `${option?.userInfo?.firstName} ${option?.userInfo?.lastName}`
-                      }
-                      renderOption={(props, option) => (
-                        <li {...props} key={option.id}>
-                          <Box sx={{ mr: 1 }}>
-                            <AwsImageAvatar
-                              alt={option?.userInfo?.firstName}
-                              imageKey={option?.profileImage}
-                            />
-                          </Box>
-                          <Box>
-                            <ListItemText
-                              primary={
-                                option?.userInfo?.firstName +
-                                "" +
-                                option?.userInfo?.lastName
-                              }
-                              secondary={option?.userInfo?.emailAddress}
-                              primaryTypographyProps={{ typography: "body2" }}
-                              secondaryTypographyProps={{
-                                component: "span",
-                                color: "text.disabled",
-                              }}
-                            />
-                          </Box>
-                        </li>
-                      )}
-                      onChange={(
-                        _: React.SyntheticEvent<Element, Event>,
-                        newValue: IDriver
-                      ) => setValue("driverId", newValue?.id || "")} // store id only
-                      value={
-                        drivers.find((d) => d.id === watch("driverId")) || null
-                      }
-                    /> */}
-                  </Box>
-                  <div className="flex">
-                    <Checkbox
-                      value="samePassenger"
-                      checked={sameClient}
-                      onChange={(event) =>
-                        handleSameClientChecked(event.target.checked)
-                      }
-                    />{" "}
-                    <Label
-                      onClick={(event) => handleSameClientChecked(!sameClient)}
-                      className="cursor-pointer"
-                    >
-                      {" "}
-                      Book for passenger
-                    </Label>
-                  </div>
-                  <Box
-                    rowGap={3}
-                    columnGap={2}
-                    display="grid"
-                    gridTemplateColumns={{
-                      xs: "repeat(1, 1fr)",
-                      sm: "repeat(3, 1fr)",
-                    }}
-                  >
-                    <RHFTextField
-                      InputLabelProps={{ shrink: true }}
-                      name="clientName"
-                      label={"Client Name"}
-                    />
-                    <RHFTextField
-                      InputLabelProps={{ shrink: true }}
-                      name="clientPhone"
-                      label={"Client Phone"}
-                    />
-                    <RHFTextField
-                      InputLabelProps={{ shrink: true }}
-                      name="clientEmail"
-                      type="email"
-                      label={"Client Email"}
                     />
                   </Box>
-                  <Box
-                    rowGap={3}
-                    columnGap={2}
-                    display="grid"
-                    gridTemplateColumns={{
-                      xs: "repeat(1, 1fr)",
-                      sm: "repeat(1, 1fr)",
-                    }}
-                  >
-                    <RHFTextField
-                      multiline
-                      name="notes"
-                      label={"notes"}
-                      rows={5}
-                    />
-                  </Box>
+                </li>
+              )}
+              onChange={(
+                _: React.SyntheticEvent<Element, Event>,
+                newValue: IUser
+              ) => {
+                setValue("passengerId", newValue?.id || "");
+              }}
+              value={
+                passengers.find((p) => p.id === watch("passengerId")) ||
+                null
+              }
+            />
+            {values.passengerId && (
+              <Box sx={{ mt: 2, p: 1.5, borderRadius: 1, bgcolor: alpha(theme.palette.success.main, 0.08) }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
+                  Client details (auto-filled, editable)
+                </Typography>
+                <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr 1fr" }} gap={1.5}>
+                  <RHFTextField InputLabelProps={{ shrink: true }} name="clientName" label="Client Name" size="small" />
+                  <RHFTextField InputLabelProps={{ shrink: true }} name="clientPhone" label="Client Phone" size="small" />
+                  <RHFTextField InputLabelProps={{ shrink: true }} name="clientEmail" type="email" label="Client Email" size="small" />
                 </Box>
               </Box>
+            )}
+            {!values.passengerId && (
+              <>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 2, mb: 1 }}>
+                  Or enter client details manually:
+                </Typography>
+                <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr 1fr" }} gap={2}>
+                  <RHFTextField InputLabelProps={{ shrink: true }} name="clientName" label="Client Name" />
+                  <RHFTextField InputLabelProps={{ shrink: true }} name="clientPhone" label="Client Phone" />
+                  <RHFTextField InputLabelProps={{ shrink: true }} name="clientEmail" type="email" label="Client Email" />
+                </Box>
+              </>
+            )}
+          </Card>
 
-              <Stack
-                spacing={2}
-                alignItems="flex-end"
-                sx={{ mt: 3, textAlign: "right", typography: "body2" }}
-              >
-                <Stack direction="row" gap={2} alignItems={"center"}>
-                  <RHFTextField
-                    InputLabelProps={{ shrink: true }}
-                    name="couponCode"
-                    size="small"
-                    label={"Discount Coupon"}
+          {/* 2. Journey */}
+          <Card sx={{ p: 3 }}>
+            <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+              <Iconify icon="solar:route-bold-duotone" width={22} color={theme.palette.info.main} />
+              Journey Details
+            </Typography>
+
+            <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }} gap={2}>
+              <Box>
+                <LocationInput name="startFrom" label="Pickup Location" />
+                {errors?.startFrom && (
+                  <Typography variant="caption" color="error.main">Pickup Location is required</Typography>
+                )}
+              </Box>
+              <Box>
+                <LocationInput name="destination" label="Drop Off Location" />
+                {errors?.destination && (
+                  <Typography variant="caption" color="error.main">Drop Off Location is required</Typography>
+                )}
+              </Box>
+            </Box>
+
+            {inputFields.map((_, index) => (
+              <Stack direction="row" spacing={1} key={index} sx={{ mt: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <LocationInput
+                    name={`stoppages.${index}`}
+                    label={`Stoppage ${index + 1}`}
                   />
-                  <LoadingButton
-                    variant="contained"
-                    loading={couponLoading}
-                    color="success"
-                    type="button"
-                    onClick={onApplyCoupon}
-                  >
-                    Apply
-                  </LoadingButton>
-                </Stack>
-
-                <Stack direction="row">
-                  <Box sx={{ color: "text.secondary" }}>Discount Amount</Box>
-                  <Box sx={{ width: 160, typography: "subtitle2" }}>
-                    -£ {priceDetails.discountAmount.toFixed(2)}
-                  </Box>
-                </Stack>
-
-                <Stack direction="row">
-                  <Box sx={{ color: "text.secondary" }}>Total Distance</Box>
-                  <Box sx={{ width: 160, typography: "subtitle2" }}>
-                    {values?.totalDistance
-                      ? formatDistance(values?.totalDistance)
-                      : "-"}
-                  </Box>
-                </Stack>
-
-                <Stack direction="row">
-                  <Box sx={{ color: "text.secondary" }}>Total Time</Box>
-                  <Box
-                    sx={{
-                      width: 160,
-                      ...(values.totalDuration && { color: "error.main" }),
-                    }}
-                  >
-                    {values?.totalDuration
-                      ? formatDuration(values?.totalDuration)
-                      : "-"}
-                  </Box>
-                </Stack>
-
-                <Stack direction="row" sx={{ typography: "subtitle1" }}>
-                  <Box>Total</Box>
-                  <Box sx={{ width: 160 }}>
-                    £ {priceDetails.totalFare.toFixed(2)}
-                  </Box>
-                </Stack>
-              </Stack>
-
-              <Stack alignItems="flex-end" sx={{ mt: 3 }}>
+                </Box>
                 <LoadingButton
-                  type="submit"
-                  variant="contained"
-                  loading={isSubmitting}
+                  type="button"
+                  variant="soft"
+                  color="error"
+                  size="small"
+                  onClick={() => removeInputField(index)}
+                  sx={{ alignSelf: "center", minWidth: 36, px: 1 }}
                 >
-                  Create Booking
+                  <Iconify icon="solar:trash-bin-trash-bold" width={18} />
                 </LoadingButton>
               </Stack>
-            </Card>
-          </Grid>
-        </Grid>
-      </FormProvider>
-    );
-  }
+            ))}
+
+            <LoadingButton
+              variant="soft"
+              size="small"
+              onClick={addInputField}
+              startIcon={<Iconify icon="mingcute:add-line" width={18} />}
+              sx={{ mt: 2 }}
+            >
+              Add Stoppage
+            </LoadingButton>
+          </Card>
+
+          {/* 3. Date, Time, Package */}
+          <Card sx={{ p: 3 }}>
+            <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+              <Iconify icon="solar:calendar-bold-duotone" width={22} color={theme.palette.warning.main} />
+              Schedule & Package
+            </Typography>
+
+            <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }} gap={2}>
+              <Controller
+                name="bookingDate"
+                control={control}
+                render={({ field, fieldState: { error } }) => (
+                  <DatePicker
+                    label="Booking Date"
+                    disablePast
+                    value={field.value ? new Date(field.value) : null}
+                    onChange={(newValue) => {
+                      field.onChange(newValue ? newValue.toISOString() : null);
+                    }}
+                    format="dd-MM-yyyy"
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        error: !!error,
+                        helperText: error?.message,
+                      },
+                    }}
+                  />
+                )}
+              />
+              <Controller
+                name="bookingTime"
+                control={control}
+                render={({ field, fieldState: { error } }) => {
+                  const timeValue = field.value
+                    ? new Date(`1970-01-01T${field.value}:00`)
+                    : null;
+
+                  return (
+                    <TimePicker
+                      label="Booking Time"
+                      value={timeValue}
+                      ampm={false}
+                      onChange={(newValue) => {
+                        if (!newValue) {
+                          field.onChange(null);
+                        } else {
+                          const h = newValue.getHours().toString().padStart(2, "0");
+                          const m = newValue.getMinutes().toString().padStart(2, "0");
+                          field.onChange(`${h}:${m}`);
+                        }
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!error,
+                          helperText: error?.message,
+                        },
+                      }}
+                    />
+                  );
+                }}
+              />
+            </Box>
+
+            <Box display="grid" gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr 1fr" }} gap={2} sx={{ mt: 2 }}>
+              <RHFAutocomplete
+                name="package"
+                label="Package"
+                placeholder="Select Package"
+                options={packages}
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(option, value) =>
+                  option.id === value.id
+                }
+                renderOption={(props, option) => (
+                  <Box
+                    component="li"
+                    {...props}
+                    sx={{ display: "flex", alignItems: "center" }}
+                  >
+                    <Box sx={{ mr: 2 }}>
+                      <AwsImageRender
+                        placeHolderImage="/webAssets/images/placeholder/car.png"
+                        height={40}
+                        width={40}
+                        alt={option.name}
+                        imageKey={option.coverImage}
+                      />
+                    </Box>
+                    <Box>
+                      <ListItemText
+                        primary={option.name}
+                        secondary={option.summary}
+                        primaryTypographyProps={{ typography: "body2" }}
+                        secondaryTypographyProps={{
+                          component: "span",
+                          color: "text.disabled",
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                )}
+                onChange={(
+                  _: React.SyntheticEvent<Element, Event>,
+                  newValue: Package
+                ) => setValue("packageId", newValue?.id || "")}
+                value={
+                  packages.find((pkg) => pkg.id === watch("packageId")) ||
+                  null
+                }
+              />
+              <RHFTextField type="number" name="totalPersons" label="Persons" />
+              <RHFTextField type="number" name="totalLuggage" label="Luggage" />
+            </Box>
+          </Card>
+
+          {/* 4. Notes */}
+          <Card sx={{ p: 3 }}>
+            <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+              <Iconify icon="solar:notes-bold-duotone" width={22} color={theme.palette.secondary.main} />
+              Notes
+            </Typography>
+            <RHFTextField multiline name="notes" label="Notes" rows={3} />
+          </Card>
+        </Stack>
+
+        {/* ═══════ Right Column — Price Summary (sticky) ═══════ */}
+        <Box>
+          <Card sx={{ p: 3, position: "sticky", top: 80 }}>
+            <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+              <Iconify icon="solar:tag-price-bold-duotone" width={22} color={theme.palette.success.main} />
+              Price Summary
+            </Typography>
+
+            <Stack spacing={1.5}>
+              <Stack direction="row" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">Distance</Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  {values?.totalDistance ? formatDistance(values.totalDistance) : "—"}
+                </Typography>
+              </Stack>
+
+              <Stack direction="row" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">Duration</Typography>
+                <Typography variant="body2" fontWeight={600} color={values.totalDuration ? "warning.main" : "text.secondary"}>
+                  {values?.totalDuration ? formatDuration(values.totalDuration) : "—"}
+                </Typography>
+              </Stack>
+
+              <Stack direction="row" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">Service Fee</Typography>
+                <Typography variant="body2" fontWeight={600}>
+                  £{priceDetails.serviceFee.toFixed(2)}
+                </Typography>
+              </Stack>
+
+              {priceDetails.discountAmount > 0 && (
+                <Stack direction="row" justifyContent="space-between">
+                  <Typography variant="body2" color="success.main">Discount</Typography>
+                  <Typography variant="body2" fontWeight={600} color="success.main">
+                    -£{priceDetails.discountAmount.toFixed(2)}
+                  </Typography>
+                </Stack>
+              )}
+
+              <Divider />
+
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="subtitle1" fontWeight={700}>Total</Typography>
+                <Typography variant="h5" fontWeight={700} color="primary.main">
+                  £{priceDetails.totalFare.toFixed(2)}
+                </Typography>
+              </Stack>
+            </Stack>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Coupon */}
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+              Discount Coupon
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <RHFTextField
+                InputLabelProps={{ shrink: true }}
+                name="couponCode"
+                size="small"
+                placeholder="Enter code"
+              />
+              <LoadingButton
+                variant="contained"
+                loading={couponLoading}
+                color="success"
+                type="button"
+                onClick={onApplyCoupon}
+                sx={{ minWidth: 70 }}
+              >
+                Apply
+              </LoadingButton>
+            </Stack>
+
+            <LoadingButton
+              fullWidth
+              type="submit"
+              variant="contained"
+              size="large"
+              loading={isSubmitting}
+              startIcon={<Iconify icon="solar:check-circle-bold" width={22} />}
+              sx={{ mt: 3 }}
+            >
+              Create Booking
+            </LoadingButton>
+          </Card>
+        </Box>
+      </Box>
+    </FormProvider>
+  );
 }

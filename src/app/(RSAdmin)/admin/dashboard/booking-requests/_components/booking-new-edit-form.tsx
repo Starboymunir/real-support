@@ -572,7 +572,7 @@ export default function BookingNewEditForm() {
 
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Typography variant="subtitle1" fontWeight={700}>Total</Typography>
-                <Typography variant="h5" fontWeight={700} color="primary.main">
+                <Typography variant="h5" fontWeight={700} sx={{ color: "success.main" }}>
                   £{priceDetails.totalFare.toFixed(2)}
                 </Typography>
               </Stack>

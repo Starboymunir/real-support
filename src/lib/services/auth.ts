@@ -74,6 +74,9 @@ export const authApi = {
   getAdminProfile: (id: string) =>
     api.get<Admin>(`/admin/adminUsers/${id}`),
 
+  getAdminMe: () =>
+    api.get<Admin>('/admin/adminUsers/me'),
+
   updateCurrentUser: (data: Partial<User>) =>
     api.patch<User>('/auth/update-user', data),
 

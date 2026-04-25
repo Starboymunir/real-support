@@ -13,6 +13,7 @@ const OverviewAppView = () => {
   const role = admin?.role;
 
   if (role === "ADMIN") return <AdminDashboard />;
+  if (role === "COMPANY_ADMIN") return <CompanyAdminDashboard />;
   return <SuperAdminDashboard />;
 };
 

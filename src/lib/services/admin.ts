@@ -39,6 +39,7 @@ export interface DashboardStats {
   completedBookings: number;
   cancelledBookings: number;
   activeBookings: number;
+  companyId?: string;
   [key: string]: unknown;
 }
 

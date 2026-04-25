@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (payload.type === 'admin') {
         // Admin token — restore admin session via admin profile endpoint
         authApi
-          .getAdminProfile(payload.sub)
+          .getAdminMe()
           .then((res) => {
             setState({ user: null, admin: res, loading: false, error: null });
           })
@@ -259,7 +259,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       if (payload.type === 'admin') {
-        const admin = await authApi.getAdminProfile(payload.sub);
+        const admin = await authApi.getAdminMe();
         setState((s) => ({ ...s, admin }));
         return;
       }

@@ -78,7 +78,7 @@ function MetricCard({
 }
 
 export default function CompanyAdminDashboard() {
-  const { user } = useAuth();
+  const { admin } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [wallet, setWallet] = useState<CompanyWalletData | null>(null);
@@ -93,29 +93,14 @@ export default function CompanyAdminDashboard() {
 
   // Fetch company wallet for the admin's company
   useEffect(() => {
-    if (!stats) return;
-    // The stats endpoint returns companies; try to get the first active company
-    // For company admin, we look for the company they manage
-    const adminId = (user as any)?.id;
-    if (!adminId) return;
-    // Use the admin stats API which includes company info
-    // For now, look up all companies and find the one where contactPerson = admin id
-    import("@/lib/admin-axios").then(({ default: axios }) => {
-      axios.get("/company/find-all?count=100").then(({ data }) => {
-        const companies = data?.data || [];
-        const myCompany = companies.find(
-          (c: any) => c.contactPerson === adminId || c.userInfo?.id === adminId
-        );
-        if (myCompany?.id) {
-          companyApi.getWallet(myCompany.id).then(setWallet).catch(() => {});
-        }
-      }).catch(() => {});
-    });
-  }, [stats, user]);
+    const companyId = (admin as any)?.companyId || (stats as any)?.companyId;
+    if (!companyId) return;
+    companyApi.getWallet(companyId).then(setWallet).catch(() => {});
+  }, [admin, stats]);
 
   if (loading) return <LoadingScreen />;
 
-  const firstName = user?.firstName || "Manager";
+  const firstName = admin?.firstName || "Manager";
 
   return (
     <div className="space-y-6 pb-8">

@@ -83,8 +83,13 @@ export const paths = {
       root: `${ROOTS.DASHBOARD}/companies`,
       new: `${ROOTS.DASHBOARD}/companies/new`,
       list: `${ROOTS.DASHBOARD}/companies`,
+      updateRequests: `${ROOTS.DASHBOARD}/companies/update-requests`,
       details: (id: string) => `${ROOTS.DASHBOARD}/companies/${id}`,
       edit: (id: string) => `${ROOTS.DASHBOARD}/companies/${id}/edit`,
+    },
+    myCompany: {
+      root: `${ROOTS.DASHBOARD}/my-company`,
+      updateRequests: `${ROOTS.DASHBOARD}/my-company/requests`,
     },
     user: {
       root: `${ROOTS.DASHBOARD}/admin-users`,

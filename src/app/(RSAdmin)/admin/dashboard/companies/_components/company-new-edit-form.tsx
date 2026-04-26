@@ -32,8 +32,16 @@ import { resolveS3Url } from '@/lib/api';
 
 export default function CompanyNewEditForm({
   currentCompany,
+  submitMode = "direct",
+  onRequestSubmitted,
 }: {
   currentCompany?: ICompany;
+  /**
+   * "direct" — patches `/company/updateById/:id` (SUPER_ADMIN/ADMIN flow).
+   * "request" — submits a `CompanyUpdateRequest` for SUPER_ADMIN approval (COMPANY_ADMIN flow).
+   */
+  submitMode?: "direct" | "request";
+  onRequestSubmitted?: () => void;
 }) {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
@@ -162,6 +170,15 @@ export default function CompanyNewEditForm({
           queryClient.invalidateQueries({ queryKey: ["all_companies"] });
           enqueueSnackbar("Company Created Successfully");
           router.push(paths.dashboard.companies.list);
+        }
+      } else if (submitMode === "request") {
+        // COMPANY_ADMIN approval flow — strip fields that aren't allowed.
+        const { companyEmail: _ce, companyCode: _cc, ...changes } = submitData as any;
+        const { data } = await axiosInstance.post(`/company/update-request`, changes);
+        if (data.success === true) {
+          queryClient.invalidateQueries({ queryKey: ["my_company_update_requests"] });
+          enqueueSnackbar("Update request submitted for approval");
+          onRequestSubmitted?.();
         }
       } else {
         const { data } = await axiosInstance.patch(

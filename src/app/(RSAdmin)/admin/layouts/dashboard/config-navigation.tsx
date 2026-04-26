@@ -31,6 +31,7 @@ export function useNavData() {
   const data = useMemo(() => {
     const isSuperAdmin = role === "SUPER_ADMIN";
     const isAdmin = role === "ADMIN";
+    const isCompanyAdmin = role === "COMPANY_ADMIN";
 
     const overview: any[] = [
       { title: "Dashboard", path: paths.dashboard.root, icon: ICONS.dashboard },
@@ -39,6 +40,12 @@ export function useNavData() {
     const management: any[] = [
       ...(isSuperAdmin || isAdmin
         ? [{ title: "Companies", path: paths.dashboard.companies.list, icon: ICONS.companies }]
+        : []),
+      ...(isSuperAdmin || isAdmin
+        ? [{ title: "Update Requests", path: paths.dashboard.companies.updateRequests, icon: ICONS.requests }]
+        : []),
+      ...(isCompanyAdmin
+        ? [{ title: "Company Info", path: paths.dashboard.myCompany.root, icon: ICONS.companies }]
         : []),
       ...(isSuperAdmin || isAdmin
         ? [{ title: "Admins", path: paths.dashboard.user.list, icon: ICONS.admins }]

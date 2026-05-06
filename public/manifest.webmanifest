@@ -2,6 +2,7 @@
   "name": "RS Ride",
   "short_name": "RS Ride",
   "description": "RS Ride – local taxi service. Background-checked drivers, real-time tracking, secure payments.",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

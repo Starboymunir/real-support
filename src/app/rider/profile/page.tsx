@@ -434,6 +434,7 @@ export default function RiderProfilePage() {
             <Button
               variant="outline"
               size="md"
+              href="/delete-account"
               className="!border-error !text-error hover:!bg-error hover:!text-white w-full"
             >
               <Trash2 size={16} /> Delete Account

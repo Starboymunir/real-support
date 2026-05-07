@@ -13,6 +13,7 @@ const quickLinks = [
   { label: 'Book a Ride', href: '/rider/book' },
   { label: 'Terms & Conditions', href: '/terms' },
   { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Delete Account', href: '/delete-account' },
 ];
 
 const driverLinks = [
@@ -196,6 +197,9 @@ export default function Footer() {
           <div className="flex gap-8">
             <Link href="/privacy" className="hover:text-white/50 transition-colors">
               Privacy Policy
+            </Link>
+            <Link href="/delete-account" className="hover:text-white/50 transition-colors">
+              Delete Account
             </Link>
             <Link href="/terms" className="hover:text-white/50 transition-colors">
               Terms of Service

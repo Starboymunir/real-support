@@ -1,4 +1,4 @@
 export const SiteConfig = {
-  name: 'RS CAB',
+  name: 'RS Ride',
   description: 'Local Taxi Service, You can Trust!',
 };

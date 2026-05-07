@@ -10,7 +10,7 @@ const HeroView = () => {
   // const handleClick = () => {
   //   console.log("Downloading the app");
   //   window.open(
-  //     "https://play.google.com/store/apps/details?id=com.psslrscab&pli=1",
+  //     "https://play.google.com/store/apps/details?id=com.realsupport.app&pli=1",
   //     "_blank",
   //     "noopener noreferrer"
   //   );
@@ -22,7 +22,7 @@ const HeroView = () => {
         <div className="h-full mx-auto md:px-8 flex flex-col-reverse md:flex-row md:justify-between md:items-center">
           <div className="flex justify-center flex-col md:w-1/2 px-2">
             <h3 className="text-primary font-poppins text-6xl font-medium text-center md:text-left">
-              RS CAB
+              RS Ride
             </h3>
             <h3 className="text-blue font-poppins text-3xl font-medium leading-normal">
               Rides in Seconds With Service You&apos;re Going With Confidence

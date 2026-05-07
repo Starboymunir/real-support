@@ -71,7 +71,7 @@ export default function AuthClassicLayout({ children, title }) {
         {/* Logo */}
         <Box
           component="img"
-          alt="RS CAB"
+          alt="RS Ride"
           src="/assets/logo.png"
           sx={{ width: 120, height: 120, objectFit: 'contain' }}
         />
@@ -85,7 +85,7 @@ export default function AuthClassicLayout({ children, title }) {
             maxWidth: 400,
           }}
         >
-          {title || 'RS CAB Admin'}
+          {title || 'RS Ride Admin'}
         </Typography>
 
         <Typography

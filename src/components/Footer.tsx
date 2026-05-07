@@ -54,7 +54,7 @@ export default function Footer() {
               Book Now
             </Link>
             <a
-              href="https://play.google.com/store/apps/details?id=com.psslrscab"
+              href="https://play.google.com/store/apps/details?id=com.realsupport.app"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-white/[0.06] text-white/80 hover:text-white hover:bg-white/10 font-semibold px-7 py-3.5 rounded-full border border-white/[0.08] transition-all duration-300"
@@ -76,7 +76,7 @@ export default function Footer() {
             <Link href="/" className="inline-block mb-5">
               <Image
                 src="/images/brand/logo.png"
-                alt="RS CAB"
+                alt="RS Ride"
                 width={120}
                 height={40}
                 className="object-contain"

@@ -103,7 +103,7 @@ const testimonials = [
   {
     name: 'Sarah Mitchell',
     role: 'Business Traveller',
-    text: 'RS CAB has transformed my airport commute. The driver was already waiting when I landed. Impeccable service, every single time.',
+    text: 'RS Ride has transformed my airport commute. The driver was already waiting when I landed. Impeccable service, every single time.',
     image: '/images/testimonials/sarah.jpg',
   },
   {
@@ -364,7 +364,7 @@ export default function Home() {
       <section className="py-28 lg:py-36 relative" style={{ background: 'linear-gradient(180deg, #060B14 0%, #0A1628 100%)' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="max-w-2xl mb-16">
-            <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Why RS CAB</p>
+            <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Why RS Ride</p>
             <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em] leading-[1.1]">
               Everything you need.
               <br />
@@ -499,7 +499,7 @@ export default function Home() {
                       <div className="w-7 h-7 rounded-lg bg-secondary/15 flex items-center justify-center">
                         <Navigation size={12} className="text-secondary" />
                       </div>
-                      <span className="text-white text-xs font-bold">RS CAB</span>
+                      <span className="text-white text-xs font-bold">RS Ride</span>
                     </div>
 
                     {/* Map */}
@@ -628,13 +628,13 @@ export default function Home() {
                 <div>
                   <p className="text-secondary text-sm font-semibold tracking-wide uppercase mb-4">Download</p>
                   <h2 className="text-3xl sm:text-4xl font-black text-white tracking-[-0.02em] mb-5">
-                    RS CAB in your pocket.
+                    RS Ride in your pocket.
                   </h2>
                   <p className="text-white/35 text-lg leading-relaxed mb-8 max-w-md">
                     Book rides, track drivers, manage payments. Everything in one app.
                   </p>
                   <a
-                    href="https://play.google.com/store/apps/details?id=com.psslrscab"
+                    href="https://play.google.com/store/apps/details?id=com.realsupport.app"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-3.5 bg-white/[0.05] border border-white/[0.08] text-white px-6 py-3.5 rounded-xl hover:bg-white/[0.08] hover:border-white/[0.12] transition-all"
@@ -653,7 +653,7 @@ export default function Home() {
                   <div className="relative w-full max-w-[220px] aspect-[1/2] rounded-[2.5rem] border border-white/[0.06] bg-[#0a0a0a] overflow-hidden shadow-2xl shadow-black/40">
                     <Image
                       src="/images/unsplash/london-city.jpg"
-                      alt="RS CAB App"
+                      alt="RS Ride App"
                       fill
                       className="object-cover opacity-20"
                       sizes="220px"
@@ -663,7 +663,7 @@ export default function Home() {
                       <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center mb-3">
                         <Car size={28} className="text-secondary" />
                       </div>
-                      <p className="text-white font-bold">RS CAB</p>
+                      <p className="text-white font-bold">RS Ride</p>
                       <p className="text-white/25 text-xs mt-0.5">Available on Android</p>
                     </div>
                   </div>

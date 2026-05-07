@@ -6,7 +6,7 @@ import Image from 'next/image';
 const Banner = () => {
   const handleClick = () => {
     window.open(
-      "https://play.google.com/store/apps/details?id=com.psslrscab&pli=1",
+      "https://play.google.com/store/apps/details?id=com.realsupport.app&pli=1",
       "_blank",
       "noopener noreferrer"
     );
@@ -27,7 +27,7 @@ const Banner = () => {
             </div>
             <div className="flex flex-col justify-center">
               <h5 className="text-blue font-poppins font-semibold mb-1 ">
-                RS CAB APP
+                RS Ride APP
               </h5>
               <div className="flex space-x-2">
                 <Image

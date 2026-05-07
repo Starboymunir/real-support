@@ -39,7 +39,7 @@ const faqs = [
   {
     question: 'What payment methods are accepted?',
     answer:
-      'RS CAB accepts cash payments and all major credit/debit cards (Visa, Mastercard, Amex). You can save multiple cards in your Payment Methods page for quick checkout.',
+      'RS Ride accepts cash payments and all major credit/debit cards (Visa, Mastercard, Amex). You can save multiple cards in your Payment Methods page for quick checkout.',
     icon: CreditCard,
   },
   {
@@ -122,7 +122,7 @@ export default function SupportPage() {
     {
       icon: Mail,
       label: 'Email Us',
-      value: 'support@rscab.co.uk',
+      value: 'support@real-support.com',
       desc: 'We typically respond within a few hours',
       color: 'text-primary',
       bg: 'bg-primary/10',

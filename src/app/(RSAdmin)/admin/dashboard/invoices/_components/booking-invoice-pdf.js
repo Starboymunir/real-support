@@ -211,7 +211,7 @@ export default function InvoicePDF({ invoice }) {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.body2}>RS CAB • support@rscab.co.uk • +44 20 7946 0958</Text>
+          <Text style={styles.body2}>RS Ride • support@real-support.com • +44 20 7946 0958</Text>
         </View>
       </Page>
     </Document>

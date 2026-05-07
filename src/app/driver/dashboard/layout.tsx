@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Dashboard - Driver Portal - RS CAB',
-  description: 'Your RS CAB driver dashboard — view earnings, rides, and manage your availability.',
+  title: 'Dashboard - Driver Portal - RS Ride',
+  description: 'Your RS Ride driver dashboard — view earnings, rides, and manage your availability.',
 };
 
 export default function DashboardDriverLayout({ children }: { children: React.ReactNode }) {

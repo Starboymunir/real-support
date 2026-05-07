@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   RS CAB — API Client
+   RS Ride — API Client
    Central HTTP helper that attaches the JWT access token.
    ═══════════════════════════════════════════════════════════ */
 

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'My Profile - RS CAB',
+  title: 'My Profile - RS Ride',
 };
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Company Bookings - RS CAB',
+  title: 'Company Bookings - RS Ride',
   description: 'View and manage all corporate ride bookings for your company.',
 };
 

@@ -1,6 +1,6 @@
 import { toast as sonnerToast } from 'sonner';
 
-/** Pre-configured toast helpers matching RS CAB dark theme */
+/** Pre-configured toast helpers matching RS Ride dark theme */
 export const toast = {
   success: (message: string, description?: string) =>
     sonnerToast.success(message, { description }),

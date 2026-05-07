@@ -14,7 +14,7 @@ const ServicesPageComp = () => {
       </h3>
       <div className="flex flex-col md:flex-row items-center justify-center w-full">
         <a
-          href="https://play.google.com/store/apps/details?id=com.psslrscab&pli=1"
+          href="https://play.google.com/store/apps/details?id=com.realsupport.app&pli=1"
           target="_blank"
           rel="noopener noreferrer"
           className="my-4 md:my-0 md:mx-4" // y-margin in col, x-margin in row
@@ -29,7 +29,7 @@ const ServicesPageComp = () => {
         </a>
 
         <a
-          href="https://play.google.com/store/apps/details?id=com.psslrscab&pli=1"
+          href="https://play.google.com/store/apps/details?id=com.realsupport.app&pli=1"
           target="_blank"
           rel="noopener noreferrer"
           className="my-4 md:my-0 md:mx-4"
@@ -50,7 +50,7 @@ const ServicesPageComp = () => {
           rel="noopener noreferrer"
           className="my-4 text-center"
         >
-          RS CAB – Your City’s Most Trusted Ride-Share
+          RS Ride – Your City’s Most Trusted Ride-Share
         </a>
       </div>
     </MaxWidthWrapper>

@@ -100,7 +100,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-3 shrink-0 group py-2">
             <Image
               src="/images/brand/logo.png"
-              alt="RS CAB"
+              alt="RS Ride"
               width={100}
               height={34}
               className="object-contain max-h-10 transition-transform duration-300 group-hover:scale-105"
@@ -246,7 +246,7 @@ export default function Navbar() {
       >
         {/* Drawer header */}
         <div className="flex items-center justify-between px-6 h-20 border-b border-white/5">
-          <span className="font-bold text-secondary text-lg tracking-tight">RS CAB</span>
+          <span className="font-bold text-secondary text-lg tracking-tight">RS Ride</span>
           <button
             onClick={() => setMobileOpen(false)}
             className="p-2 text-white/50 hover:text-white transition-colors rounded-full hover:bg-white/5"
@@ -359,7 +359,7 @@ export default function Navbar() {
         {/* Drawer footer */}
         <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/5">
           <p className="text-white/30 text-xs text-center">
-            &copy; 2026 RS CAB. All rights reserved.
+            &copy; 2026 RS Ride. All rights reserved.
           </p>
         </div>
       </aside>

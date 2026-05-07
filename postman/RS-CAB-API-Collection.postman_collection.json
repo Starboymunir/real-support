@@ -1,7 +1,7 @@
-﻿{
+{
   "info": {
-    "name": "RS CAB - Complete API Collection",
-    "description": "Complete Postman collection for RS CAB ride-hailing platform. Base URL: https://backend.real-support.com/api\n\nAll admin endpoints require Bearer token authentication. Login via POST /api/admin/adminUsers/login to get your token.",
+    "name": "RS Ride - Complete API Collection",
+    "description": "Complete Postman collection for RS Ride ride-hailing platform. Base URL: https://backend.real-support.com/api\n\nAll admin endpoints require Bearer token authentication. Login via POST /api/admin/adminUsers/login to get your token.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -114,7 +114,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@rscab.com\",\n  \"password\": \"your_password_here\"\n}"
+              "raw": "{\n  \"email\": \"admin@real-support.com\",\n  \"password\": \"your_password_here\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/adminUsers/login",
@@ -133,7 +133,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@rscab.com\"\n}"
+              "raw": "{\n  \"email\": \"admin@real-support.com\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/adminUsers/request-login-otp",
@@ -152,7 +152,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@rscab.com\",\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n  \"email\": \"admin@real-support.com\",\n  \"otp\": \"123456\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/adminUsers/verify-login-otp",
@@ -170,7 +170,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"newadmin@rscab.com\",\n  \"password\": \"SecurePass123!\",\n  \"name\": \"New Admin\",\n  \"role\": \"ADMIN\"\n}"
+              "raw": "{\n  \"email\": \"newadmin@real-support.com\",\n  \"password\": \"SecurePass123!\",\n  \"name\": \"New Admin\",\n  \"role\": \"ADMIN\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/adminUsers/register",
@@ -189,7 +189,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"newadmin@rscab.com\",\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n  \"email\": \"newadmin@real-support.com\",\n  \"otp\": \"123456\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/adminUsers/confirm-signup",
@@ -208,7 +208,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@rscab.com\"\n}"
+              "raw": "{\n  \"email\": \"admin@real-support.com\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/adminUsers/resend-otp",
@@ -245,7 +245,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@rscab.com\"\n}"
+              "raw": "{\n  \"email\": \"admin@real-support.com\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/adminUsers/forgot-password",
@@ -264,7 +264,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@rscab.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewSecurePass123!\"\n}"
+              "raw": "{\n  \"email\": \"admin@real-support.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewSecurePass123!\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/admin/adminUsers/reset-password",
@@ -3594,7 +3594,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": \"recipient@example.com\",\n  \"subject\": \"Test Email\",\n  \"body\": \"Hello from RS CAB\"\n}"
+              "raw": "{\n  \"to\": \"recipient@example.com\",\n  \"subject\": \"Test Email\",\n  \"body\": \"Hello from RS Ride\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/mail/send",
@@ -3612,7 +3612,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"to\": [\"user1@example.com\", \"user2@example.com\"],\n  \"subject\": \"Announcement\",\n  \"body\": \"Important update from RS CAB\"\n}"
+              "raw": "{\n  \"to\": [\"user1@example.com\", \"user2@example.com\"],\n  \"subject\": \"Announcement\",\n  \"body\": \"Important update from RS Ride\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/mail/send-bcc",

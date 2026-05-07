@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
+import Button from '@/components/ui/button';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { driverApi } from '@/lib/services';
 import { resolveImageUrl } from '@/lib/api';
@@ -27,6 +28,7 @@ import {
   CreditCard,
   Palette,
   Users,
+  Trash2,
 } from 'lucide-react';
 
 /* ── Status badge ── */
@@ -453,6 +455,28 @@ export default function DriverProfilePage() {
             </>
           );
         })()}
+
+        {/* ── Danger Zone ──────────────────────────────────────── */}
+        <div className="bg-white/[0.02] rounded-2xl p-6 border border-red-500/30">
+          <h3 className="text-lg font-semibold text-red-400 mb-2 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+              <Trash2 size={18} className="text-red-400" />
+            </div>
+            Danger Zone
+          </h3>
+          <p className="text-sm text-white/40 mb-5 leading-relaxed">
+            Once you delete your account, all of your data will be permanently removed. This action cannot be
+            undone.
+          </p>
+          <Button
+            variant="outline"
+            size="md"
+            href="/delete-account"
+            className="!border-red-500 !text-red-400 hover:!bg-red-500 hover:!text-white w-full"
+          >
+            <Trash2 size={16} /> Delete Account
+          </Button>
+        </div>
       </div>
     </DashboardLayout>
   );

@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.realsupport.app",
+    "sha256_cert_fingerprints": [
+      "E1:C4:77:47:1D:A2:66:12:06:D6:81:F4:67:43:35:3C:1B:23:63:B0:00:81:12:22:FF:80:52:5B:F6:28:C5:41"
+    ]
+  }
+}]

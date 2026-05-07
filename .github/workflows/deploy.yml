@@ -177,17 +177,21 @@ jobs:
           echo "📥 Installing production dependencies..."
           npm ci --omit=dev
 
-          echo "🚀 Starting or reloading PM2..."
-          if pm2 describe rs_web_admin > /dev/null; then
+          echo "� Verifying extracted files..."
+          ls -la $APP_DIR/.next/ | head -20 || true
+          echo "Deployed BUILD_ID: $(cat $APP_DIR/.next/BUILD_ID 2>/dev/null || echo 'MISSING')"
+
+          echo "🚀 Starting or reloading PM2 (via sudo to talk to root daemon)..."
+          if sudo pm2 describe rs_web_admin > /dev/null 2>&1; then
             echo "♻️ Reloading existing process..."
-            pm2 reload rs_web_admin --update-env
+            sudo pm2 reload rs_web_admin --update-env
           else
             echo "🆕 Starting new process..."
-            pm2 start npm --name rs_web_admin -- start
+            sudo pm2 start npm --name rs_web_admin -- start
           fi
 
           echo "💾 Saving PM2 state..."
-          pm2 save
+          sudo pm2 save
 
           echo "🔍 Verifying deployment..."
           sleep 5
@@ -195,7 +199,16 @@ jobs:
           echo "🩺 Running health check..."
           if ! curl -fs http://localhost:3000 > /dev/null; then
             echo "❌ Health check failed!"
-            pm2 logs rs_web_admin --lines 50
+            sudo pm2 logs rs_web_admin --lines 50 --nostream || true
+            exit 1
+          fi
+
+          echo "🧪 Verifying new route is served..."
+          if curl -fs http://localhost:3000/delete-account > /dev/null; then
+            echo "✅ /delete-account is live"
+          else
+            echo "⚠️ /delete-account did NOT load — process may still be on old build"
+            sudo pm2 logs rs_web_admin --lines 30 --nostream || true
             exit 1
           fi
 

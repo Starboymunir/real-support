@@ -871,7 +871,7 @@ export default function BookRide() {
                 <h3 className="font-semibold">Your Ride is Insured</h3>
               </div>
               <p className="text-sm text-white/70 leading-relaxed">
-                Every RS CAB trip includes complimentary insurance coverage for your peace of mind.
+                Every RS Ride trip includes complimentary insurance coverage for your peace of mind.
               </p>
             </motion.div>
           </div>

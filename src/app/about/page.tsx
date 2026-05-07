@@ -58,7 +58,7 @@ export default async function AboutPage() {
               <span className="text-white/25">urban mobility.</span></>}
             </h1>
             <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
-              RS CAB was built with one purpose â€” to make every journey safe, comfortable, and effortless. We&apos;re creating the ride-sharing experience the UK deserves.
+              RS Ride was built with one purpose â€” to make every journey safe, comfortable, and effortless. We&apos;re creating the ride-sharing experience the UK deserves.
             </p>
           </div>
 
@@ -66,7 +66,7 @@ export default async function AboutPage() {
           <div className="mt-16 relative rounded-2xl overflow-hidden max-w-5xl mx-auto border border-white/[0.06]">
             <Image
               src={content?.coverImage ? (resolveImageUrl(content.coverImage) || "/images/unsplash/team-collab.jpg") : "/images/unsplash/team-collab.jpg"}
-              alt="RS CAB team collaborating"
+              alt="RS Ride team collaborating"
               width={1200}
               height={500}
               className="w-full h-auto object-cover"
@@ -93,7 +93,7 @@ export default async function AboutPage() {
                     <span className="text-white/25">one ride at a time.</span>
                   </h2>
                   <p className="text-white/35 text-lg leading-relaxed mb-4">
-                    We believe mobility is a right, not a luxury. RS CAB connects riders and drivers through cutting-edge tech, fair pricing, and an uncompromising commitment to safety.
+                    We believe mobility is a right, not a luxury. RS Ride connects riders and drivers through cutting-edge tech, fair pricing, and an uncompromising commitment to safety.
                   </p>
                   <p className="text-white/35 text-lg leading-relaxed mb-8">
                     From airport transfers to cross-city commutes, our goal is to become the most trusted name in ride-sharing across the United Kingdom.
@@ -210,7 +210,7 @@ export default async function AboutPage() {
 
         <div className="relative mx-auto max-w-3xl px-6 sm:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-black text-white tracking-[-0.02em] mb-5">
-            Experience RS CAB.
+            Experience RS Ride.
           </h2>
           <p className="text-white/35 text-lg max-w-lg mx-auto mb-10">
             Safe, premium, on-demand transport across the UK.

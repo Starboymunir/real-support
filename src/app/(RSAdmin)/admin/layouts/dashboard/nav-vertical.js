@@ -56,7 +56,7 @@ export default function NavVertical({ openNav, onCloseNav }) {
             variant="subtitle2"
             sx={{ color: '#F0F4F8', fontWeight: 700, lineHeight: 1.2 }}
           >
-            RS CAB
+            RS Ride
           </Typography>
           <Typography
             variant="caption"

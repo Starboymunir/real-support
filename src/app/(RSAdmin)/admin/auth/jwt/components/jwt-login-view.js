@@ -69,7 +69,7 @@ export default function JwtLoginView() {
       {/* Mobile-only logo */}
       <Box
         component="img"
-        alt="RS CAB"
+        alt="RS Ride"
         src="/assets/logo.png"
         sx={{
           width: 64,

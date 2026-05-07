@@ -109,7 +109,7 @@ const LoginForm = () => {
             width={120}
             height={120}
             src={"/home/header logo.png"}
-            alt="RS CAB"
+            alt="RS Ride"
             className="mx-auto"
           />
 

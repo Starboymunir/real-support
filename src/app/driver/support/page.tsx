@@ -125,7 +125,7 @@ export default function DriverSupportPage() {
     {
       icon: Mail,
       label: 'Email Us',
-      value: 'support@rscab.co.uk',
+      value: 'support@real-support.com',
       desc: 'We typically respond within a few hours',
       color: 'text-primary',
       bg: 'bg-primary/10',

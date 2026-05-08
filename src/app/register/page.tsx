@@ -77,12 +77,16 @@ function RegisterContent() {
 
         <div className="w-full max-w-lg relative z-10">
           <div className="lg:hidden flex justify-center mb-8 mt-6">
-            <Image src="/images/brand/logo.png" alt="RS Ride" width={140} height={42} className="object-contain max-h-12" />
+            <Link href="/">
+              <Image src="/assets/logo.png" alt="RS Ride" width={140} height={42} className="object-contain max-h-12" />
+            </Link>
           </div>
 
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
             <div className="hidden lg:flex justify-center mb-6">
-              <Image src="/images/brand/logo.png" alt="RS Ride" width={100} height={30} className="object-contain" />
+              <Link href="/">
+                <Image src="/assets/logo.png" alt="RS Ride" width={100} height={30} className="object-contain" />
+              </Link>
             </div>
 
             {error && (
@@ -233,7 +237,9 @@ function RegisterContent() {
 
         <div className="absolute inset-0 flex flex-col justify-between p-12 z-10">
           <div className="flex justify-end">
-            <Image src="/images/brand/logo.png" alt="RS Ride" width={140} height={42} className="object-contain" />
+            <Link href="/">
+              <Image src="/assets/logo.png" alt="RS Ride" width={140} height={42} className="object-contain" />
+            </Link>
           </div>
 
           <div className="mb-16 text-right">

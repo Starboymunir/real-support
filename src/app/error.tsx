@@ -12,6 +12,27 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error('Application error:', error);
+
+    // Auto-recover from stale-chunk errors after a deploy.
+    const msg = String(error?.message || error?.name || '');
+    const isChunkError =
+      error?.name === 'ChunkLoadError' ||
+      /Loading chunk \d+ failed/i.test(msg) ||
+      /Loading CSS chunk/i.test(msg) ||
+      /Failed to fetch dynamically imported module/i.test(msg);
+
+    if (!isChunkError || typeof window === 'undefined') return;
+
+    try {
+      const KEY = '__rs_chunk_reload_at';
+      const last = Number(sessionStorage.getItem(KEY) || 0);
+      if (Date.now() - last > 30_000) {
+        sessionStorage.setItem(KEY, String(Date.now()));
+        window.location.reload();
+      }
+    } catch {
+      window.location.reload();
+    }
   }, [error]);
 
   return (

@@ -60,7 +60,7 @@ async function buildFeatureGraphic() {
 
   <!-- Headline -->
   <text x="180" y="180" font-family="Inter, Arial, sans-serif" font-size="64" font-weight="800" fill="#ffffff">
-    One App
+    RS Ride
   </text>
   <text x="180" y="240" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="600" fill="#cfe2ff">
     Book a ride. Pay with your wallet.

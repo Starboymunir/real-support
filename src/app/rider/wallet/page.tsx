@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -255,7 +255,7 @@ export default function WalletPage() {
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="badge-green"><Wallet size={12} /> One App Wallet</div>
+                    <div className="badge-green"><Wallet size={12} /> RS Ride Wallet</div>
                   </div>
                   <p className="text-white/40 text-sm mt-3">Available Balance</p>
                   <div className="flex items-center gap-3 mt-1">

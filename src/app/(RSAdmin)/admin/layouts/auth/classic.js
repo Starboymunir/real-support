@@ -1,4 +1,4 @@
-﻿import PropTypes from 'prop-types';
+import PropTypes from 'prop-types';
 // @mui
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -71,7 +71,7 @@ export default function AuthClassicLayout({ children, title }) {
         {/* Logo */}
         <Box
           component="img"
-          alt="One App"
+          alt="RS Ride"
           src="/assets/logo.png"
           sx={{ width: 120, height: 120, objectFit: 'contain' }}
         />
@@ -85,7 +85,7 @@ export default function AuthClassicLayout({ children, title }) {
             maxWidth: 400,
           }}
         >
-          {title || 'One App Admin'}
+          {title || 'RS Ride Admin'}
         </Typography>
 
         <Typography

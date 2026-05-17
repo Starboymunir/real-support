@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { Download, X } from 'lucide-react';
@@ -86,7 +86,7 @@ export default function PWAInstallPrompt() {
         <Download size={22} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm">Install One App</p>
+        <p className="font-semibold text-sm">Install RS Ride</p>
         {isIOS ? (
           <p className="text-xs text-white/70 mt-1 leading-relaxed">
             Tap the Share icon in Safari, then choose <b>Add to Home Screen</b> for the
@@ -94,7 +94,7 @@ export default function PWAInstallPrompt() {
           </p>
         ) : (
           <p className="text-xs text-white/70 mt-1">
-            Add One App to your home screen for faster booking, offline access and
+            Add RS Ride to your home screen for faster booking, offline access and
             push notifications.
           </p>
         )}

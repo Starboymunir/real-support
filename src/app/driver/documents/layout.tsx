@@ -1,8 +1,8 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Documents - Driver Portal - One App',
-  description: 'Upload your required documents to complete your One App driver application.',
+  title: 'Documents - Driver Portal - RS Ride',
+  description: 'Upload your required documents to complete your RS Ride driver application.',
 };
 
 export default function DocumentsLayout({ children }: { children: React.ReactNode }) {

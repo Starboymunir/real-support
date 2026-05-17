@@ -1,9 +1,9 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact - One App",
+  title: "Contact - RS Ride",
   description:
-    "Get in touch with One App. Contact us for bookings, support, partnerships, or any questions.",
+    "Get in touch with RS Ride. Contact us for bookings, support, partnerships, or any questions.",
 };
 
 export default function ContactLayout({

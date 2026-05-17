@@ -1,8 +1,8 @@
-﻿import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Reports & Analytics - One App',
+  title: 'Reports & Analytics - RS Ride',
   description: 'Corporate ride analytics, spending reports, and department breakdowns.',
 };
 

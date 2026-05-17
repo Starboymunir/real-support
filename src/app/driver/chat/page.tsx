@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -52,8 +52,8 @@ function getOtherParticipant(chat: Chat, userId: string) {
   // Booking chats are peer-to-peer — always show the other participant
   if (!chat.bookingId && chat.isAdminChat) {
     const name = chat.adminId
-      ? 'One App Admin'
-      : (chat.chatName || 'One App Support');
+      ? 'RS Ride Admin'
+      : (chat.chatName || 'RS Ride Support');
     return { name, id: chat.adminId ? 'admin-dm' : 'support-admin', coverImage: null as string | null };
   }
 
@@ -357,7 +357,7 @@ export default function DriverChatPage() {
                       <div className={`w-11 h-11 rounded-full overflow-hidden shrink-0 ${
                         isActive ? 'ring-2 ring-secondary/30' : ''
                       }`}>
-                        <Image src={RS_RIDE_LOGO} alt="One App" width={44} height={44} className="w-full h-full object-cover" />
+                        <Image src={RS_RIDE_LOGO} alt="RS Ride" width={44} height={44} className="w-full h-full object-cover" />
                       </div>
                     ) : resolveS3Url(other.coverImage) ? (
                       <div className={`w-11 h-11 rounded-full overflow-hidden shrink-0 ${
@@ -415,7 +415,7 @@ export default function DriverChatPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-white">Announcements</p>
-                  <p className="text-[11px] text-white/30">Broadcasts from One App</p>
+                  <p className="text-[11px] text-white/30">Broadcasts from RS Ride</p>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
@@ -447,7 +447,7 @@ export default function DriverChatPage() {
                 </button>
                 <div className="w-10 h-10 rounded-full bg-secondary/15 flex items-center justify-center text-secondary text-xs font-bold overflow-hidden">
                   {!activeChat.bookingId && activeChat.isAdminChat ? (
-                    <Image src={RS_RIDE_LOGO} alt="One App" width={40} height={40} className="w-full h-full object-cover" />
+                    <Image src={RS_RIDE_LOGO} alt="RS Ride" width={40} height={40} className="w-full h-full object-cover" />
                   ) : resolveS3Url(getOtherParticipant(activeChat, user?.id || '').coverImage) ? (
                     <Image src={resolveS3Url(getOtherParticipant(activeChat, user?.id || '').coverImage)!} alt="Avatar" width={40} height={40} className="w-full h-full object-cover" />
                   ) : (
@@ -460,7 +460,7 @@ export default function DriverChatPage() {
                   </p>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-[11px] text-white/30">
-                      {!activeChat.bookingId && activeChat.isAdminChat ? (activeChat.adminId ? 'Admin direct message' : 'One App Support') : activeChat.bookingId ? `Ride ${activeChat.bookingId.slice(-6)}` : 'Direct message'}
+                      {!activeChat.bookingId && activeChat.isAdminChat ? (activeChat.adminId ? 'Admin direct message' : 'RS Ride Support') : activeChat.bookingId ? `Ride ${activeChat.bookingId.slice(-6)}` : 'Direct message'}
                     </p>
                     {!activeChat.bookingId && activeChat.isAdminChat && (
                       <span className="inline-flex items-center gap-1 rounded-full border border-secondary/30 bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold text-secondary">
@@ -522,7 +522,7 @@ export default function DriverChatPage() {
                               <div className="max-w-[75%] sm:max-w-[65%]">
                                 {!isMine && isAdminMessage && (
                                   <div className="mb-1 flex items-center gap-2">
-                                    <span className="text-[11px] font-semibold text-secondary">One App Admin</span>
+                                    <span className="text-[11px] font-semibold text-secondary">RS Ride Admin</span>
                                     <span className="inline-flex items-center rounded-full border border-secondary/30 bg-secondary/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-secondary">
                                       Admin
                                     </span>

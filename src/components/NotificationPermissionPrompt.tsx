@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { Bell, X } from 'lucide-react';
@@ -93,7 +93,7 @@ export default function NotificationPermissionPrompt() {
         <p className="font-semibold text-sm">Stay updated on your rides</p>
         <p className="text-xs text-white/70 mt-1">
           Allow notifications to get driver arrival alerts, booking updates and important
-          messages from One App.
+          messages from RS Ride.
         </p>
         <div className="mt-3 flex gap-2">
           <button

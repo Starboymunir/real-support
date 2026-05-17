@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
@@ -10,10 +10,10 @@ export const dynamic = 'force-dynamic'
 
 
 export const metadata: Metadata = {
-  title: "One App - Local Taxi Service You Can Trust",
-  description: "One App - Rides in seconds with service. Background-checked drivers, real-time tracking, and secure payments. Book airport transfers, city rides, and business transport.",
+  title: "RS Ride - Local Taxi Service You Can Trust",
+  description: "RS Ride - Rides in seconds with service. Background-checked drivers, real-time tracking, and secure payments. Book airport transfers, city rides, and business transport.",
   manifest: "/manifest.webmanifest",
-  applicationName: "One App",
+  applicationName: "RS Ride",
   icons: {
     icon: "/images/brand/logo.png",
     apple: "/icons/icon-192.png",

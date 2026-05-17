@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   One App — Shared TypeScript types (mirrors DB schema)
+   RS Ride — Shared TypeScript types (mirrors DB schema)
    ═══════════════════════════════════════════════════════════ */
 
 // ── Enums ──

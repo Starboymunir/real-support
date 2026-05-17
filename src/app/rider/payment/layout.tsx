@@ -1,7 +1,7 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Payment Methods - One App',
+  title: 'Payment Methods - RS Ride',
 };
 
 export default function PaymentLayout({ children }: { children: React.ReactNode }) {

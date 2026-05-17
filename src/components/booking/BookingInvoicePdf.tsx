@@ -1,4 +1,4 @@
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
 import {
   Page,
   View,
@@ -232,7 +232,7 @@ export default function InvoicePDF({ invoice }: { invoice: IBookingType }) {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.body2}>One App • support@real-support.com • +44 20 7946 0958</Text>
+          <Text style={styles.body2}>RS Ride • support@real-support.com • +44 20 7946 0958</Text>
         </View>
       </Page>
     </Document>

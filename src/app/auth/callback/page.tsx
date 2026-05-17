@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -58,7 +58,7 @@ function CallbackContent() {
       <div className="text-center max-w-md px-6">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <Image src="/images/brand/logo.png" alt="One App" width={120} height={36} className="object-contain" />
+          <Image src="/images/brand/logo.png" alt="RS Ride" width={120} height={36} className="object-contain" />
         </div>
 
         {/* Status Card */}

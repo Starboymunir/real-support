@@ -1,8 +1,8 @@
-﻿import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Employee Management - One App',
+  title: 'Employee Management - RS Ride',
   description: 'Manage employees and their ride booking privileges.',
 };
 

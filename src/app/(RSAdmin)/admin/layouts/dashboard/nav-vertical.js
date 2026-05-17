@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import PropTypes from "prop-types";
 import { useEffect } from "react";
@@ -56,7 +56,7 @@ export default function NavVertical({ openNav, onCloseNav }) {
             variant="subtitle2"
             sx={{ color: '#F0F4F8', fontWeight: 700, lineHeight: 1.2 }}
           >
-            One App
+            RS Ride
           </Typography>
           <Typography
             variant="caption"

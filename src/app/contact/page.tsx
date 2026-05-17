@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, FormEvent } from 'react';
 import Image from 'next/image';
@@ -31,7 +31,7 @@ const contactCards = [
 
 const supportLinks = [
   { icon: HelpCircle, title: 'FAQ', description: 'Answers to common questions about rides, payments, and more.', href: '/rider/support' },
-  { icon: Headphones, title: 'Driver Support', description: 'Resources and help for One App drivers.', href: '/driver' },
+  { icon: Headphones, title: 'Driver Support', description: 'Resources and help for RS Ride drivers.', href: '/driver' },
   { icon: Building2, title: 'Company Portal', description: 'Manage corporate accounts and bookings.', href: '/company/company-login' },
 ];
 
@@ -199,14 +199,14 @@ export default function ContactPage() {
               <div className="rounded-2xl overflow-hidden border border-white/[0.06] relative flex-1 min-h-[280px]">
                 <Image
                   src="/images/unsplash/map-coverage.jpg"
-                  alt="One App HQ location"
+                  alt="RS Ride HQ location"
                   width={800}
                   height={500}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A1628]/80 via-[#0A1628]/30 to-transparent" />
                 <div className="absolute bottom-6 left-6">
-                  <p className="text-white font-bold">One App HQ</p>
+                  <p className="text-white font-bold">RS Ride HQ</p>
                   <p className="text-white/40 text-sm">Covent Garden, London</p>
                 </div>
               </div>

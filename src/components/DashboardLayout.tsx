@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { type ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -228,7 +228,7 @@ export default function DashboardLayout({
             <Link href="/" className="flex items-center gap-2 py-3">
               <Image
                 src="/images/brand/logo.png"
-                alt="One App"
+                alt="RS Ride"
                 width={110}
                 height={36}
                 className="object-contain max-h-10"
@@ -350,7 +350,7 @@ export default function DashboardLayout({
         <Link href="/" className="flex items-center gap-2 py-2">
           <Image
             src="/images/brand/logo.png"
-            alt="One App"
+            alt="RS Ride"
             width={90}
             height={30}
             className="object-contain max-h-8"
@@ -379,7 +379,7 @@ export default function DashboardLayout({
         }`}
       >
         <div className="flex items-center justify-between px-5 h-16 border-b border-white/5">
-          <span className="font-bold text-secondary">One App</span>
+          <span className="font-bold text-secondary">RS Ride</span>
           <button onClick={() => setMobileOpen(false)} className="p-2 text-white/40 hover:text-white">
             <X size={20} />
           </button>

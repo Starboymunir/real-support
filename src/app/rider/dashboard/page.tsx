@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import {
@@ -161,7 +161,7 @@ export default function RiderDashboard() {
             <div className="absolute -bottom-16 left-1/3 w-56 h-56 bg-accent/[0.03] rounded-full blur-[80px] pointer-events-none" />
 
             <div className="relative">
-              <div className="badge-green mb-3"><Sparkles size={12} /> One App Rider</div>
+              <div className="badge-green mb-3"><Sparkles size={12} /> RS Ride Rider</div>
               <h1 className="text-2xl sm:text-3xl font-black text-white">
                 {greeting}, <span className="gradient-text">{firstName}</span>!
               </h1>
@@ -268,7 +268,7 @@ export default function RiderDashboard() {
                     {user?.driver ? 'Switch to Driver Dashboard' : 'Become a Driver'}
                   </h3>
                   <p className="text-white/35 text-xs mt-0.5">
-                    {user?.driver ? 'Access your driver dashboard and start accepting rides.' : 'Start earning by driving with One App. Apply now!'}
+                    {user?.driver ? 'Access your driver dashboard and start accepting rides.' : 'Start earning by driving with RS Ride. Apply now!'}
                   </p>
                 </div>
               </div>
@@ -458,7 +458,7 @@ export default function RiderDashboard() {
                   <CreditCard size={26} className="text-secondary" />
                 </div>
                 <h3 className="text-xl font-black text-white mb-2">Wallet Balance</h3>
-                <p className="text-white/40 text-sm leading-relaxed">Your current One App wallet balance.</p>
+                <p className="text-white/40 text-sm leading-relaxed">Your current RS Ride wallet balance.</p>
               </div>
 
               <div className="relative mt-6 bg-white/[0.04] border border-white/[0.06] rounded-xl px-5 py-4 text-center">

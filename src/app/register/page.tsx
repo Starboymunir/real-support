@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, Suspense } from 'react';
 import Image from 'next/image';
@@ -77,12 +77,12 @@ function RegisterContent() {
 
         <div className="w-full max-w-lg relative z-10">
           <div className="lg:hidden flex justify-center mb-8 mt-6">
-            <Image src="/images/brand/logo.png" alt="One App" width={140} height={42} className="object-contain max-h-12" />
+            <Image src="/images/brand/logo.png" alt="RS Ride" width={140} height={42} className="object-contain max-h-12" />
           </div>
 
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
             <div className="hidden lg:flex justify-center mb-6">
-              <Image src="/images/brand/logo.png" alt="One App" width={100} height={30} className="object-contain" />
+              <Image src="/images/brand/logo.png" alt="RS Ride" width={100} height={30} className="object-contain" />
             </div>
 
             {error && (
@@ -233,7 +233,7 @@ function RegisterContent() {
 
         <div className="absolute inset-0 flex flex-col justify-between p-12 z-10">
           <div className="flex justify-end">
-            <Image src="/images/brand/logo.png" alt="One App" width={140} height={42} className="object-contain" />
+            <Image src="/images/brand/logo.png" alt="RS Ride" width={140} height={42} className="object-contain" />
           </div>
 
           <div className="mb-16 text-right">
@@ -243,7 +243,7 @@ function RegisterContent() {
               <span className="text-white/25">Journey Today</span>
             </h1>
             <p className="text-white/40 text-lg max-w-md ml-auto">
-              Join thousands of riders who trust One App for safe, reliable, and premium transportation.
+              Join thousands of riders who trust RS Ride for safe, reliable, and premium transportation.
             </p>
           </div>
 

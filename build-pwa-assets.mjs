@@ -63,7 +63,7 @@ async function makePlayStoreIcon() {
         <line x1="-20" y1="${fgH-40}" x2="${fgW+20}" y2="${fgH-40}"/>
         <line x1="-20" y1="${fgH-70}" x2="${fgW+20}" y2="${fgH-70}" stroke-dasharray="20 18"/>
       </g>
-      <text x="460" y="190" font-family="Inter, Arial, sans-serif" font-size="80" font-weight="800" fill="#ffffff" letter-spacing="-1">One App</text>
+      <text x="460" y="190" font-family="Inter, Arial, sans-serif" font-size="80" font-weight="800" fill="#ffffff" letter-spacing="-1">RS Ride</text>
       <text x="460" y="250" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="600" fill="${ACCENT}">Local taxi rides in seconds</text>
       <text x="460" y="305" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="400" fill="#ffffff" opacity="0.85">Background-checked drivers,</text>
       <text x="460" y="338" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="400" fill="#ffffff" opacity="0.85">real-time tracking, secure payments.</text>
@@ -85,9 +85,9 @@ async function main() {
 
   // Manifest
   const manifest = {
-    name: 'One App',
-    short_name: 'One App',
-    description: 'One App – local taxi service. Background-checked drivers, real-time tracking, secure payments.',
+    name: 'RS Ride',
+    short_name: 'RS Ride',
+    description: 'RS Ride – local taxi service. Background-checked drivers, real-time tracking, secure payments.',
     start_url: '/',
     scope: '/',
     display: 'standalone',

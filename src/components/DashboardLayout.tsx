@@ -36,6 +36,7 @@ import {
   Megaphone,
   Package,
   Settings,
+  Building2,
   ArrowLeftRight,
   FileCheck,
   Landmark,
@@ -82,6 +83,7 @@ const sidebarLinks = {
     { label: 'Bookings', href: '/company/bookings', icon: Briefcase },
     { label: 'Employees', href: '/company/employees', icon: Users },
     { label: 'Reports', href: '/company/reports', icon: BarChart3 },
+    { label: 'Company Profile', href: '/company/profile', icon: Building2 },
     { label: 'Notifications', href: '/company/notifications', icon: Bell },
   ],
   admin: [

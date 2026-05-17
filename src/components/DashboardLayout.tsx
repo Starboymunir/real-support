@@ -370,7 +370,7 @@ export default function DashboardLayout({
 
       {/* Mobile drawer */}
       <aside
-        className={`fixed top-0 left-0 z-[70] h-full w-72 bg-dark shadow-2xl transform transition-transform duration-300 lg:hidden ${
+        className={`fixed top-0 left-0 z-[70] h-full w-[85vw] max-w-xs sm:w-72 bg-dark shadow-2xl transform transition-transform duration-300 lg:hidden ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -461,7 +461,7 @@ export default function DashboardLayout({
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 top-full mt-2 w-60 rounded-xl border border-white/[0.08] bg-[#0D1420] shadow-2xl overflow-hidden z-50">
+                <div className="absolute right-0 top-full mt-2 w-[min(15rem,calc(100vw-2rem))] sm:w-60 rounded-xl border border-white/[0.08] bg-[#0D1420] shadow-2xl overflow-hidden z-50">
                   <div className="px-4 py-3 border-b border-white/[0.06]">
                     <p className="text-sm font-semibold text-white truncate">{displayName}</p>
                     <p className="text-xs text-white/40 truncate">{user?.emailAddress}</p>

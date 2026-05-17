@@ -261,7 +261,7 @@ export default async function ServicesPage() {
                 alt="Coverage map"
                 width={800}
                 height={500}
-                className="w-full h-[380px] object-cover"
+                className="w-full h-[240px] sm:h-[320px] lg:h-[380px] object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0A1628]/70 via-transparent to-transparent" />
               <div className="absolute bottom-6 left-6 flex items-center gap-2">

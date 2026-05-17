@@ -351,7 +351,7 @@ export default function Home() {
 
       <section className="border-y border-white/[0.04]" style={{ background: '#060B14' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8 py-14">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-4">
             <Stat value={15000} suffix="+" label="Rides Completed" />
             <Stat value={500} suffix="+" label="Professional Drivers" />
             <Stat value={50} suffix="+" label="Cities Covered" />

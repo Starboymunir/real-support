@@ -5,6 +5,7 @@ import { SocketProvider } from '@/lib/socket-context';
 import QueryProvider from '@/providers/QueryProvider';
 import { Toaster } from 'sonner';
 import type { ReactNode } from 'react';
+import DispatchListener from '@/components/dispatch/DispatchListener';
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -12,6 +13,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <AuthProvider>
         <SocketProvider>
           {children}
+          <DispatchListener />
         <Toaster
           position="top-right"
           theme="dark"

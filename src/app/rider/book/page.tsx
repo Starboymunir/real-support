@@ -96,6 +96,7 @@ export default function BookRide() {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [note, setNote] = useState('');
+  const [customBudget, setCustomBudget] = useState('');
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [fareEstimate, setFareEstimate] = useState<number | null>(null);
   const [faresByPackage, setFaresByPackage] = useState<Record<string, number>>({});
@@ -331,7 +332,10 @@ export default function BookRide() {
         totalPersons: passengers,
         totalLuggage: 0,
         notes: note || undefined,
-        requestType: 'FIXED',
+        requestType: customBudget ? 'ADJUSTABLE' : 'FIXED',
+        ...(customBudget && Number(customBudget) > 0
+          ? { budget: Number(customBudget) }
+          : {}),
         bookingDate: new Date(`${bookingDateStr}T${bookingTimeStr}:00`).toISOString(),
         bookingTime: bookingTimeStr,
         clientName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
@@ -358,7 +362,7 @@ export default function BookRide() {
     } finally {
       setSubmitting(false);
     }
-  }, [user, pickupPlace, dropoffPlace, date, time, selectedPackageId, selectedPackage, fareEstimate, finalFare, discountAmount, appliedCoupon, paymentMethod, passengers, note, stops, routeInfo, router, walletBalance]);
+  }, [user, pickupPlace, dropoffPlace, date, time, selectedPackageId, selectedPackage, fareEstimate, finalFare, discountAmount, appliedCoupon, paymentMethod, passengers, note, customBudget, stops, routeInfo, router, walletBalance]);
 
   return (
     <DashboardLayout role="rider" pageTitle="Book a Ride">
@@ -728,6 +732,38 @@ export default function BookRide() {
                   rows={3}
                 />
               </div>
+            </motion.div>
+
+            {/* ── Custom Offer (optional) ── */}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              custom={5}
+              variants={fadeUp}
+              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6"
+            >
+              <h2 className="text-lg font-semibold text-white mb-1">Name your price</h2>
+              <p className="text-sm text-white/50 mb-4">
+                Optional. Set your offer and we&apos;ll post your ride to the public board for drivers to bid on.
+              </p>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">£</span>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  inputMode="decimal"
+                  placeholder={fareEstimate ? `Suggested: ${fareEstimate.toFixed(2)}` : 'e.g. 12.00'}
+                  value={customBudget}
+                  onChange={(e) => setCustomBudget(e.target.value)}
+                  className="input-dark w-full pl-9"
+                />
+              </div>
+              {customBudget && Number(customBudget) > 0 && (
+                <p className="mt-2 text-xs text-amber-300/80">
+                  Drivers will see your offer and can bid. You can accept any bid you like.
+                </p>
+              )}
             </motion.div>
           </div>
 

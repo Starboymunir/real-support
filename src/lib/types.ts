@@ -681,6 +681,8 @@ export interface CreateRequestDto {
   walletCollected?: number;
   requestType?: RequestType;
   serviceCharge: number;
+  /** Rider's custom offer price. When set, request is posted to the public job board for driver bidding. */
+  budget?: number;
 }
 
 export interface AddressDto {

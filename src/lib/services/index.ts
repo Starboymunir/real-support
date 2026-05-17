@@ -14,6 +14,7 @@ export { documentsApi } from './documents';
 export { bankAccountApi } from './bank-accounts';
 export { bidsApi } from './bids';
 export type { CreateBidDto, UpdateBidDto } from './bids';
+export { dispatchApi } from './dispatch';
 export { chatApi } from './chat';
 export type { CreateChatMessageDto } from './chat';
 export { notificationsApi } from './notifications';

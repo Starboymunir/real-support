@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -39,7 +39,7 @@ const faqs = [
   {
     question: 'What payment methods are accepted?',
     answer:
-      'RS Ride accepts cash payments and all major credit/debit cards (Visa, Mastercard, Amex). You can save multiple cards in your Payment Methods page for quick checkout.',
+      'One App accepts cash payments and all major credit/debit cards (Visa, Mastercard, Amex). You can save multiple cards in your Payment Methods page for quick checkout.',
     icon: CreditCard,
   },
   {

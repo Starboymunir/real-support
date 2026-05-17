@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import "react-phone-input-2/lib/style.css";
@@ -109,7 +109,7 @@ const LoginForm = () => {
             width={120}
             height={120}
             src={"/home/header logo.png"}
-            alt="RS Ride"
+            alt="One App"
             className="mx-auto"
           />
 

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -8,35 +8,35 @@ const testimonials = [
   {
     name: 'Sarah Mitchell',
     role: 'Business Traveller',
-    text: 'RS Ride has transformed my airport commute. The driver was already waiting when I landed. Impeccable service, every single time.',
+    text: 'One App has transformed my airport commute. The driver was already waiting when I landed. Impeccable service, every single time.',
     rating: 5,
     image: '/images/testimonials/sarah.jpg',
   },
   {
     name: 'James Cooper',
     role: 'Daily Commuter',
-    text: 'I switched from Uber to RS Ride six months ago. Fixed pricing, no surge â€” I save about Â£200 a month. The drivers are genuinely friendly.',
+    text: 'I switched from Uber to One App six months ago. Fixed pricing, no surge â€” I save about Â£200 a month. The drivers are genuinely friendly.',
     rating: 5,
     image: '/images/testimonials/marcus.jpg',
   },
   {
     name: 'Priya Sharma',
     role: 'University Student',
-    text: 'As a student, I need affordable rides at odd hours. RS Ride is reliable at 3am just like 3pm. The app tracking gives my parents peace of mind too.',
+    text: 'As a student, I need affordable rides at odd hours. One App is reliable at 3am just like 3pm. The app tracking gives my parents peace of mind too.',
     rating: 5,
     image: '/images/testimonials/emily.jpg',
   },
   {
     name: 'Tom Williams',
     role: 'Corporate Manager',
-    text: 'Our company switched all employee travel to RS Ride. The corporate dashboard is brilliant for tracking expenses and managing bookings.',
+    text: 'Our company switched all employee travel to One App. The corporate dashboard is brilliant for tracking expenses and managing bookings.',
     rating: 5,
     image: '/images/testimonials/david.jpg',
   },
   {
     name: 'Emily Chen',
     role: 'Healthcare Worker',
-    text: 'Working night shifts, I need a service I can trust at 4am. RS Ride drivers are professional, punctual, and make me feel completely safe.',
+    text: 'Working night shifts, I need a service I can trust at 4am. One App drivers are professional, punctual, and make me feel completely safe.',
     rating: 5,
     image: '/images/testimonials/rachel.jpg',
   },

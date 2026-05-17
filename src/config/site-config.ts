@@ -1,4 +1,4 @@
-export const SiteConfig = {
-  name: 'RS Ride',
+﻿export const SiteConfig = {
+  name: 'One App',
   description: 'Local Taxi Service, You can Trust!',
 };

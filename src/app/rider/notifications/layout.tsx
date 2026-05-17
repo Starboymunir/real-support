@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Notifications - RS Ride',
+  title: 'Notifications - One App',
 };
 
 export default function NotificationsLayout({ children }: { children: React.ReactNode }) {

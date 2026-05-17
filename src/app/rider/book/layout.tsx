@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Book a Ride - RS Ride',
+  title: 'Book a Ride - One App',
 };
 
 export default function BookRideLayout({ children }: { children: React.ReactNode }) {

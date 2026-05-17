@@ -1,4 +1,4 @@
-// RS Ride Service Worker — handles PWA install + push notifications
+﻿// One App Service Worker — handles PWA install + push notifications
 const CACHE = 'rs-ride-v1';
 const OFFLINE_URLS = ['/'];
 
@@ -30,9 +30,9 @@ self.addEventListener('push', (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch (e) {
-    data = { title: 'RS Ride', body: event.data ? event.data.text() : '' };
+    data = { title: 'One App', body: event.data ? event.data.text() : '' };
   }
-  const title = data.title || 'RS Ride';
+  const title = data.title || 'One App';
   const options = {
     body: data.body || '',
     icon: data.icon || '/icons/icon-192.png',

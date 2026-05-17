@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Image from 'next/image';
@@ -27,7 +27,7 @@ const Banner = () => {
             </div>
             <div className="flex flex-col justify-center">
               <h5 className="text-blue font-poppins font-semibold mb-1 ">
-                RS Ride APP
+                One App
               </h5>
               <div className="flex space-x-2">
                 <Image

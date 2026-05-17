@@ -1,4 +1,4 @@
-import Image from 'next/image';
+﻿import Image from 'next/image';
 import Link from 'next/link';
 import {
   Plane,
@@ -56,7 +56,7 @@ const services = [
   {
     icon: Package,
     title: 'Parcel Delivery',
-    description: 'Same-day courier service. Tracked, insured, and delivered by trusted RS Ride drivers across the city.',
+    description: 'Same-day courier service. Tracked, insured, and delivered by trusted One App drivers across the city.',
     image: '/images/services/parcel.jpg',
     color: '#00E5FF',
   },
@@ -118,7 +118,7 @@ export default async function ServicesPage() {
             <span className="text-white/25">tailored to you.</span></>}
           </h1>
           <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
-            From quick city hops to luxury airport transfers â€” RS Ride offers a complete suite of ride-sharing services designed around your needs.
+            From quick city hops to luxury airport transfers â€” One App offers a complete suite of ride-sharing services designed around your needs.
           </p>
         </div>
       </section>
@@ -279,7 +279,7 @@ export default async function ServicesPage() {
                 <span className="text-white/25">we&apos;re there.</span>
               </h2>
               <p className="text-white/35 text-lg leading-relaxed mb-10">
-                RS Ride operates across major cities in the United Kingdom, with new locations launching every month.
+                One App operates across major cities in the United Kingdom, with new locations launching every month.
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {cities.map((city) => (
@@ -306,7 +306,7 @@ export default async function ServicesPage() {
             Your next ride is just a tap away.
           </h2>
           <p className="text-white/35 text-lg max-w-lg mx-auto mb-10">
-            Download the RS Ride app or book online. Experience the premium ride-sharing service trusted by thousands.
+            Download One App or book online. Experience the premium ride-sharing service trusted by thousands.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link href="/rider/book" className="group inline-flex items-center gap-2.5 bg-white text-black font-semibold text-[15px] px-8 py-4 rounded-full hover:shadow-[0_0_40px_rgba(255,255,255,0.12)] transition-all">

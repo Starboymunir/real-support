@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
@@ -69,7 +69,7 @@ export default function JwtLoginView() {
       {/* Mobile-only logo */}
       <Box
         component="img"
-        alt="RS Ride"
+        alt="One App"
         src="/assets/logo.png"
         sx={{
           width: 64,

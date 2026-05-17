@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
@@ -50,7 +50,7 @@ const ServicesPageComp = () => {
           rel="noopener noreferrer"
           className="my-4 text-center"
         >
-          RS Ride – Your City’s Most Trusted Ride-Share
+          One App – Your City’s Most Trusted Ride-Share
         </a>
       </div>
     </MaxWidthWrapper>

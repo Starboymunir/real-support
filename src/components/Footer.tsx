@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -76,7 +76,7 @@ export default function Footer() {
             <Link href="/" className="inline-block mb-5">
               <Image
                 src="/images/brand/logo.png"
-                alt="RS Ride"
+                alt="One App"
                 width={120}
                 height={40}
                 className="object-contain"

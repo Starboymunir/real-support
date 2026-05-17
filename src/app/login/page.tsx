@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
@@ -90,7 +90,7 @@ function LoginContent() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#060B14] via-transparent to-[#060B14]/40" />
 
         <div className="absolute inset-0 flex flex-col justify-between p-12 z-10">
-          <Image src="/images/brand/logo.png" alt="RS Ride" width={160} height={48} className="object-contain" />
+          <Image src="/images/brand/logo.png" alt="One App" width={160} height={48} className="object-contain" />
 
           <div className="mb-16">
             <h1 className="text-5xl font-black text-white leading-tight mb-4 tracking-[-0.02em]">
@@ -99,7 +99,7 @@ function LoginContent() {
               <span className="text-white/25">Ride Awaits</span>
             </h1>
             <p className="text-white/40 text-lg max-w-md">
-              Experience luxury transportation across London with RS Ride â€” where every journey is first class.
+              Experience luxury transportation across London with One App â€” where every journey is first class.
             </p>
           </div>
 
@@ -126,13 +126,13 @@ function LoginContent() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex justify-center mb-10 mt-6">
-            <Image src="/images/brand/logo.png" alt="RS Ride" width={140} height={42} className="object-contain max-h-12" />
+            <Image src="/images/brand/logo.png" alt="One App" width={140} height={42} className="object-contain max-h-12" />
           </div>
 
           {/* Form card */}
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
             <div className="hidden lg:flex justify-center mb-8">
-              <Image src="/images/brand/logo.png" alt="RS Ride" width={100} height={30} className="object-contain" />
+              <Image src="/images/brand/logo.png" alt="One App" width={100} height={30} className="object-contain" />
             </div>
 
             <h2 className="text-3xl font-bold text-white text-center mb-2">Welcome back</h2>

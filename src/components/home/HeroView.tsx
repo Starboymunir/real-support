@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useAuthContext } from "@/providers/auth-providers";
 import Image from "next/image";
@@ -22,7 +22,7 @@ const HeroView = () => {
         <div className="h-full mx-auto md:px-8 flex flex-col-reverse md:flex-row md:justify-between md:items-center">
           <div className="flex justify-center flex-col md:w-1/2 px-2">
             <h3 className="text-primary font-poppins text-6xl font-medium text-center md:text-left">
-              RS Ride
+              One App
             </h3>
             <h3 className="text-blue font-poppins text-3xl font-medium leading-normal">
               Rides in Seconds With Service You&apos;re Going With Confidence

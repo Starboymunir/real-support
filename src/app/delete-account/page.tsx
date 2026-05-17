@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -11,9 +11,9 @@ export default function DeleteAccountPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const subject = encodeURIComponent('RS Ride — Account deletion request');
+    const subject = encodeURIComponent('One App — Account deletion request');
     const body = encodeURIComponent(
-      `I would like to delete my RS Ride account and the personal data associated with it.\n\n` +
+      `I would like to delete my One App account and the personal data associated with it.\n\n` +
         `Account email: ${email}\n` +
         `Reason (optional): ${reason || '—'}\n\n` +
         `Please confirm deletion within 30 days.`,
@@ -29,11 +29,11 @@ export default function DeleteAccountPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/15 text-red-400">
             <Trash2 size={20} />
           </div>
-          <h1 className="text-2xl font-bold">Delete your RS Ride account</h1>
+          <h1 className="text-2xl font-bold">Delete your One App account</h1>
         </div>
 
         <p className="mt-4 text-white/70">
-          You can request deletion of your RS Ride account and personal data here. You do not need to be signed
+          You can request deletion of your One App account and personal data here. You do not need to be signed
           in. Once we receive your request we will permanently remove your data within 30 days.
         </p>
 
@@ -62,7 +62,7 @@ export default function DeleteAccountPage() {
             <p className="font-semibold">Email opened</p>
             <p className="mt-1 text-sm">
               We&apos;ve opened your email client with a pre-filled deletion request. Please send it from the
-              address registered on your RS Ride account so we can verify ownership.
+              address registered on your One App account so we can verify ownership.
             </p>
           </div>
         ) : (
@@ -107,7 +107,7 @@ export default function DeleteAccountPage() {
 
         <div className="mt-8 border-t border-white/10 pt-6 text-sm text-white/60">
           <p>
-            Prefer to delete from inside the app? Open RS Ride and go to{' '}
+            Prefer to delete from inside the app? Open One App and go to{' '}
             <strong className="text-white">Profile → Danger Zone → Delete Account</strong>.
           </p>
           <p className="mt-3">

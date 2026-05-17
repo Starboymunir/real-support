@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
       <div className="relative z-10 w-full max-w-md mx-4">
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
           <div className="flex justify-center mb-8">
-            <Image src="/images/brand/logo.png" alt="RS Ride" width={120} height={36} className="object-contain" />
+            <Image src="/images/brand/logo.png" alt="One App" width={120} height={36} className="object-contain" />
           </div>
 
           <div className="flex justify-center mb-6">

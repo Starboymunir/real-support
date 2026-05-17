@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useCallback } from "react";
 import {
@@ -223,7 +223,7 @@ export default function AdminBroadcasts() {
             <Box sx={{ flex: 1, overflowY: "auto", p: 2, display: "flex", flexDirection: "column", gap: 1.5 }}>
               {broadcasts.map((b) => {
                 const cfg = TARGET_CONFIG[b.target] || TARGET_CONFIG.ALL;
-                const senderName = b.sender ? `${b.sender.firstName} ${b.sender.lastName}`.trim() : `${admin?.firstName || user?.firstName || "RS Ride"} ${admin?.lastName || user?.lastName || "Admin"}`.trim();
+                const senderName = b.sender ? `${b.sender.firstName} ${b.sender.lastName}`.trim() : `${admin?.firstName || user?.firstName || "One App"} ${admin?.lastName || user?.lastName || "Admin"}`.trim();
                 return (
                   <Card
                     key={b.id}

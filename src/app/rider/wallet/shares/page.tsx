@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -148,7 +148,7 @@ export default function SharesPage() {
               <ArrowLeft size={20} className="text-white/60" />
             </Link>
             <div>
-              <h1 className="text-2xl font-black text-white">RS Ride Shares</h1>
+              <h1 className="text-2xl font-black text-white">One App Shares</h1>
               <p className="text-white/40 text-sm">Invest in the platform you ride with</p>
             </div>
           </div>
@@ -490,7 +490,7 @@ export default function SharesPage() {
           <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
             <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <BarChart3 size={18} className="text-purple-400" /> How RS Ride Shares Work
+              <BarChart3 size={18} className="text-purple-400" /> How One App Shares Work
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[

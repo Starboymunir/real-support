@@ -219,7 +219,7 @@ export default function SupportPage() {
                     </button>
 
                     {isOpen && (
-                      <div className="px-4 pb-4 pl-16">
+                      <div className="px-4 pb-4 pl-4 sm:pl-16">
                         <p className="text-sm text-white/60 leading-relaxed">
                           {faq.answer}
                         </p>

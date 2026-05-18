@@ -238,10 +238,10 @@ export default function UserChatWindow() {
   }, [socket, chatList]);
 
   return (
-    <div className="flex h-[80vh] bg-custom bg-cover bg-center rounded-xl">
+    <div className="flex flex-col lg:flex-row h-[80vh] max-h-[80vh] bg-custom bg-cover bg-center rounded-xl">
       {loadingOpenChat && <Loading />}
       {/* Left Side - User List */}
-      <div className="w-1/4 border-r flex flex-col">
+      <div className="w-full lg:w-1/4 h-[38%] lg:h-auto border-b lg:border-b-0 lg:border-r flex flex-col min-h-0">
         <div className="flex justify-between items-center align-center h-[4rem] pl-2 pr-2 border-b">
           <h2 className="text-lg font-semibold text-center">
             All Users
@@ -262,15 +262,15 @@ export default function UserChatWindow() {
       </div>
 
       {!activeChatId ? (
-        <div className="w-3/4 flex flex-col items-center justify-center">
+        <div className="w-full lg:w-3/4 flex-1 min-h-0 flex flex-col items-center justify-center">
           No Chat Selected
         </div>
       ) : loadingChatMessage ? (
-        <div className="w-3/4 flex flex-col">
+        <div className="w-full lg:w-3/4 flex-1 min-h-0 flex flex-col">
           <Loading />
         </div>
       ) : (
-        <div className="w-3/4 flex flex-col">
+        <div className="w-full lg:w-3/4 flex-1 min-h-0 flex flex-col">
           <div className="p-4 border-b w-full">
             {activeChat ? (
               <div className="flex justify-between items-center">

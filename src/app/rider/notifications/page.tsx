@@ -234,7 +234,7 @@ export default function NotificationsPage() {
 
               {/* Expanded Detail */}
               {isOpen && n.detail && (
-                <div className="px-5 pb-5 pl-20">
+                <div className="px-5 pb-5 pl-5 sm:pl-20">
                   <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                     <p className="text-sm text-white/60 leading-relaxed">
                       {n.detail}

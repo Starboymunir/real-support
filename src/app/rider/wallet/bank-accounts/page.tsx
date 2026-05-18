@@ -208,7 +208,7 @@ export default function BankAccountsPage() {
                           </span>
                         </div>
                         <p className="text-xs text-white/40 mt-1">{acc.bankName}</p>
-                        <div className="flex gap-4 mt-2">
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                           <span className="text-xs text-white/30">
                             Acc: ****{acc.accountNumber.slice(-4)}
                           </span>

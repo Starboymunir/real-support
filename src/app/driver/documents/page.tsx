@@ -320,7 +320,7 @@ export default function DocumentsPage() {
             const completedDocs = docs.filter(d => d.status === 'approved' || d.status === 'pending');
 
             return (
-              <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-8">
+              <div className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-5 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
                     {icon}
@@ -365,23 +365,23 @@ export default function DocumentsPage() {
               return (
                 <div
                   key={doc.id}
-                  className={`rounded-2xl border ${status.borderColor} p-6 transition-all duration-200`}
+                  className={`rounded-2xl border ${status.borderColor} p-4 sm:p-6 transition-all duration-200`}
                 >
                   {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div
-                        className={`w-11 h-11 rounded-xl flex items-center justify-center ${status.bgColor}`}
+                        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${status.bgColor}`}
                       >
                         <DocIcon size={20} className={status.color} />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <h3 className="font-semibold text-white">{doc.label}</h3>
                         <p className="text-sm text-white/40">{doc.description}</p>
                       </div>
                     </div>
                     <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${status.bgColor} ${status.color}`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${status.bgColor} ${status.color}`}
                     >
                       <StatusIcon size={14} />
                       {status.label}
@@ -514,12 +514,12 @@ export default function DocumentsPage() {
 
                   {/* Expiry Date */}
                   {(doc.expiry || doc.status !== 'not_uploaded') && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Calendar size={16} className="text-white/40" />
                       <label className="text-sm font-medium text-white/60">Expiry Date</label>
                       <input
                         type="date"
-                        className="input-field max-w-[200px] text-sm py-2 px-3"
+                        className="input-field w-full sm:w-auto sm:max-w-[200px] text-sm py-2 px-3"
                         defaultValue={doc.expiry || ''}
                       />
                     </div>

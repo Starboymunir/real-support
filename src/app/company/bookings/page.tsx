@@ -223,7 +223,7 @@ export default function CompanyBookingsPage() {
       {/* Summary Bar + Bulk Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         {/* Summary */}
-        <div className="flex items-center gap-6 text-sm">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
           <p className="text-white/60">
             Showing{' '}
             <span className="font-semibold text-white">{filtered.length}</span>{' '}

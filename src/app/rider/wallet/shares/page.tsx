@@ -310,12 +310,12 @@ export default function SharesPage() {
                     </button>
                   </div>
                   {/* Quick amounts */}
-                  <div className="flex gap-2 mt-3">
+                  <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mt-3">
                     {[50, 100, 500, 1000, 5000].map((amt) => (
                       <button
                         key={amt}
                         onClick={() => setQuantity(tradeMode === 'sell' ? Math.min(amt, holdingQty) : amt)}
-                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                        className={`py-1.5 rounded-lg text-xs font-bold transition-all border ${
                           quantity === amt
                             ? 'bg-purple-500/15 border-purple-500/30 text-purple-400'
                             : 'bg-white/[0.03] border-white/[0.06] text-white/40 hover:bg-white/[0.06]'

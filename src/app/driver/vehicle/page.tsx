@@ -393,18 +393,18 @@ export default function VehiclePage() {
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-white">Your Vehicles ({existingCars.length})</h3>
             {existingCars.map((ec) => (
-            <div key={ec.id} className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+            <div key={ec.id} className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 sm:p-6">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0">
                   <Car size={18} className="text-indigo-400" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">{ec.make} {ec.model}</h3>
-                  <p className="text-white/30 text-xs">{ec.numberPlate} · {ec.year}</p>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold text-white truncate">{ec.make} {ec.model}</h3>
+                  <p className="text-white/30 text-xs truncate">{ec.numberPlate} · {ec.year}</p>
                 </div>
               </div>
-              <StatusBadge status={ec.status} />
+              <div className="shrink-0"><StatusBadge status={ec.status} /></div>
             </div>
 
             <div className="flex flex-col md:flex-row gap-5">
@@ -427,7 +427,7 @@ export default function VehiclePage() {
             {/* Delete button */}
             <div className="mt-4 pt-4 border-t border-white/[0.06]">
               {confirmDelete === ec.id ? (
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/[0.06] border border-red-500/20">
+                <div className="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-red-500/[0.06] border border-red-500/20">
                   <AlertTriangle size={16} className="text-red-400 shrink-0" />
                   <span className="text-red-400 text-sm">Are you sure? This cannot be undone.</span>
                   <div className="ml-auto flex gap-2">
@@ -462,9 +462,9 @@ export default function VehiclePage() {
         )}
 
         {/* ═══ NEW CAR FORM ═══ */}
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
-          <div className="mb-10">
-            <h2 className="text-3xl font-bold text-white tracking-[-0.01em]">
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-8 lg:p-10">
+          <div className="mb-8 sm:mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-[-0.01em]">
               {existingCars.length > 0 ? 'Register a New Vehicle' : 'Vehicle Information'}
             </h2>
             <p className="text-white/35 mt-2">
@@ -682,7 +682,7 @@ export default function VehiclePage() {
 
         {/* ═══ VEHICLE DOCUMENTS ═══ */}
         {existingCars.length > 0 && (
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8">
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
                 <Car size={20} className="text-secondary" />
@@ -726,19 +726,19 @@ export default function VehiclePage() {
                   return (
                     <div
                       key={doc.id}
-                      className={`rounded-2xl border ${status.borderColor} p-6 transition-all duration-200`}
+                      className={`rounded-2xl border ${status.borderColor} p-4 sm:p-6 transition-all duration-200`}
                     >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${status.bgColor}`}>
+                      <div className="flex flex-col sm:flex-row items-start sm:justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${status.bgColor}`}>
                             <DocIcon size={20} className={status.color} />
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <h3 className="font-semibold text-white">{doc.label}</h3>
                             <p className="text-sm text-white/40">{doc.description}</p>
                           </div>
                         </div>
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${status.bgColor} ${status.color}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${status.bgColor} ${status.color}`}>
                           <StatusIcon size={14} />
                           {status.label}
                         </span>
@@ -781,14 +781,14 @@ export default function VehiclePage() {
                       </label>
 
                       {doc.id !== 'vehicle-log-book' && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Calendar size={16} className="text-white/40" />
                           <label className="text-sm font-medium text-white/60">
                             {doc.id === 'vehicle-insurance' ? 'Insurance Expiry' : doc.id === 'mot-certificate' ? 'MOT Pass Date' : 'PCO Expiry'}
                           </label>
                           <input
                             type="date"
-                            className="input-field max-w-[200px] text-sm py-2 px-3"
+                            className="input-field w-full sm:w-auto sm:max-w-[200px] text-sm py-2 px-3"
                             value={docDates[doc.id] || doc.expiry?.slice(0, 10) || ''}
                             onChange={(e) => setDocDates(prev => ({ ...prev, [doc.id]: e.target.value }))}
                           />

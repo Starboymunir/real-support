@@ -10,10 +10,10 @@ export const dynamic = 'force-dynamic'
 
 
 export const metadata: Metadata = {
-  title: "RS Ride - Local Taxi Service You Can Trust",
+  title: "RS Ride - One App - Local Taxi Service You Can Trust",
   description: "RS Ride - Rides in seconds with service. Background-checked drivers, real-time tracking, and secure payments. Book airport transfers, city rides, and business transport.",
   manifest: "/manifest.webmanifest",
-  applicationName: "RS Ride",
+  applicationName: "RS Ride - One App",
   icons: {
     icon: "/images/brand/logo.png",
     apple: "/icons/icon-192.png",

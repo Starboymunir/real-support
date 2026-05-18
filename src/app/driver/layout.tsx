@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Driver Portal - RS Ride',
+  title: 'Driver Portal - RS Ride - One App',
   description: 'RS Ride Driver Portal — Register, manage your vehicle, documents, and start earning.',
 };
 

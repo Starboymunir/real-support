@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   CalendarDays,
@@ -26,6 +26,7 @@ import type { Booking, RideRequest } from '@/lib/types';
 import dynamic from 'next/dynamic';
 const MapView = dynamic(() => import('@/components/maps/MapView'), { ssr: false });
 import { getRoute, formatDistance, formatDuration, type RouteInfo } from '@/lib/mapbox';
+import RiderBidsPanel from '@/components/dispatch/RiderBidsPanel';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -69,6 +70,7 @@ function getStatusInfo(status: string): { label: string; cls: string } {
 export default function RideDetail() {
   useRequireAuth();
   const params = useParams();
+  const router = useRouter();
   const rideId = params?.id as string;
 
   const [booking, setBooking] = useState<Booking | null>(null);
@@ -212,6 +214,21 @@ export default function RideDetail() {
       toast.error('Cancel failed', err instanceof Error ? err.message : 'Could not cancel this ride.');
     } finally {
       setCancelling(false);
+    }
+  };
+
+  // Rider's open custom-priced request — drivers can bid, rider picks a bid.
+  const isBiddable =
+    isRequest &&
+    !!request &&
+    isPending &&
+    (request.requestType === 'ADJUSTABLE' || (request.budget ?? 0) > 0);
+
+  const handleBidAccepted = (bookingId?: string) => {
+    if (bookingId) {
+      router.push(`/rider/rides/${bookingId}`);
+    } else {
+      fetchData();
     }
   };
 
@@ -365,6 +382,13 @@ export default function RideDetail() {
                 </div>
               )}
             </motion.div>
+
+            {/* Driver Bids — rider reviews & accepts bids on their open request */}
+            {isBiddable && request && (
+              <motion.div initial="hidden" animate="visible" custom={4} variants={fadeUp}>
+                <RiderBidsPanel request={request} onBidAccepted={handleBidAccepted} />
+              </motion.div>
+            )}
           </div>
 
           {/* ═══ Right Column (1/3) ═══ */}

@@ -153,7 +153,7 @@ export default function AdminBookingsPage() {
                     </div>
 
                     {/* People */}
-                    <div className="flex items-center gap-6 text-sm">
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                       <div className="flex items-center gap-2">
                         <User size={14} className="text-white/25" />
                         <span className="text-white/50">

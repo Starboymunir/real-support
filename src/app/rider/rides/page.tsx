@@ -277,7 +277,7 @@ export default function MyRides() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-16 text-center"
+                className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-8 sm:p-16 text-center"
               >
                 <div className="w-16 h-16 rounded-2xl bg-white/[0.06] flex items-center justify-center mx-auto mb-4">
                   <Inbox size={28} className="text-white/40" />

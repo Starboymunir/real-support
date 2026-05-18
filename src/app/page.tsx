@@ -121,12 +121,18 @@ const testimonials = [
 ];
 
 /* -- Stat Counter -- */
-function Stat({ value, suffix, label }: { value: number; suffix: string; label: string }) {
+function Stat({ value, suffix, label, decimals = 0 }: { value: number; suffix: string; label: string; decimals?: number }) {
   const { count, ref } = useCounter(value);
+  // `useCounter` only steps in integers — for decimal values (e.g. a 4.9 rating)
+  // pass the scaled integer (49) with decimals={1} and divide back down here.
+  const display =
+    decimals > 0
+      ? (count / 10 ** decimals).toFixed(decimals)
+      : count.toLocaleString();
   return (
     <div ref={ref} className="text-center">
       <p className="text-4xl sm:text-5xl font-black text-white tabular-nums tracking-tight">
-        {count.toLocaleString()}
+        {display}
         <span className="text-secondary">{suffix}</span>
       </p>
       <p className="text-white/35 text-sm mt-1.5 font-medium">{label}</p>
@@ -355,7 +361,7 @@ export default function Home() {
             <Stat value={15000} suffix="+" label="Rides Completed" />
             <Stat value={500} suffix="+" label="Professional Drivers" />
             <Stat value={50} suffix="+" label="Cities Covered" />
-            <Stat value={49} suffix="?" label="Average Rating" />
+            <Stat value={49} suffix="★" label="Average Rating" decimals={1} />
           </div>
         </div>
       </section>

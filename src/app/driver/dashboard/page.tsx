@@ -21,6 +21,7 @@ import {
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { bookingsApi, driverApi } from '@/lib/services';
 import type { Booking, Driver } from '@/lib/types';
+import DriverAvailabilityCard from '@/components/dispatch/DriverAvailabilityCard';
 
 /* ─── animated counter hook ─── */
 function useCounter(end: number, duration = 1400) {
@@ -196,6 +197,11 @@ export default function DriverDashboardPage() {
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* ═══════ AVAILABILITY (GO ONLINE) ═══════ */}
+        <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp}>
+          <DriverAvailabilityCard />
         </motion.div>
 
         {/* ═══════ BENTO STAT GRID ═══════ */}

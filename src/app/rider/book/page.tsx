@@ -383,7 +383,7 @@ export default function BookRide() {
                 zoom={pickupPlace || dropoffPlace ? 13 : 11}
                 markers={markers}
                 route={routeInfo?.geometry}
-                className="w-full h-[350px]"
+                className="w-full h-[240px] sm:h-[350px]"
               />
             </motion.div>
 

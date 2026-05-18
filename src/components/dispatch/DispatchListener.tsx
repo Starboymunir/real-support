@@ -114,15 +114,15 @@ export default function DispatchListener() {
   useEffect(() => {
     if (!socket || !isRider) return;
 
-    const onSearching = (data: { attempt?: number; status?: string }) => {
-      if (data?.status === 'NO_DRIVERS') {
-        toast.info('No drivers nearby', 'Your ride has been posted to the public board.');
-      } else if (data?.attempt) {
-        toast.info('Finding a driver…', `Attempt ${data.attempt}`);
+    // Backend payload: { requestId, attemptedDrivers, offeredDriverId }.
+    // Toast once when the search starts so we don't spam on every cascade step.
+    const onSearching = (data: { attemptedDrivers?: number }) => {
+      if (!data?.attemptedDrivers || data.attemptedDrivers <= 1) {
+        toast.info('Finding you a driver…', 'Contacting the nearest available drivers.');
       }
     };
     const onPosted = () => {
-      toast.info('Open for bids', 'Your ride is now on the public job board.');
+      toast.info('Open for bids', 'No driver accepted — your ride is now on the public job board.');
     };
     const onAccepted = () => {
       toast.success('Driver found!', 'A driver has accepted your ride.');

@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: '#060B14' }}>
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 overflow-hidden" style={{ background: '#060B14' }}>
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-secondary/[0.04] rounded-full blur-[120px] pointer-events-none" />
 
       <div className="w-full max-w-md relative">
@@ -106,7 +106,7 @@ export default function AdminLoginPage() {
           <Image src="/images/brand/logo.png" alt="RS Ride" width={120} height={36} className="object-contain" />
         </div>
 
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10 backdrop-blur-sm">
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-10 backdrop-blur-sm">
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20">
               <Shield size={16} className="text-secondary" />
@@ -249,7 +249,7 @@ export default function AdminLoginPage() {
               </p>
 
               <form onSubmit={handleVerifyOtp} className="space-y-6">
-                <div className="flex justify-center gap-3">
+                <div className="flex justify-center gap-2 sm:gap-3">
                   {otp.map((digit, i) => (
                     <input
                       key={i}
@@ -261,7 +261,7 @@ export default function AdminLoginPage() {
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
                       onPaste={i === 0 ? handleOtpPaste : undefined}
-                      className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-white/10 bg-white/[0.04] text-white focus:border-secondary focus:outline-none transition-colors"
+                      className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold rounded-xl border border-white/10 bg-white/[0.04] text-white focus:border-secondary focus:outline-none transition-colors"
                     />
                   ))}
                 </div>

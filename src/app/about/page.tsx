@@ -21,7 +21,7 @@ const stats = [
   { icon: Car, value: '15K+', label: 'Rides' },
   { icon: Users, value: '500+', label: 'Drivers' },
   { icon: MapPin, value: '50+', label: 'Cities' },
-  { icon: Star, value: '4.9â˜…', label: 'Rating' },
+  { icon: Star, value: '4.9★', label: 'Rating' },
 ];
 
 const values = [

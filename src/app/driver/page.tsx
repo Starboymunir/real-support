@@ -261,9 +261,9 @@ export default function DriverRegistrationPage() {
           </div>
 
           {/* Form card */}
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10">
-            <div className="mb-10">
-              <h2 className="text-3xl font-bold text-white tracking-[-0.01em]">Personal Information</h2>
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-8 lg:p-10">
+            <div className="mb-8 sm:mb-10">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-[-0.01em]">Personal Information</h2>
               <p className="text-white/35 mt-2">Tell us about yourself to get started as an RS Ride driver.</p>
             </div>
 

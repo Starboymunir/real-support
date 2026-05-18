@@ -327,9 +327,9 @@ export default function DriverSupportPage() {
                   <div className={`w-11 h-11 rounded-xl ${c.bg} flex items-center justify-center shrink-0`}>
                     <Icon size={20} className={c.color} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-semibold text-white">{c.label}</p>
-                    <p className={`text-sm font-bold mt-0.5 ${c.color}`}>{c.value}</p>
+                    <p className={`text-sm font-bold mt-0.5 break-words ${c.color}`}>{c.value}</p>
                     <p className="text-xs text-white/40 mt-1 leading-relaxed">{c.desc}</p>
                   </div>
                 </div>

@@ -71,7 +71,7 @@ function RegisterContent() {
 
   return (
     <div className="min-h-screen flex" style={{ background: '#060B14' }}>
-      {/* Left â€” Register Form */}
+      {/* Left — Register Form */}
       <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative overflow-hidden">
         <div className="absolute -top-20 -left-20 w-72 h-72 bg-secondary/[0.03] rounded-full blur-[100px] pointer-events-none" />
 
@@ -214,7 +214,7 @@ function RegisterContent() {
             </form>
 
             <div className="mt-4 text-center">
-              <Link href="/rider/dashboard" className="text-white/20 text-xs hover:text-white/40 transition-colors">Skip to Rider Dashboard â†’</Link>
+              <Link href="/rider/dashboard" className="text-white/20 text-xs hover:text-white/40 transition-colors">Skip to Rider Dashboard →</Link>
             </div>
 
             <p className="text-center text-white/35 mt-6 text-sm">
@@ -225,7 +225,7 @@ function RegisterContent() {
         </div>
       </div>
 
-      {/* Right â€” Hero Image */}
+      {/* Right — Hero Image */}
       <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
         <Image src="/images/auth/mountain.jpg" alt="Mountain landscape" fill className="object-cover" priority />
         <div className="absolute inset-0 bg-gradient-to-l from-[#060B14] via-[#060B14]/70 to-transparent" />

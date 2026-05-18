@@ -16,7 +16,7 @@ import Footer from '@/components/Footer';
 import { fetchPublicContent } from '@/app/api/helpers/StaticContent';
 import { resolveImageUrl } from '@/lib/api';
 
-/* â”€â”€ data â”€â”€ */
+/* ── data ── */
 const services = [
   {
     icon: Plane,
@@ -28,7 +28,7 @@ const services = [
   {
     icon: Car,
     title: 'City Rides',
-    description: 'On-demand rides across the city in minutes. Smart routing, transparent pricing, and professional drivers â€” always.',
+    description: 'On-demand rides across the city in minutes. Smart routing, transparent pricing, and professional drivers — always.',
     image: '/images/services/city-rides.jpg',
     color: '#00B0FF',
   },
@@ -66,28 +66,28 @@ const fleet = [
   {
     name: 'Economy',
     type: 'Sedan',
-    price: 'from Â£5',
+    price: 'from £5',
     image: '/images/fleet/economy.jpg',
     features: ['4 passengers', '2 bags', 'AC & WiFi', 'Cashless payment'],
   },
   {
     name: 'Comfort',
     type: 'SUV',
-    price: 'from Â£12',
+    price: 'from £12',
     image: '/images/fleet/comfort.jpg',
     features: ['4 passengers', '3 bags', 'Leather seats', 'Premium audio'],
   },
   {
     name: 'Premium',
     type: 'Luxury',
-    price: 'from Â£25',
+    price: 'from £25',
     image: '/images/fleet/premium.jpg',
     features: ['4 passengers', '3 bags', 'Executive class', 'Complimentary water'],
   },
   {
     name: 'XL / Van',
     type: 'People Carrier',
-    price: 'from Â£18',
+    price: 'from £18',
     image: '/images/fleet/xl-van.jpg',
     features: ['6 passengers', '5 bags', 'Spacious cabin', 'Group travel'],
   },
@@ -106,7 +106,7 @@ export default async function ServicesPage() {
     <>
       <Navbar />
 
-      {/* â•â•â•â•â•â•â• HERO â•â•â•â•â•â•â• */}
+      {/* ═══════ HERO ═══════ */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #000 0%, #060B14 60%, #0A1628 100%)' }}>
         <div className="absolute top-0 right-1/4 w-[600px] h-[350px] bg-secondary/[0.04] rounded-full blur-[140px] pointer-events-none" />
 
@@ -118,7 +118,7 @@ export default async function ServicesPage() {
             <span className="text-white/25">tailored to you.</span></>}
           </h1>
           <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
-            From quick city hops to luxury airport transfers â€” RS Ride offers a complete suite of ride-sharing services designed around your needs.
+            From quick city hops to luxury airport transfers — RS Ride offers a complete suite of ride-sharing services designed around your needs.
           </p>
         </div>
       </section>
@@ -143,7 +143,7 @@ export default async function ServicesPage() {
           </div>
         </section>
       )}
-      {/* â•â•â•â•â•â•â• SERVICES â€” Alternating rows â•â•â•â•â•â•â• */}
+      {/* ═══════ SERVICES — Alternating rows ═══════ */}
       <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="max-w-2xl mb-20">
@@ -203,7 +203,7 @@ export default async function ServicesPage() {
         </div>
       </section>
 
-      {/* â•â•â•â•â•â•â• FLEET â€” Horizontal cards â•â•â•â•â•â•â• */}
+      {/* ═══════ FLEET — Horizontal cards ═══════ */}
       <section className="py-28 lg:py-36" style={{ background: 'linear-gradient(180deg, #060B14 0%, #0A1628 100%)' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="text-center mb-16">
@@ -250,7 +250,7 @@ export default async function ServicesPage() {
         </div>
       </section>
 
-      {/* â•â•â•â•â•â•â• COVERAGE â€” Split layout â•â•â•â•â•â•â• */}
+      {/* ═══════ COVERAGE — Split layout ═══════ */}
       <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -297,7 +297,7 @@ export default async function ServicesPage() {
         </div>
       </section>
 
-      {/* â•â•â•â•â•â•â• CTA â•â•â•â•â•â•â• */}
+      {/* ═══════ CTA ═══════ */}
       <section className="py-28 lg:py-36 relative overflow-hidden" style={{ background: '#060B14' }}>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[250px] bg-secondary/[0.04] rounded-full blur-[100px] pointer-events-none" />
 

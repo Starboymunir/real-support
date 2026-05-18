@@ -212,7 +212,7 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-dark">
-      {/* â”€â”€ Sidebar (desktop) â”€â”€ */}
+      {/* ── Sidebar (desktop) ── */}
       <aside
         className={`fixed top-0 left-0 z-40 h-full bg-dark border-r border-white/5 transition-all duration-300 hidden lg:flex flex-col ${
           collapsed ? 'w-20' : 'w-[260px]'
@@ -345,7 +345,7 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* â”€â”€ Mobile header â”€â”€ */}
+      {/* ── Mobile header ── */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-dark border-b border-white/5 h-16 flex items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 py-2">
           <Image
@@ -426,7 +426,7 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* â”€â”€ Main content â”€â”€ */}
+      {/* ── Main content ── */}
       <div className={`transition-all duration-300 ${collapsed ? 'lg:ml-20' : 'lg:ml-[260px]'}`}>
         {/* Top bar */}
         <header className="sticky top-0 z-30 bg-dark-surface/80 backdrop-blur-xl border-b border-white/[0.06] h-16 lg:h-20 flex items-center justify-between px-4 sm:px-6 lg:px-8 mt-16 lg:mt-0">

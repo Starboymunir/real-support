@@ -21,12 +21,12 @@ import Footer from '@/components/Footer';
 import { contactApi } from '@/lib/services';
 import { useAuth } from '@/lib/auth-context';
 
-/* â”€â”€ data â”€â”€ */
+/* ── data ── */
 const contactCards = [
   { icon: MapPin, label: 'Head Office', value: '71-75 Shelton Street, Covent Garden, London WC2H 9JQ', color: '#00E676' },
   { icon: Phone, label: 'Phone', value: '+44 20 7946 0958', href: 'tel:+442079460958', color: '#00B0FF' },
   { icon: Mail, label: 'Email', value: 'support@real-support.com', href: 'mailto:support@real-support.com', color: '#E040FB' },
-  { icon: Clock, label: 'Support Hours', value: 'Mon â€“ Sun, 24 / 7', color: '#FFD600' },
+  { icon: Clock, label: 'Support Hours', value: 'Mon – Sun, 24 / 7', color: '#FFD600' },
 ];
 
 const supportLinks = [
@@ -79,7 +79,7 @@ export default function ContactPage() {
     <>
       <Navbar />
 
-      {/* â•â•â•â•â•â•â• HERO â•â•â•â•â•â•â• */}
+      {/* ═══════ HERO ═══════ */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #000 0%, #060B14 60%, #0A1628 100%)' }}>
         <div className="absolute top-0 left-1/3 w-[500px] h-[300px] bg-secondary/[0.04] rounded-full blur-[140px] pointer-events-none" />
 
@@ -91,12 +91,12 @@ export default function ContactPage() {
             <span className="text-white/25">hear from you.</span>
           </h1>
           <p className="mt-6 text-lg text-white/40 max-w-2xl mx-auto leading-relaxed">
-            Whether it&apos;s a question, feedback, or partnership opportunity â€” our team is here to help.
+            Whether it&apos;s a question, feedback, or partnership opportunity — our team is here to help.
           </p>
         </div>
       </section>
 
-      {/* â•â•â•â•â•â•â• CONTACT CARDS â•â•â•â•â•â•â• */}
+      {/* ═══════ CONTACT CARDS ═══════ */}
       <section className="border-y border-white/[0.04]" style={{ background: '#060B14' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8 py-14">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -121,7 +121,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* â•â•â•â•â•â•â• FORM + MAP â€” Split layout â•â•â•â•â•â•â• */}
+      {/* ═══════ FORM + MAP — Split layout ═══════ */}
       <section className="py-28 lg:py-36" style={{ background: '#0A1628' }}>
         <div className="mx-auto max-w-7xl px-6 sm:px-8">
           <div className="grid lg:grid-cols-5 gap-12">

@@ -15,7 +15,7 @@ const testimonials = [
   {
     name: 'James Cooper',
     role: 'Daily Commuter',
-    text: 'I switched from Uber to RS Ride six months ago. Fixed pricing, no surge â€” I save about Â£200 a month. The drivers are genuinely friendly.',
+    text: 'I switched from Uber to RS Ride six months ago. Fixed pricing, no surge — I save about £200 a month. The drivers are genuinely friendly.',
     rating: 5,
     image: '/images/testimonials/marcus.jpg',
   },

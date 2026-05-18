@@ -77,7 +77,7 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen flex" style={{ background: '#060B14' }}>
-      {/* Left â€” Hero Image */}
+      {/* Left — Hero Image */}
       <div className="hidden lg:block lg:w-[55%] relative overflow-hidden">
         <Image
           src="/images/auth/london-night.jpg"
@@ -99,7 +99,7 @@ function LoginContent() {
               <span className="text-white/25">Ride Awaits</span>
             </h1>
             <p className="text-white/40 text-lg max-w-md">
-              Experience luxury transportation across London with RS Ride â€” where every journey is first class.
+              Experience luxury transportation across London with RS Ride — where every journey is first class.
             </p>
           </div>
 
@@ -107,7 +107,7 @@ function LoginContent() {
           <div className="absolute top-1/3 right-12 flex flex-col gap-4">
             {[
               { value: '15K+', label: 'Rides Completed', color: '#00E676' },
-              { value: '4.9â˜…', label: 'Average Rating', color: '#00B0FF' },
+              { value: '4.9★', label: 'Average Rating', color: '#00B0FF' },
               { value: '24/7', label: 'Availability', color: '#fff' },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-sm p-5">
@@ -119,7 +119,7 @@ function LoginContent() {
         </div>
       </div>
 
-      {/* Right â€” Login Form */}
+      {/* Right — Login Form */}
       <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-12 relative">
         <div className="absolute top-20 right-20 w-64 h-64 bg-secondary/[0.03] rounded-full blur-[100px] pointer-events-none" />
 

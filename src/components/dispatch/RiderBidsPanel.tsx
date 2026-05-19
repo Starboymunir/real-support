@@ -4,13 +4,17 @@
    Rider Bids Panel — lets a rider review the bids drivers have
    placed on their open (ADJUSTABLE / custom-priced) request and
    accept one (→ creates the booking) or reject it.
+
+   Mirrors the former RS-CAB app's bid card: driver name + rating,
+   bid amount, travel-time-to-pickup and the driver's vehicle.
    ═══════════════════════════════════════════════════════════ */
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Check, X, Star, Gavel, CheckCircle2, ArrowDown, ArrowUp } from 'lucide-react';
+import { Loader2, Check, X, Star, Gavel, CheckCircle2, ArrowDown, ArrowUp, Car, Navigation } from 'lucide-react';
 import { bidsApi } from '@/lib/services/bids';
 import { useSocket, SOCKET_EVENTS } from '@/lib/socket-context';
+import { getRoute, formatDuration } from '@/lib/mapbox';
 import { toast } from '@/lib/toast';
 import type { Bid, RideRequest } from '@/lib/types';
 
@@ -25,6 +29,7 @@ export default function RiderBidsPanel({ request, onBidAccepted }: RiderBidsPane
   const [bids, setBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionBidId, setActionBidId] = useState<string | null>(null);
+  const [etas, setEtas] = useState<Record<string, string>>({});
 
   const budget = request.budget ?? request.totalBill ?? 0;
 
@@ -60,6 +65,33 @@ export default function RiderBidsPanel({ request, onBidAccepted }: RiderBidsPane
     };
   }, [socket, request.id, loadBids]);
 
+  // Estimate each driver's travel time to the pickup point.
+  useEffect(() => {
+    const pLat = parseFloat(request.startFrom?.latitude || '');
+    const pLng = parseFloat(request.startFrom?.longitude || '');
+    if (!isFinite(pLat) || !isFinite(pLng) || bids.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      for (const bid of bids) {
+        if (etas[bid.id]) continue;
+        const loc =
+          bid.driverInfo?.userInfo?.currentLocation ?? bid.driverInfo?.currentLocation;
+        if (!loc?.latitude || !loc?.longitude) continue;
+        const route = await getRoute(
+          { lng: Number(loc.longitude), lat: Number(loc.latitude) },
+          { lng: pLng, lat: pLat },
+        );
+        if (route && !cancelled) {
+          setEtas((prev) => ({ ...prev, [bid.id]: formatDuration(route.duration) }));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bids, request.startFrom]);
+
   const handleRespond = async (bid: Bid, accept: boolean) => {
     setActionBidId(bid.id);
     try {
@@ -68,7 +100,6 @@ export default function RiderBidsPanel({ request, onBidAccepted }: RiderBidsPane
       });
       if (accept) {
         toast.success('Bid accepted', 'Your ride is booked with this driver.');
-        // The accept response is the new booking; fall back to a plain refetch.
         const bookingId = (res as unknown as { id?: string })?.id;
         onBidAccepted(bookingId);
       } else {
@@ -136,6 +167,9 @@ export default function RiderBidsPanel({ request, onBidAccepted }: RiderBidsPane
               const trips = driver?.totalJobComplete ?? 0;
               const diff = bid.bidAmount - budget;
               const isBusy = actionBidId === bid.id;
+              const car =
+                driver?.cars?.find((c) => c.status === 'ACTIVE') || driver?.cars?.[0];
+              const eta = etas[bid.id];
 
               return (
                 <motion.div
@@ -158,6 +192,12 @@ export default function RiderBidsPanel({ request, onBidAccepted }: RiderBidsPane
                           {rating > 0 ? rating.toFixed(1) : 'New'}
                         </span>
                         <span>{trips} trip{trips !== 1 ? 's' : ''}</span>
+                        {eta && (
+                          <span className="flex items-center gap-1 text-emerald-400">
+                            <Navigation size={11} />
+                            {eta} away
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -176,6 +216,21 @@ export default function RiderBidsPanel({ request, onBidAccepted }: RiderBidsPane
                       )}
                     </div>
                   </div>
+
+                  {/* Vehicle */}
+                  {car && (
+                    <div className="mt-3 flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-2 text-xs text-white/60">
+                      <Car size={14} className="text-white/40 shrink-0" />
+                      <span className="truncate">
+                        {[car.make, car.model].filter(Boolean).join(' ') || 'Vehicle'}
+                      </span>
+                      {car.numberPlate && (
+                        <span className="ml-auto shrink-0 rounded bg-white/[0.06] px-2 py-0.5 font-mono font-semibold text-white/80">
+                          {car.numberPlate}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex gap-2 mt-3">
                     <button

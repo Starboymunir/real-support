@@ -133,23 +133,46 @@ export default function DriverRequestsPage() {
       toast.error('Invalid bid', 'Please pick a valid amount.');
       return;
     }
+    const existing = request.bids?.find(
+      (b) => b.driverId === driverId && b.status === 'PENDING',
+    );
     setActionLoading(request.id);
     setError('');
     try {
-      await bidsApi.create({
-        requestId: request.id,
-        driverId,
-        bidAmount: amount,
-        passengerId: request.passengerId,
-      });
-      toast.success('Bid placed!', `Your bid of £${amount.toFixed(2)} has been submitted.`);
+      if (existing) {
+        await bidsApi.update(existing.id, { bidAmount: amount });
+        toast.success('Bid updated', `Your bid is now £${amount.toFixed(2)}.`);
+      } else {
+        await bidsApi.create({
+          requestId: request.id,
+          driverId,
+          bidAmount: amount,
+          passengerId: request.passengerId,
+        });
+        toast.success('Bid placed!', `Your bid of £${amount.toFixed(2)} has been submitted.`);
+      }
       setBidModalId(null);
-      // Remove from list once a bid is placed
-      setRequests(prev => prev.filter(r => r.id !== request.id));
+      fetchRequests();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to place bid';
       setError(msg);
       toast.error('Bid failed', msg);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleCancelBid = async (request: RideRequest, bidId: string) => {
+    setActionLoading(request.id);
+    setError('');
+    try {
+      await bidsApi.remove(bidId);
+      toast.info('Bid cancelled.');
+      fetchRequests();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to cancel bid';
+      setError(msg);
+      toast.error('Cancel failed', msg);
     } finally {
       setActionLoading(null);
     }
@@ -254,6 +277,9 @@ export default function DriverRequestsPage() {
             const isExpanded = expandedId === request.id;
             const isActionLoading = actionLoading === request.id;
             const isFixed = request.requestType === 'FIXED';
+            const myBid = request.bids?.find(
+              (b) => b.driverId === driverId && b.status === 'PENDING',
+            );
 
             return (
               <motion.div
@@ -419,6 +445,30 @@ export default function DriverRequestsPage() {
                               )}
                               Accept Ride — £{(request.totalBill || 0).toFixed(2)}
                             </Button>
+                          ) : myBid ? (
+                            /* Already bid — update or cancel */
+                            <>
+                              <Button
+                                variant="green"
+                                onClick={(e: React.MouseEvent) => { e.stopPropagation(); setBidModalId(request.id); }}
+                                disabled={isActionLoading}
+                                className="flex-1"
+                              >
+                                {isActionLoading ? (
+                                  <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                  <Gavel size={16} />
+                                )}
+                                Update Bid · £{myBid.bidAmount.toFixed(2)}
+                              </Button>
+                              <Button
+                                variant="danger"
+                                onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleCancelBid(request, myBid.id); }}
+                                disabled={isActionLoading}
+                              >
+                                Cancel Bid
+                              </Button>
+                            </>
                           ) : (
                             /* Adjustable ride — Offer your price (preset bids) */
                             <Button
@@ -448,6 +498,7 @@ export default function DriverRequestsPage() {
                           open={bidModalId === request.id}
                           onClose={() => setBidModalId(null)}
                           basePrice={request.budget ?? request.totalBill ?? 0}
+                          currentBid={myBid?.bidAmount ?? null}
                           busy={isActionLoading}
                           onSelect={(amt) => handleBid(request, amt)}
                         />

@@ -106,20 +106,40 @@ export default function DriverBoardPage() {
       toast.error('Invalid bid', 'Pick a valid amount.');
       return;
     }
+    const existing = job.bids?.find((b) => b.driverId === driverId);
     setActionId(job.id);
     try {
-      await bidsApi.create({
-        requestId: job.id,
-        driverId,
-        bidAmount: amount,
-        passengerId: job.passengerId,
-      });
-      toast.success('Bid placed!', `£${amount.toFixed(2)} submitted.`);
+      if (existing) {
+        await bidsApi.update(existing.id, { bidAmount: amount });
+        toast.success('Bid updated', `£${amount.toFixed(2)} submitted.`);
+      } else {
+        await bidsApi.create({
+          requestId: job.id,
+          driverId,
+          bidAmount: amount,
+          passengerId: job.passengerId,
+        });
+        toast.success('Bid placed!', `£${amount.toFixed(2)} submitted.`);
+      }
       setBidModalId(null);
       load();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to place bid';
       toast.error('Bid failed', msg);
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const cancelBid = async (job: RideRequest, bidId: string) => {
+    setActionId(job.id);
+    try {
+      await bidsApi.remove(bidId);
+      toast.info('Bid cancelled');
+      load();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to cancel bid';
+      toast.error('Cancel failed', msg);
     } finally {
       setActionId(null);
     }
@@ -176,6 +196,7 @@ export default function DriverBoardPage() {
               {jobs.map((job, i) => {
                 const fare = job.budget ?? job.totalBill ?? 0;
                 const bidCount = job.bids?.length || 0;
+                const myBid = job.bids?.find((b) => b.driverId === driverId);
                 const isBusy = actionId === job.id;
                 const rider = job.riderInfo;
                 return (
@@ -252,22 +273,47 @@ export default function DriverBoardPage() {
                     </div>
 
                     {/* Bid */}
-                    <button
-                      onClick={() => setBidModalId(job.id)}
-                      disabled={isBusy}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 transition disabled:opacity-50"
-                    >
-                      {isBusy ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Gavel className="h-4 w-4" />
-                      )}
-                      Offer Your Price
-                    </button>
+                    {myBid ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setBidModalId(job.id)}
+                          disabled={isBusy}
+                          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 transition disabled:opacity-50"
+                        >
+                          {isBusy ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Gavel className="h-4 w-4" />
+                          )}
+                          Update Bid · £{myBid.bidAmount.toFixed(2)}
+                        </button>
+                        <button
+                          onClick={() => cancelBid(job, myBid.id)}
+                          disabled={isBusy}
+                          className="flex items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white/70 hover:bg-rose-500/15 hover:text-rose-300 transition disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setBidModalId(job.id)}
+                        disabled={isBusy}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 transition disabled:opacity-50"
+                      >
+                        {isBusy ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Gavel className="h-4 w-4" />
+                        )}
+                        Offer Your Price
+                      </button>
+                    )}
                     <OfferPriceModal
                       open={bidModalId === job.id}
                       onClose={() => setBidModalId(null)}
                       basePrice={job.budget ?? job.totalBill ?? 0}
+                      currentBid={myBid?.bidAmount ?? null}
                       busy={isBusy}
                       onSelect={(amt) => placeBid(job, amt)}
                     />

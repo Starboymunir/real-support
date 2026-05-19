@@ -29,8 +29,10 @@ import {
   Inbox,
   Calendar,
   StickyNote,
+  Gavel,
 } from 'lucide-react';
 import type { RideRequest } from '@/lib/types';
+import OfferPriceModal from '@/components/dispatch/OfferPriceModal';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -72,7 +74,7 @@ export default function DriverRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [bidAmounts, setBidAmounts] = useState<Record<string, string>>({});
+  const [bidModalId, setBidModalId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<'all' | 'FIXED' | 'ADJUSTABLE'>('all');
 
@@ -125,18 +127,10 @@ export default function DriverRequestsPage() {
     }
   };
 
-  const handleBid = async (request: RideRequest) => {
+  const handleBid = async (request: RideRequest, amount: number) => {
     if (!driverId || !user) return;
-    const amount = parseFloat(bidAmounts[request.id] || '');
     if (!amount || amount <= 0) {
-      setError('Please enter a valid bid amount');
-      toast.error('Invalid bid', 'Please enter a valid bid amount.');
-      return;
-    }
-    const minBid = (request.totalBill || 0) * 0.7;
-    if (amount < minBid) {
-      setError(`Minimum bid is £${minBid.toFixed(2)} (70% of fare)`);
-      toast.error('Bid too low', `Minimum bid is £${minBid.toFixed(2)} (70% of fare).`);
+      toast.error('Invalid bid', 'Please pick a valid amount.');
       return;
     }
     setActionLoading(request.id);
@@ -149,7 +143,8 @@ export default function DriverRequestsPage() {
         passengerId: request.passengerId,
       });
       toast.success('Bid placed!', `Your bid of £${amount.toFixed(2)} has been submitted.`);
-      // Remove from list or mark as bid
+      setBidModalId(null);
+      // Remove from list once a bid is placed
       setRequests(prev => prev.filter(r => r.id !== request.id));
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to place bid';
@@ -425,34 +420,20 @@ export default function DriverRequestsPage() {
                               Accept Ride — £{(request.totalBill || 0).toFixed(2)}
                             </Button>
                           ) : (
-                            /* Adjustable ride — Place a bid */
-                            <div className="flex-1 flex items-center gap-2">
-                              <div className="relative flex-1">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-sm">£</span>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  step={0.5}
-                                  placeholder={(request.totalBill || 0).toFixed(2)}
-                                  value={bidAmounts[request.id] || ''}
-                                  onClick={(e) => e.stopPropagation()}
-                                  onChange={(e) => setBidAmounts(prev => ({ ...prev, [request.id]: e.target.value }))}
-                                  className="w-full pl-7 pr-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white text-sm focus:outline-none focus:border-secondary/50 focus:ring-1 focus:ring-secondary/20 placeholder:text-white/20"
-                                />
-                              </div>
-                              <Button
-                                variant="green"
-                                onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleBid(request); }}
-                                disabled={isActionLoading}
-                              >
-                                {isActionLoading ? (
-                                  <Loader2 size={16} className="animate-spin" />
-                                ) : (
-                                  <Send size={16} />
-                                )}
-                                Bid
-                              </Button>
-                            </div>
+                            /* Adjustable ride — Offer your price (preset bids) */
+                            <Button
+                              variant="green"
+                              onClick={(e: React.MouseEvent) => { e.stopPropagation(); setBidModalId(request.id); }}
+                              disabled={isActionLoading}
+                              className="flex-1"
+                            >
+                              {isActionLoading ? (
+                                <Loader2 size={16} className="animate-spin" />
+                              ) : (
+                                <Gavel size={16} />
+                              )}
+                              Offer Your Price
+                            </Button>
                           )}
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDecline(request.id); }}
@@ -462,6 +443,14 @@ export default function DriverRequestsPage() {
                             <XCircle size={18} />
                           </button>
                         </div>
+
+                        <OfferPriceModal
+                          open={bidModalId === request.id}
+                          onClose={() => setBidModalId(null)}
+                          basePrice={request.budget ?? request.totalBill ?? 0}
+                          busy={isActionLoading}
+                          onSelect={(amt) => handleBid(request, amt)}
+                        />
                       </div>
                     </motion.div>
                   )}

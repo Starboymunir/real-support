@@ -18,7 +18,9 @@ import {
   RefreshCw,
   Inbox,
   Loader2,
+  Gavel,
 } from 'lucide-react';
+import OfferPriceModal from '@/components/dispatch/OfferPriceModal';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { useSocket, SOCKET_EVENTS } from '@/lib/socket-context';
@@ -53,7 +55,7 @@ export default function DriverBoardPage() {
   const { socket } = useSocket();
   const [jobs, setJobs] = useState<RideRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [bidAmounts, setBidAmounts] = useState<Record<string, string>>({});
+  const [bidModalId, setBidModalId] = useState<string | null>(null);
   const [actionId, setActionId] = useState<string | null>(null);
 
   const driverId =
@@ -95,14 +97,13 @@ export default function DriverBoardPage() {
     };
   }, [socket, load]);
 
-  const placeBid = async (job: RideRequest) => {
+  const placeBid = async (job: RideRequest, amount: number) => {
     if (!driverId || !user) {
       toast.error('Not signed in', 'Please sign in as a driver to bid.');
       return;
     }
-    const amount = parseFloat(bidAmounts[job.id] || '');
     if (!amount || amount <= 0) {
-      toast.error('Invalid bid', 'Enter a valid amount.');
+      toast.error('Invalid bid', 'Pick a valid amount.');
       return;
     }
     setActionId(job.id);
@@ -114,7 +115,7 @@ export default function DriverBoardPage() {
         passengerId: job.passengerId,
       });
       toast.success('Bid placed!', `£${amount.toFixed(2)} submitted.`);
-      setBidAmounts((prev) => ({ ...prev, [job.id]: '' }));
+      setBidModalId(null);
       load();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to place bid';
@@ -250,38 +251,26 @@ export default function DriverBoardPage() {
                       </div>
                     </div>
 
-                    {/* Bid form */}
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
-                          £
-                        </span>
-                        <input
-                          type="number"
-                          min={0}
-                          step={0.5}
-                          inputMode="decimal"
-                          placeholder={`Your bid (rider asked £${Number(fare).toFixed(2)})`}
-                          value={bidAmounts[job.id] || ''}
-                          onChange={(e) =>
-                            setBidAmounts((prev) => ({ ...prev, [job.id]: e.target.value }))
-                          }
-                          className="input-dark w-full pl-7"
-                        />
-                      </div>
-                      <button
-                        onClick={() => placeBid(job)}
-                        disabled={isBusy || !bidAmounts[job.id]}
-                        className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 transition disabled:opacity-50"
-                      >
-                        {isBusy ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
-                        Place Bid
-                      </button>
-                    </div>
+                    {/* Bid */}
+                    <button
+                      onClick={() => setBidModalId(job.id)}
+                      disabled={isBusy}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 transition disabled:opacity-50"
+                    >
+                      {isBusy ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Gavel className="h-4 w-4" />
+                      )}
+                      Offer Your Price
+                    </button>
+                    <OfferPriceModal
+                      open={bidModalId === job.id}
+                      onClose={() => setBidModalId(null)}
+                      basePrice={job.budget ?? job.totalBill ?? 0}
+                      busy={isBusy}
+                      onSelect={(amt) => placeBid(job, amt)}
+                    />
                   </motion.div>
                 );
               })}

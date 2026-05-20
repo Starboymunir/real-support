@@ -1,7 +1,7 @@
 "use client";
 
 import isEqual from "lodash/isEqual";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { alpha } from "@mui/material/styles";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
@@ -41,11 +41,13 @@ import { useDriversQuery } from "@/hooks/Drivers";
 import { IDriver } from "@/types/type";
 import axiosInstance from "@/lib/admin-axios";
 import { useSocket } from "@/providers/SocketProvider";
+import { SOCKET_EVENT_ENUM } from "@/helpers/constants";
 
 // ----------------------------------------------------------------------
 
 const DRIVER_STATUS_OPTIONS = [
   { value: "all", label: "All" },
+  { value: "online", label: "Online" },
   { value: "ACTIVE", label: "Active" },
   { value: "PENDING", label: "Pending" },
   { value: "ONHOLD", label: "On hold" },
@@ -87,8 +89,27 @@ export default function DriversListView() {
     const pending = tableData.filter((d) => d.status === "PENDING").length;
     const onhold = tableData.filter((d) => d.status === "ONHOLD").length;
     const suspended = tableData.filter((d) => d.status === "SUSPEND").length;
-    return { total: tableData.length, active, pending, onhold, suspended };
+    const online = tableData.filter((d) => d.isOnline === true).length;
+    return { total: tableData.length, active, pending, onhold, suspended, online };
   }, [tableData]);
+
+  // Live refresh on driver presence changes: when a driver goes online/offline
+  // (or their profile updates with new location/status), refetch so the Online
+  // tab count and row state stay in sync without a manual page reload.
+  useEffect(() => {
+    if (!socket) return;
+    const onPresenceChange = () => {
+      refetch();
+    };
+    socket.on(SOCKET_EVENT_ENUM.DRIVER.DRIVER_ONLINE, onPresenceChange);
+    socket.on(SOCKET_EVENT_ENUM.DRIVER.DRIVER_OFFLINE, onPresenceChange);
+    socket.on(SOCKET_EVENT_ENUM.DRIVER.DRIVER_PROFILE_UPDATED, onPresenceChange);
+    return () => {
+      socket.off(SOCKET_EVENT_ENUM.DRIVER.DRIVER_ONLINE, onPresenceChange);
+      socket.off(SOCKET_EVENT_ENUM.DRIVER.DRIVER_OFFLINE, onPresenceChange);
+      socket.off(SOCKET_EVENT_ENUM.DRIVER.DRIVER_PROFILE_UPDATED, onPresenceChange);
+    };
+  }, [socket, refetch]);
 
   const dataFiltered: IDriver[] = applyFilter({
     inputData: tableData,
@@ -255,12 +276,13 @@ export default function DriversListView() {
             <Grid container spacing={3} sx={{ mb: 3 }}>
               {[
                 { label: "Total Drivers", value: stats.total, color: "primary", icon: "mdi:account-group" },
+                { label: "Online", value: stats.online, color: "success", icon: "mdi:wifi" },
                 { label: "Active", value: stats.active, color: "success", icon: "mdi:account-check" },
                 { label: "Pending", value: stats.pending, color: "warning", icon: "mdi:account-clock" },
                 { label: "On Hold", value: stats.onhold, color: "info", icon: "mdi:account-pause" },
                 { label: "Suspended", value: stats.suspended, color: "error", icon: "mdi:account-off" },
               ].map((stat) => (
-                <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={stat.label}>
+                <Grid size={{ xs: 6, sm: 4, md: 2 }} key={stat.label}>
                   <Card
                     sx={{
                       p: 2.5,
@@ -330,6 +352,7 @@ export default function DriversListView() {
                           "soft"
                         }
                         color={
+                          (tab.value === "online" && "success") ||
                           (tab.value === "ACTIVE" && "success") ||
                           (tab.value === "PENDING" && "warning") ||
                           (tab.value === "ONHOLD" && "default") ||
@@ -338,6 +361,7 @@ export default function DriversListView() {
                         }
                       >
                         {tab.value === "all" && tableData?.length}
+                        {tab.value === "online" && stats.online}
                         {tab.value === "ACTIVE" &&
                           tableData?.filter((user) => user.status === "ACTIVE")
                             .length}
@@ -511,9 +535,13 @@ function applyFilter({
     });
   }
 
-  // Apply status filter
+  // Apply status filter. "online" is a virtual status backed by Driver.isOnline.
   if (status && status !== "all") {
-    filteredData = filteredData.filter((driver) => driver.status === status);
+    if (status === "online") {
+      filteredData = filteredData.filter((driver) => driver.isOnline === true);
+    } else {
+      filteredData = filteredData.filter((driver) => driver.status === status);
+    }
   }
 
   return filteredData;

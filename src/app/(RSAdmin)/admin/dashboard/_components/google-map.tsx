@@ -168,13 +168,23 @@ export default function GoogleMapComponent() {
       }));
 
     const driverMarkers = onlineDrivers
-      .filter((drv: any) => drv?.currentLatitude && drv?.currentLongitude)
-      .map((drv: any, index: number) => ({
+      .map((drv: any) => {
+        const loc =
+          drv?.userInfo?.currentLocation ??
+          drv?.currentLocation ??
+          (drv?.currentLatitude && drv?.currentLongitude
+            ? { latitude: drv.currentLatitude, longitude: drv.currentLongitude }
+            : null);
+        if (!loc?.latitude || !loc?.longitude) return null;
+        return { drv, lat: Number(loc.latitude), lng: Number(loc.longitude) };
+      })
+      .filter((m: any): m is { drv: any; lat: number; lng: number } => m !== null)
+      .map(({ drv, lat, lng }, index: number) => ({
         ...drv,
         id: `cab-${index}`,
         type: "cab",
-        lat: drv.currentLatitude,
-        lng: drv.currentLongitude,
+        lat,
+        lng,
       }));
 
     return [...requestMarkers, ...driverMarkers];
@@ -206,6 +216,16 @@ export default function GoogleMapComponent() {
       driverFetch();
     });
 
+    // Location pings come through DRIVER_PROFILE_UPDATED; refetch silently so
+    // markers move without spamming snackbar toasts.
+    socket.on(SOCKET_EVENT_ENUM.DRIVER.DRIVER_PROFILE_UPDATED, () => {
+      driverFetch();
+    });
+
+    socket.on(SOCKET_EVENT_ENUM.DRIVER.DRIVER_OFFLINE, () => {
+      driverFetch();
+    });
+
     socket.on(SOCKET_EVENT_ENUM.REQUEST.NEW_REQUEST, () => {
       enqueueSnackbar("Request Received", { variant: "success" });
       requestFetch();
@@ -213,6 +233,8 @@ export default function GoogleMapComponent() {
 
     return () => {
       socket.off(SOCKET_EVENT_ENUM.DRIVER.DRIVER_ONLINE);
+      socket.off(SOCKET_EVENT_ENUM.DRIVER.DRIVER_PROFILE_UPDATED);
+      socket.off(SOCKET_EVENT_ENUM.DRIVER.DRIVER_OFFLINE);
       socket.off(SOCKET_EVENT_ENUM.REQUEST.NEW_REQUEST);
     };
   }, [socket, enqueueSnackbar, driverFetch, requestFetch]);

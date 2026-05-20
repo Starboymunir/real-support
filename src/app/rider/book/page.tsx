@@ -19,6 +19,8 @@ import {
   Wallet,
   AlertTriangle,
   Tag,
+  Gavel,
+  BadgePoundSterling,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
@@ -97,6 +99,10 @@ export default function BookRide() {
   const [time, setTime] = useState('');
   const [note, setNote] = useState('');
   const [customBudget, setCustomBudget] = useState('');
+  const [priceMode, setPriceMode] = useState<'fixed' | 'custom'>('fixed');
+  const [customPriceOpen, setCustomPriceOpen] = useState(false);
+  const [customPriceDraft, setCustomPriceDraft] = useState('');
+  const [pendingPackageId, setPendingPackageId] = useState('');
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [fareEstimate, setFareEstimate] = useState<number | null>(null);
   const [faresByPackage, setFaresByPackage] = useState<Record<string, number>>({});
@@ -115,6 +121,23 @@ export default function BookRide() {
   const [applyingCoupon, setApplyingCoupon] = useState(false);
 
   const selectedPackage = packages.find((p) => p.id === selectedPackageId);
+
+  // Default date/time to "now + 10 minutes" so riders see a sensible pickup
+  // window without having to fiddle with the inputs. They can still change it.
+  useEffect(() => {
+    if (date && time) return;
+    const target = new Date();
+    target.setMinutes(target.getMinutes() + 10);
+    target.setSeconds(0, 0);
+    const yyyy = target.getFullYear();
+    const mm = String(target.getMonth() + 1).padStart(2, '0');
+    const dd = String(target.getDate()).padStart(2, '0');
+    const hh = String(target.getHours()).padStart(2, '0');
+    const mins = String(target.getMinutes()).padStart(2, '0');
+    if (!date) setDate(`${yyyy}-${mm}-${dd}`);
+    if (!time) setTime(`${hh}:${mins}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Coupon discount calculation
   const discountAmount = appliedCoupon && fareEstimate
@@ -241,6 +264,49 @@ export default function BookRide() {
     setCouponError('');
   };
 
+  // Suggested price for a package — backend-calculated fare with sensible fallback.
+  const suggestedPriceFor = (pkg: Package) =>
+    faresByPackage[pkg.id] ?? pkg.minBill ?? 0;
+
+  const handlePackageClick = (pkg: Package) => {
+    if (priceMode === 'custom') {
+      setPendingPackageId(pkg.id);
+      setCustomPriceDraft(suggestedPriceFor(pkg).toFixed(2));
+      setCustomPriceOpen(true);
+      return;
+    }
+    setSelectedPackageId(pkg.id);
+    // In fixed mode the rider is not bidding — make sure we don't leak a
+    // previously-entered custom amount into the payload.
+    if (customBudget) setCustomBudget('');
+  };
+
+  const confirmCustomPrice = () => {
+    const amount = Number(customPriceDraft);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error('Invalid price', 'Please enter a price greater than zero.');
+      return;
+    }
+    setSelectedPackageId(pendingPackageId);
+    setCustomBudget(customPriceDraft);
+    setCustomPriceOpen(false);
+  };
+
+  // Switching modes: clear the leftover state from the previous mode so the
+  // user actively re-confirms their choice. Fixed mode drops any custom offer;
+  // custom mode clears the auto-selected package so clicking a vehicle opens
+  // the offer modal (without that, riders could submit FIXED-mode state under
+  // an ADJUSTABLE request type).
+  const handlePriceModeChange = (mode: 'fixed' | 'custom') => {
+    setPriceMode(mode);
+    if (mode === 'fixed') {
+      setCustomBudget('');
+    } else {
+      setSelectedPackageId('');
+      setCustomBudget('');
+    }
+  };
+
   // Build map markers
   const markers = [];
   if (pickupPlace) {
@@ -281,9 +347,15 @@ export default function BookRide() {
       return;
     }
 
-    // Wallet balance check
+    // Wallet balance check. In custom-price (bid) mode we check against the
+    // rider's offer since that's what they're committing to pay; in fixed mode
+    // we check against the calculated fare. Custom-mode offers must be > 0
+    // (enforced by the modal) so the fallback is safe.
     if (paymentMethod === 'wallet') {
-      const needed = finalFare ?? 0;
+      const customAmount = customBudget ? Number(customBudget) : 0;
+      const needed = priceMode === 'custom' && customAmount > 0
+        ? customAmount
+        : finalFare ?? 0;
       if (walletBalance === null || walletBalance < needed) {
         toast.error(
           'Insufficient wallet balance',
@@ -517,6 +589,103 @@ export default function BookRide() {
               </div>
             </motion.div>
 
+            {/* ── Price Mode ── */}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              custom={2.5}
+              variants={fadeUp}
+              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6"
+            >
+              <h2 className="text-lg font-semibold text-white mb-1">How would you like to pay?</h2>
+              <p className="text-sm text-white/50 mb-4">
+                Pick the standard fare, or set your own price and let drivers bid.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => handlePriceModeChange('fixed')}
+                  className={`flex items-start gap-4 rounded-2xl border-2 p-4 text-left transition-all duration-200 cursor-pointer ${
+                    priceMode === 'fixed'
+                      ? 'border-secondary bg-secondary/[0.06]'
+                      : 'border-white/[0.06] hover:border-white/[0.1]'
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      priceMode === 'fixed' ? 'bg-secondary/10 text-secondary' : 'bg-white/[0.06] text-white/40'
+                    }`}
+                  >
+                    <BadgePoundSterling size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white">Fixed price</p>
+                    <p className="text-xs text-white/40 mt-0.5">Pay the standard calculated fare.</p>
+                  </div>
+                  <div className="ml-auto pt-1">
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        priceMode === 'fixed' ? 'border-secondary' : 'border-white/[0.15]'
+                      }`}
+                    >
+                      {priceMode === 'fixed' && <div className="w-2.5 h-2.5 rounded-full bg-secondary" />}
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handlePriceModeChange('custom')}
+                  className={`flex items-start gap-4 rounded-2xl border-2 p-4 text-left transition-all duration-200 cursor-pointer ${
+                    priceMode === 'custom'
+                      ? 'border-secondary bg-secondary/[0.06]'
+                      : 'border-white/[0.06] hover:border-white/[0.1]'
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      priceMode === 'custom' ? 'bg-secondary/10 text-secondary' : 'bg-white/[0.06] text-white/40'
+                    }`}
+                  >
+                    <Gavel size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white">Custom price</p>
+                    <p className="text-xs text-white/40 mt-0.5">Name your offer; drivers can bid.</p>
+                  </div>
+                  <div className="ml-auto pt-1">
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        priceMode === 'custom' ? 'border-secondary' : 'border-white/[0.15]'
+                      }`}
+                    >
+                      {priceMode === 'custom' && <div className="w-2.5 h-2.5 rounded-full bg-secondary" />}
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {priceMode === 'custom' && customBudget && Number(customBudget) > 0 && selectedPackage && (
+                <div className="mt-4 p-3 rounded-xl bg-amber-500/[0.08] border border-amber-500/20 text-amber-300 text-sm flex items-center justify-between">
+                  <span>
+                    Your offer for <b>{selectedPackage.name}</b>:{' '}
+                    <b>£{Number(customBudget).toFixed(2)}</b>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPendingPackageId(selectedPackageId);
+                      setCustomPriceDraft(customBudget);
+                      setCustomPriceOpen(true);
+                    }}
+                    className="text-xs font-semibold text-amber-200 hover:text-white underline"
+                  >
+                    Edit
+                  </button>
+                </div>
+              )}
+            </motion.div>
+
             {/* ── Vehicle Selection ── */}
             <motion.div
               initial="hidden"
@@ -525,7 +694,15 @@ export default function BookRide() {
               variants={fadeUp}
               className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6"
             >
-              <h2 className="text-lg font-semibold text-white mb-5">Choose Your Vehicle</h2>
+              <h2 className="text-lg font-semibold text-white mb-1">
+                {priceMode === 'custom' ? 'Pick a vehicle to set your offer' : 'Choose Your Vehicle'}
+              </h2>
+              {priceMode === 'custom' && (
+                <p className="text-sm text-white/50 mb-4">
+                  Tap a vehicle to open the offer popup. We&apos;ll prefill the suggested price for you.
+                </p>
+              )}
+              <div className="h-1" />
 
               {loadingPackages ? (
                 <div className="flex items-center gap-3 text-white/30 text-sm">
@@ -541,7 +718,7 @@ export default function BookRide() {
                     return (
                       <button
                         key={pkg.id}
-                        onClick={() => setSelectedPackageId(pkg.id)}
+                        onClick={() => handlePackageClick(pkg)}
                         className={`relative text-left rounded-2xl border-2 p-5 transition-all duration-200 cursor-pointer ${
                           active
                             ? 'border-secondary bg-secondary/[0.06]'
@@ -734,37 +911,6 @@ export default function BookRide() {
               </div>
             </motion.div>
 
-            {/* ── Custom Offer (optional) ── */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              custom={5}
-              variants={fadeUp}
-              className="bg-white/[0.02] rounded-2xl border border-white/[0.06] p-6"
-            >
-              <h2 className="text-lg font-semibold text-white mb-1">Name your price</h2>
-              <p className="text-sm text-white/50 mb-4">
-                Optional. Set your offer and we&apos;ll post your ride to the public board for drivers to bid on.
-              </p>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">£</span>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.5}
-                  inputMode="decimal"
-                  placeholder={fareEstimate ? `Suggested: ${fareEstimate.toFixed(2)}` : 'e.g. 12.00'}
-                  value={customBudget}
-                  onChange={(e) => setCustomBudget(e.target.value)}
-                  className="input-dark w-full pl-9"
-                />
-              </div>
-              {customBudget && Number(customBudget) > 0 && (
-                <p className="mt-2 text-xs text-amber-300/80">
-                  Drivers will see your offer and can bid. You can accept any bid you like.
-                </p>
-              )}
-            </motion.div>
           </div>
 
           {/* ═══ Right Sidebar ═══ */}
@@ -831,11 +977,17 @@ export default function BookRide() {
                   {loadingRoute ? (
                     <Loader2 size={14} className="text-secondary animate-spin" />
                   ) : fareEstimate ? (
-                    <span className={`font-bold ${appliedCoupon ? 'text-white/40 line-through' : 'text-white'}`}>£{fareEstimate.toFixed(2)}</span>
+                    <span className={`font-bold ${appliedCoupon || priceMode === 'custom' ? 'text-white/40 line-through' : 'text-white'}`}>£{fareEstimate.toFixed(2)}</span>
                   ) : (
                     <span className="text-white/30">—</span>
                   )}
                 </div>
+                {priceMode === 'custom' && customBudget && Number(customBudget) > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-amber-300 flex items-center gap-2"><Gavel size={15} /> Your offer</span>
+                    <span className="font-bold text-amber-200">£{Number(customBudget).toFixed(2)}</span>
+                  </div>
+                )}
                 {appliedCoupon && fareEstimate && (
                   <>
                     <div className="flex justify-between text-sm">
@@ -913,6 +1065,102 @@ export default function BookRide() {
           </div>
         </div>
       </div>
+
+      {/* ── Custom Price Modal ── */}
+      <AnimatePresence>
+        {customPriceOpen && (() => {
+          const pkg = packages.find((p) => p.id === pendingPackageId);
+          const suggested = pkg ? suggestedPriceFor(pkg) : 0;
+          return (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+              onClick={() => setCustomPriceOpen(false)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.2 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[#0B1120] rounded-2xl border border-white/[0.08] p-6 w-full max-w-md shadow-2xl"
+              >
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <h2 className="text-lg font-semibold text-white">Name your price</h2>
+                    {pkg && (
+                      <p className="text-sm text-white/50 mt-0.5">
+                        For <b className="text-white/80">{pkg.name}</b>{' '}
+                        <span className="capitalize">{pkg.summary}</span>
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setCustomPriceOpen(false)}
+                    className="p-1 rounded-md text-white/50 hover:text-white hover:bg-white/[0.06]"
+                    aria-label="Close"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <label className="block text-white/50 text-xs font-medium mb-2">Your offer</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">£</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    inputMode="decimal"
+                    autoFocus
+                    value={customPriceDraft}
+                    onChange={(e) => setCustomPriceDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        confirmCustomPrice();
+                      }
+                    }}
+                    className="input-dark w-full pl-9 text-lg font-semibold"
+                  />
+                </div>
+                {suggested > 0 && (
+                  <p className="mt-2 text-xs text-white/40">
+                    Suggested fare:{' '}
+                    <button
+                      type="button"
+                      onClick={() => setCustomPriceDraft(suggested.toFixed(2))}
+                      className="text-secondary hover:underline font-medium"
+                    >
+                      £{suggested.toFixed(2)}
+                    </button>
+                  </p>
+                )}
+                <p className="mt-3 text-xs text-amber-300/80">
+                  Drivers will see your offer and can bid higher or lower. You choose which bid to accept.
+                </p>
+
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => setCustomPriceOpen(false)}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-white text-sm font-semibold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmCustomPrice}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-secondary hover:bg-secondary/90 text-[#0a2540] text-sm font-bold transition-colors"
+                  >
+                    Confirm offer
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
     </DashboardLayout>
   );
 }

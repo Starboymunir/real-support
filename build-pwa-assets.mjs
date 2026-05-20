@@ -41,7 +41,7 @@ async function makeIcon(size, opts) {
 async function makePlayStoreIcon() {
   const out = path.join(root, '..', 'play-store-rs-ride');
   fs.mkdirSync(out, { recursive: true });
-  await makeIcon(512, { name: 'app-icon-512.png', absPath: path.join(out, 'app-icon-512.png') });
+  await makeIcon(512, { name: 'app-logo-512.png', absPath: path.join(out, 'app-logo-512.png') });
 
   // Feature graphic 1024x500
   const fgW = 1024, fgH = 500;
@@ -78,16 +78,16 @@ async function makePlayStoreIcon() {
 }
 
 async function main() {
-  await makeIcon(192, { name: 'icon-192.png' });
-  await makeIcon(512, { name: 'icon-512.png' });
-  await makeIcon(512, { name: 'icon-maskable-512.png', maskable: true });
+  await makeIcon(192, { name: 'logo-192.png' });
+  await makeIcon(512, { name: 'logo-512.png' });
+  await makeIcon(512, { name: 'logo-maskable-512.png', maskable: true });
   await makePlayStoreIcon();
 
   // Manifest
   const manifest = {
     name: 'RS Ride',
     short_name: 'RS Ride',
-    description: 'RS Ride – local taxi service. Background-checked drivers, real-time tracking, secure payments.',
+    description: 'Book safe, reliable UK taxis with real-time tracking and fixed fares.',
     start_url: '/',
     scope: '/',
     display: 'standalone',
@@ -95,11 +95,16 @@ async function main() {
     background_color: BG,
     theme_color: PRIMARY,
     icons: [
-      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+      { src: '/icons/logo-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/icons/logo-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      {
+        src: '/icons/logo-maskable-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
     ],
-  };
+  }
   fs.writeFileSync(path.join(root, 'public', 'manifest.webmanifest'), JSON.stringify(manifest, null, 2));
   console.log('✓ manifest.webmanifest');
 }

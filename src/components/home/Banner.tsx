@@ -21,60 +21,56 @@ const Banner = () => {
                 className="w-[80px] object-contain"
                 width={81}
                 height={73}
-                src={"/home/Group 394.png"}
+                src={'/home/Group 394.png'}
                 alt=""
               />
             </div>
             <div className="flex flex-col justify-center">
-              <h5 className="text-blue font-poppins font-semibold mb-1 ">
-                RS Ride APP
-              </h5>
+              <h5 className="text-blue font-poppins font-semibold mb-1 ">RS Ride APP</h5>
               <div className="flex space-x-2">
                 <Image
                   className="w-5"
                   width={17}
                   height={17}
-                  src={"/home/Icon ionic-ios-star.png"}
+                  src={'/home/Icon ionic-ios-star.png'}
                   alt="star"
                 />
                 <Image
                   className="w-5"
                   width={17}
                   height={17}
-                  src={"/home/Icon ionic-ios-star.png"}
+                  src={'/home/Icon ionic-ios-star.png'}
                   alt="star"
                 />
                 <Image
                   className="w-5"
                   width={17}
                   height={17}
-                  src={"/home/Icon ionic-ios-star.png"}
+                  src={'/home/Icon ionic-ios-star.png'}
                   alt="star"
                 />
                 <Image
                   className="w-5"
                   width={17}
                   height={17}
-                  src={"/home/Icon ionic-ios-star.png"}
+                  src={'/home/Icon ionic-ios-star.png'}
                   alt="star"
                 />
                 <Image
                   className="w-5"
                   width={17}
                   height={17}
-                  src={"/home/Icon ionic-ios-star.png"}
+                  src={'/home/Icon ionic-ios-star.png'}
                   alt="star"
                 />
               </div>
             </div>
           </div>
 
-          <h1 className="text-blue text-6xl font-poppins font-semibold">
-            Mobile App
-          </h1>
+          <h1 className="text-blue text-6xl font-poppins font-semibold">Mobile App</h1>
 
           <p className="text-xl font-poppins">
-            Freedom Of Choice And Movement - <br /> One App For Rides
+            Freedom Of Choice And Movement - <br /> Fast & Reliable Taxi Service
           </p>
 
           <div>
@@ -89,13 +85,13 @@ const Banner = () => {
         <Image
           width={510}
           height={400}
-          src={"/home/Image 23.png"}
+          src={'/home/Image 23.png'}
           className="w-1/3 absolute bottom-0 right-8"
           alt="mobile"
         />
       </div>
     </section>
-  );
+  )
 };
 
 export default Banner;

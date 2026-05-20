@@ -87,7 +87,7 @@ async function main() {
   const manifest = {
     name: 'RS Ride',
     short_name: 'RS Ride',
-    description: 'Book safe, reliable UK taxis with real-time tracking and fixed fares.',
+    description: 'Book Ride, reliable UK taxis with real-time tracking and fixed fares.',
     start_url: '/',
     scope: '/',
     display: 'standalone',

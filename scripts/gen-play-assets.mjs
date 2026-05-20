@@ -7,7 +7,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const BRAND = '#0a2540';
 const ACCENT = '#1e88ff';
-const ICON_SRC = 'public/icons/icon-512.png';
+const ICON_SRC = 'public/icons/logo-512.png';
 
 // 1) App icon — flatten transparent icon onto solid brand background
 async function buildAppIcon() {

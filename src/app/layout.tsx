@@ -10,13 +10,13 @@ export const dynamic = 'force-dynamic'
 
 
 export const metadata: Metadata = {
-  title: "RS Ride - One App - Local Taxi Service You Can Trust",
+  title: "RS Ride - Fast & Reliable Taxi Service",
   description: "RS Ride - Rides in seconds with service. Background-checked drivers, real-time tracking, and secure payments. Book airport transfers, city rides, and business transport.",
   manifest: "/manifest.webmanifest",
-  applicationName: "RS Ride - One App",
+  applicationName: "RS Ride - Fast & Reliable Taxi Service",
   icons: {
-    icon: "/images/brand/logo.png",
-    apple: "/icons/icon-192.png",
+    icon: "/icons/logo192.png",
+    apple: "/icons/logo192.png",
   },
 };
 

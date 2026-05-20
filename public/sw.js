@@ -35,8 +35,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'RS Ride';
   const options = {
     body: data.body || '',
-    icon: data.icon || '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: data.icon || '/icons/logo-192.png',
+    badge: '/icons/logo-192.png',
     data: { url: data.url || '/' },
     tag: data.tag,
     renotify: true,

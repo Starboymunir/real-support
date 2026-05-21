@@ -143,8 +143,18 @@ jobs:
           npm ci
 
       - name: Build Next.js
+        env:
+          # Cap Node's heap so an OOM exits fast instead of thrashing swap forever.
+          # Adjust upward if the runner has more RAM available.
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           cd /var/www/html/rs-web-admin/app
+          echo "--- free -h ---"
+          free -h || true
+          echo "--- nproc ---"
+          nproc || true
+          echo "--- swapon ---"
+          swapon --show || true
           NODE_ENV=production npm run build 2>&1 | tee build.log
 
       - name: Restart PM2

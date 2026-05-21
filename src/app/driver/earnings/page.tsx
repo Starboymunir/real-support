@@ -58,7 +58,7 @@ export default function EarningsPage() {
         const calcPeriod = (start: Date) => {
           const inPeriod = completed.filter(b => new Date(b.createdAt) >= start);
           const total = inPeriod.reduce((s, b) => s + (b.finalBill || 0), 0);
-          const tips = total * 0.08;
+          const tips = inPeriod.reduce((s, b) => s + (b.tipAmount || 0), 0);
           return {
             earnings: `\u00A3${total.toFixed(2)}`,
             rides: String(inPeriod.length),
@@ -88,19 +88,23 @@ export default function EarningsPage() {
           };
         }));
 
-        // Compute breakdown from real month data
+        // Compute real breakdown from this month's completed rides:
+        //   Base Fares   = sum(finalBill - waitingFee - tipAmount)
+        //   Waiting Fees = sum(waitingFee)
+        //   Tips         = sum(tipAmount)
+        //   Bonuses      = 0 (no bonus model yet)
         const monthCompleted = completed.filter(b => new Date(b.createdAt) >= monthStart);
         const monthTotal = monthCompleted.reduce((s, b) => s + (b.finalBill || 0), 0);
-        if (monthTotal > 0) {
-          const baseFare = monthTotal * 0.80;
-          const surge = monthTotal * 0.10;
-          const tipsAmt = monthTotal * 0.07;
-          const bonuses = monthTotal * 0.03;
+        if (monthCompleted.length > 0) {
+          const waiting = monthCompleted.reduce((s, b) => s + (b.waitingFee || 0), 0);
+          const tipsAmt = monthCompleted.reduce((s, b) => s + (b.tipAmount || 0), 0);
+          const base = Math.max(0, monthTotal - waiting - tipsAmt);
+          const denom = monthTotal || 1;
           setBreakdownData([
-            { label: 'Base Fares', percent: 80, amount: `\u00A3${baseFare.toFixed(2)}`, color: 'from-primary to-primary-light' },
-            { label: 'Surge Pricing', percent: 10, amount: `\u00A3${surge.toFixed(2)}`, color: 'from-orange-400 to-orange-500' },
-            { label: 'Tips', percent: 7, amount: `\u00A3${tipsAmt.toFixed(2)}`, color: 'from-secondary to-secondary-light' },
-            { label: 'Bonuses', percent: 3, amount: `\u00A3${bonuses.toFixed(2)}`, color: 'from-accent to-accent-light' },
+            { label: 'Base Fares', percent: Math.round((base / denom) * 100), amount: `\u00A3${base.toFixed(2)}`, color: 'from-primary to-primary-light' },
+            { label: 'Waiting Fees', percent: Math.round((waiting / denom) * 100), amount: `\u00A3${waiting.toFixed(2)}`, color: 'from-orange-400 to-orange-500' },
+            { label: 'Tips', percent: Math.round((tipsAmt / denom) * 100), amount: `\u00A3${tipsAmt.toFixed(2)}`, color: 'from-secondary to-secondary-light' },
+            { label: 'Bonuses', percent: 0, amount: '\u00A30.00', color: 'from-accent to-accent-light' },
           ]);
         }
       }

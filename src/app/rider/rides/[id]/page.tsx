@@ -27,6 +27,8 @@ import dynamic from 'next/dynamic';
 const MapView = dynamic(() => import('@/components/maps/MapView'), { ssr: false });
 import { getRoute, formatDistance, formatDuration, type RouteInfo } from '@/lib/mapbox';
 import RiderBidsPanel from '@/components/dispatch/RiderBidsPanel';
+import { useSocket } from '@/lib/socket-context';
+import { Gift, Heart } from 'lucide-react';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -72,6 +74,7 @@ export default function RideDetail() {
   const params = useParams();
   const router = useRouter();
   const rideId = params?.id as string;
+  const { socket } = useSocket();
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [request, setRequest] = useState<RideRequest | null>(null);
@@ -80,6 +83,8 @@ export default function RideDetail() {
   const [fareBreakdown, setFareBreakdown] = useState<FareItem[]>([]);
   const [timeline, setTimeline] = useState<TimelineStep[]>([]);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
+  const [tipAmount, setTipAmount] = useState<string>('');
+  const [tippingLoading, setTippingLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!rideId) return;
@@ -112,12 +117,19 @@ export default function RideDetail() {
   function buildBookingFare(b: Booking) {
     const total = b.finalBill ?? b.totalBill ?? 0;
     const service = b.serviceCharge ?? 0;
-    const baseFare = Math.max(0, total - service);
+    const waiting = b.waitingFee ?? 0;
+    const tip = b.tipAmount ?? 0;
+    const baseFare = Math.max(0, total - service - waiting);
     const discount = b.discountAmount ?? 0;
     const items: FareItem[] = [
       { label: 'Fare', value: `£${baseFare.toFixed(2)}` },
       { label: 'Service Charge', value: `£${service.toFixed(2)}` },
     ];
+    if (waiting > 0) {
+      const mins = b.totalWaitingTime ?? 0;
+      items.push({ label: `Waiting fee${mins ? ` (${mins} min)` : ''}`, value: `£${waiting.toFixed(2)}` });
+    }
+    if (tip > 0) items.push({ label: 'Tip to driver', value: `£${tip.toFixed(2)}` });
     if (discount > 0) items.push({ label: 'Discount', value: `-£${discount.toFixed(2)}`, highlight: true });
     setFareBreakdown(items);
   }
@@ -164,6 +176,37 @@ export default function RideDetail() {
   }
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Live updates: refresh whenever the driver progresses the booking.
+  useEffect(() => {
+    if (!socket || !rideId) return;
+    const refresh = (payload: { id?: string } | undefined) => {
+      if (!payload || !payload.id || payload.id === rideId) fetchData();
+    };
+    socket.on('BOOKING_UPDATED', refresh);
+    socket.on('BOOKING_COMPLETED', refresh);
+    socket.on('BOOKING_CANCELLED', refresh);
+    return () => {
+      socket.off('BOOKING_UPDATED', refresh);
+      socket.off('BOOKING_COMPLETED', refresh);
+      socket.off('BOOKING_CANCELLED', refresh);
+    };
+  }, [socket, rideId, fetchData]);
+
+  async function handleTip(amount: number) {
+    if (!booking || !amount || amount <= 0) return;
+    setTippingLoading(true);
+    try {
+      await bookingsApi.tipDriver(booking.id, amount);
+      toast.success('Tip sent', `£${amount.toFixed(2)} sent to ${booking.driverName || 'your driver'}. Thank you!`);
+      setTipAmount('');
+      fetchData();
+    } catch (err) {
+      toast.error('Tip failed', err instanceof Error ? err.message : 'Could not send tip.');
+    } finally {
+      setTippingLoading(false);
+    }
+  }
 
   // Unified data accessors (booking takes priority, fall back to request)
   const data = booking || request;
@@ -469,6 +512,67 @@ export default function RideDetail() {
                 ))}
               </div>
             </motion.div>
+
+            {/* Tip Driver — appears when ride is completed and there's a driver */}
+            {booking && booking.status === 'COMPLETED' && booking.driverId && (
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                custom={5.5}
+                variants={fadeUp}
+                className="bg-gradient-to-br from-secondary/10 via-secondary/5 to-transparent rounded-2xl border border-secondary/20 p-6"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-9 h-9 rounded-xl bg-secondary/20 flex items-center justify-center">
+                    <Heart size={16} className="text-secondary" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-semibold text-white">Tip {booking.driverName?.split(' ')[0] || 'your driver'}</h2>
+                    <p className="text-xs text-white/50">
+                      {(booking.tipAmount ?? 0) > 0
+                        ? `You've tipped £${(booking.tipAmount || 0).toFixed(2)}. Add more?`
+                        : 'Send a little extra straight to their wallet.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-5 gap-2 mt-4">
+                  {[1, 2, 5, 10, 20].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => handleTip(v)}
+                      disabled={tippingLoading}
+                      className="rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-secondary/40 hover:bg-secondary/10 px-2 py-3 text-sm font-bold text-white transition disabled:opacity-50"
+                    >
+                      £{v}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2 mt-3">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">£</span>
+                    <input
+                      type="number"
+                      step="0.50"
+                      min="0.50"
+                      value={tipAmount}
+                      onChange={(e) => setTipAmount(e.target.value)}
+                      placeholder="Custom amount"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-7 pr-3 py-2.5 text-sm font-medium text-white placeholder-white/30 focus:outline-none focus:border-secondary"
+                    />
+                  </div>
+                  <Button
+                    variant="green"
+                    onClick={() => handleTip(parseFloat(tipAmount) || 0)}
+                    disabled={tippingLoading || !tipAmount || parseFloat(tipAmount) <= 0}
+                  >
+                    {tippingLoading ? <Loader2 size={14} className="animate-spin" /> : <Gift size={14} />}
+                    Send
+                  </Button>
+                </div>
+              </motion.div>
+            )}
 
             {/* Actions */}
             <motion.div

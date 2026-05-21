@@ -75,6 +75,7 @@ const sidebarLinks = {
     { label: 'Vehicle', href: '/driver/vehicle', icon: Car },
     { label: 'Documents', href: '/driver/documents', icon: Upload },
     { label: 'Earnings', href: '/driver/earnings', icon: Wallet },
+    { label: 'Wallet', href: '/driver/wallet', icon: Wallet },
     { label: 'Messages', href: '/driver/chat', icon: MessageSquare },
     { label: 'Notifications', href: '/driver/notifications', icon: Bell },
   ],

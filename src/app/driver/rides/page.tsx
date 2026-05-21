@@ -118,10 +118,21 @@ export default function DriverRidesPage() {
   }, [socket, fetchBookings]);
 
   const handleUpdateStatus = async (bookingId: string, newStatus: BookingStatus) => {
+    // Cash rides: collect cash before marking COMPLETED. Send the driver to
+    // the cash-collection screen which itself triggers the final transition.
+    if (newStatus === 'COMPLETED') {
+      const target = bookings.find((b) => b.id === bookingId);
+      if (target?.paymentType === 'CASH' && target.status !== 'COMPLETED') {
+        router.push(`/driver/rides/${bookingId}/cash`);
+        return;
+      }
+    }
+
     setActionLoading(bookingId);
     setError('');
     try {
-      await bookingsApi.update(bookingId, { status: newStatus });
+      const res = await bookingsApi.update(bookingId, { status: newStatus });
+      const updated = (res as unknown as { data?: Booking })?.data || (res as unknown as Booking);
       const statusLabels: Record<string, string> = {
         WAY_TO_PICKUP: 'On the way to pickup',
         ARRIVED: 'Arrived at pickup',
@@ -131,9 +142,17 @@ export default function DriverRidesPage() {
         CANCELLED: 'Ride cancelled',
       };
       toast.success('Status updated', statusLabels[newStatus] || `Status changed to ${newStatus}`);
-      setBookings(prev => prev.map(b =>
-        b.id === bookingId ? { ...b, status: newStatus } : b
-      ));
+      // Merge full server-returned booking so we get server-computed fields
+      // (arrivedAt, waitingFee, finalBill recompute, etc.) — not just status.
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.id === bookingId
+            ? updated && updated.id
+              ? { ...b, ...updated }
+              : { ...b, status: newStatus }
+            : b,
+        ),
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to update ride status';
       setError(msg);
@@ -369,6 +388,35 @@ export default function DriverRidesPage() {
                             <p className="text-xs text-white/40 mb-1">Commission</p>
                             <p className="text-sm text-white/70">£{booking.commission.toFixed(2)} ({booking.commissionPercentage}%)</p>
                           </div>
+                          {(booking.arrivedAt || (booking.totalWaitingTime ?? 0) > 0) && (
+                            <>
+                              <div>
+                                <p className="text-xs text-white/40 mb-1">Arrived at</p>
+                                <p className="text-sm text-white/70">{formatTime(booking.arrivedAt)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-white/40 mb-1">Waiting time</p>
+                                <p className="text-sm text-white/70">
+                                  {(booking.totalWaitingTime ?? 0)} min
+                                  {(booking.waitingFee ?? 0) > 0
+                                    ? ` · £${(booking.waitingFee || 0).toFixed(2)} fee`
+                                    : ''}
+                                </p>
+                              </div>
+                            </>
+                          )}
+                          {(booking.finalBill ?? 0) !== (booking.totalBill ?? 0) && (
+                            <div>
+                              <p className="text-xs text-white/40 mb-1">Final bill</p>
+                              <p className="text-sm font-bold text-secondary">£{(booking.finalBill || 0).toFixed(2)}</p>
+                            </div>
+                          )}
+                          {(booking.tipAmount ?? 0) > 0 && (
+                            <div>
+                              <p className="text-xs text-white/40 mb-1">Tip received</p>
+                              <p className="text-sm font-semibold text-success">£{(booking.tipAmount || 0).toFixed(2)}</p>
+                            </div>
+                          )}
                         </div>
 
                         {/* Status timeline */}

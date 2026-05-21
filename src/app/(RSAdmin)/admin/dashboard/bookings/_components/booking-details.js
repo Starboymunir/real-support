@@ -282,10 +282,46 @@ const BookingDetails = ({ id }) => {
                   </Typography>
                 </Stack>
 
+                {Number(data?.waitingFee ?? 0) > 0 && (
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Waiting Fee ({Number(data?.totalWaitingTime ?? 0)} min)
+                    </Typography>
+                    <Typography variant="body2" fontWeight={500}>
+                      £{Number(data?.waitingFee ?? 0).toFixed(2)}
+                    </Typography>
+                  </Stack>
+                )}
+
+                {Number(data?.tipAmount ?? 0) > 0 && (
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">Tip to Driver</Typography>
+                    <Typography variant="body2" fontWeight={500} color="success.main">
+                      £{Number(data?.tipAmount ?? 0).toFixed(2)}
+                    </Typography>
+                  </Stack>
+                )}
+
+                {Number(data?.cashCollected ?? 0) > 0 && (
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">Cash Collected</Typography>
+                    <Typography variant="body2" fontWeight={500}>
+                      £{Number(data?.cashCollected ?? 0).toFixed(2)}
+                    </Typography>
+                  </Stack>
+                )}
+
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
                   <Typography variant="body2" color="text.secondary">Discount</Typography>
                   <Typography variant="body2" fontWeight={500} color="success.main">
                     − £{Number(data?.discountAmount ?? 0).toFixed(2)}
+                  </Typography>
+                </Stack>
+
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="body2" color="text.secondary">Final Bill</Typography>
+                  <Typography variant="body2" fontWeight={600}>
+                    £{Number(data?.finalBill ?? data?.totalBill ?? 0).toFixed(2)}
                   </Typography>
                 </Stack>
 

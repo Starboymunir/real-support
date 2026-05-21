@@ -359,6 +359,8 @@ export interface Booking {
   refundAmount?: number;
   cancellationFee?: number;
   totalWaitingTime?: number;
+  waitingFee?: number;
+  tipAmount?: number;
   wayToPickupAt?: string;
   arrivedAt?: string;
   pickedUpAt?: string;

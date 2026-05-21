@@ -65,4 +65,15 @@ export const bookingsApi = {
 
   update: (id: string, data: Partial<Booking>) =>
     api.patch<Booking>(`/bookings/${id}`, data),
+
+  // Driver records cash collected; backend auto-refunds change to rider's wallet.
+  recordCashCollected: (id: string, amount: number) =>
+    api.post<{ booking: Booking; overpayment: number }>(
+      `/bookings/${id}/cash-collected`,
+      { amount },
+    ),
+
+  // Rider tips driver (wallet-to-wallet transfer, recorded on the booking).
+  tipDriver: (id: string, amount: number) =>
+    api.post<Booking>(`/bookings/${id}/tip`, { amount }),
 };

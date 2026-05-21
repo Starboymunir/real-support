@@ -123,6 +123,22 @@ export default function BookingsTableRow({
       </TableCell>
 
       <TableCell sx={{ whiteSpace: "nowrap" }}>
+        {Number(row?.totalWaitingTime ?? 0) > 0 ? `${row.totalWaitingTime}m\u00A0\u00A0£${Number(row?.waitingFee ?? 0).toFixed(2)}` : '—'}
+      </TableCell>
+
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
+        {Number(row?.tipAmount ?? 0) > 0 ? `£${Number(row?.tipAmount ?? 0).toFixed(2)}` : '—'}
+      </TableCell>
+
+      <TableCell sx={{ whiteSpace: "nowrap", fontWeight: 600 }}>
+        £{Number(row?.finalBill ?? row?.totalBill ?? 0).toFixed(2)}
+      </TableCell>
+
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
+        {Number(row?.cashCollected ?? 0) > 0 ? `£${Number(row?.cashCollected ?? 0).toFixed(2)}` : '—'}
+      </TableCell>
+
+      <TableCell sx={{ whiteSpace: "nowrap" }}>
         {Number(row?.totalDistance).toFixed(2)}
       </TableCell>
       <TableCell sx={{ whiteSpace: "nowrap" }}>

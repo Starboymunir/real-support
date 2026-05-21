@@ -90,9 +90,11 @@ on:
   push:
     branches: ["main"]
 
+# Single-job self-hosted deploy (no artifact upload/download → no storage quota usage).
+# Builds directly on the production runner.
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  deploy:
+    runs-on: self-hosted
 
     env:
       NEXT_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY }}
@@ -106,18 +108,29 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Create .env file
+      - name: Sync source to app dir
         run: |
-          cat <<EOF > .env
+          set -e
+          APP_DIR=/var/www/html/rs-web-admin/app
+          echo "📁 Preparing $APP_DIR ..."
+          sudo mkdir -p $APP_DIR
+          sudo chown -R $USER:$USER $APP_DIR
+
+          if [ ! -d "$APP_DIR/.git" ]; then
+            echo "📦 First-time clone into $APP_DIR"
+            rm -rf $APP_DIR
+            git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git $APP_DIR
+          else
+            echo "🔄 Updating $APP_DIR to ${{ github.sha }}"
+            cd $APP_DIR
+            git fetch --all --prune
+            git reset --hard ${{ github.sha }}
+          fi
+
+      - name: Write .env
+        run: |
+          APP_DIR=/var/www/html/rs-web-admin/app
+          cat <<EOF > $APP_DIR/.env
           NEXT_PUBLIC_GOOGLE_PLACES_API_KEY="${NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}"
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}"
           NEXT_PUBLIC_STRIPE_SECRET_KEY="${NEXT_PUBLIC_STRIPE_SECRET_KEY}"
@@ -126,66 +139,22 @@ jobs:
           NEXT_PUBLIC_VAPID_PUBLIC_KEY="${NEXT_PUBLIC_VAPID_PUBLIC_KEY}"
           EOF
 
+      - name: Install dependencies
+        run: |
+          cd /var/www/html/rs-web-admin/app
+          npm ci
+
       - name: Build Next.js
         run: |
-          NODE_ENV=production npm run build
+          cd /var/www/html/rs-web-admin/app
+          NODE_ENV=production npm run build 2>&1 | tee build.log
 
-      - name: Package artifact
-        run: |
-          tar -czf nextjs-deploy.tar.gz \
-            .next \
-            public \
-            package.json \
-            package-lock.json \
-            .env
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: nextjs-artifact
-          path: nextjs-deploy.tar.gz
-          retention-days: 1
-          overwrite: true
-
-  deploy:
-    needs: build
-    runs-on: self-hosted
-
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: nextjs-artifact
-
-      - name: Deploy Next.js App
+      - name: Restart PM2
         run: |
           set -e
+          cd /var/www/html/rs-web-admin/app
+          echo "Deployed BUILD_ID: $(cat .next/BUILD_ID 2>/dev/null || echo 'MISSING')"
 
-          APP_DIR=/var/www/html/rs-web-admin/app
-
-          echo "📁 Preparing directory..."
-          mkdir -p $APP_DIR
-
-          echo "🧹 Cleaning old build files..."
-          rm -rf $APP_DIR/.next
-          rm -rf $APP_DIR/node_modules
-          rm -f $APP_DIR/package.json
-          rm -f $APP_DIR/package-lock.json
-          rm -f $APP_DIR/.env
-
-          echo "📦 Extracting new build..."
-          tar -xzf nextjs-deploy.tar.gz -C $APP_DIR
-
-          cd $APP_DIR
-
-          echo "📥 Installing production dependencies..."
-          npm ci --omit=dev
-
-          echo "� Verifying extracted files..."
-          ls -la $APP_DIR/.next/ | head -20 || true
-          echo "Deployed BUILD_ID: $(cat $APP_DIR/.next/BUILD_ID 2>/dev/null || echo 'MISSING')"
-
-          echo "🚀 Starting or reloading PM2 (via sudo to talk to root daemon)..."
           if sudo pm2 describe rs_web_admin > /dev/null 2>&1; then
             echo "♻️ Reloading existing process..."
             sudo pm2 reload rs_web_admin --update-env
@@ -193,27 +162,14 @@ jobs:
             echo "🆕 Starting new process..."
             sudo pm2 start npm --name rs_web_admin -- start
           fi
-
-          echo "💾 Saving PM2 state..."
           sudo pm2 save
 
-          echo "🔍 Verifying deployment..."
+      - name: Health check
+        run: |
           sleep 5
-
-          echo "🩺 Running health check..."
           if ! curl -fs http://localhost:3000 > /dev/null; then
             echo "❌ Health check failed!"
             sudo pm2 logs rs_web_admin --lines 50 --nostream || true
             exit 1
           fi
-
-          echo "🧪 Verifying new route is served..."
-          if curl -fs http://localhost:3000/delete-account > /dev/null; then
-            echo "✅ /delete-account is live"
-          else
-            echo "⚠️ /delete-account did NOT load — process may still be on old build"
-            sudo pm2 logs rs_web_admin --lines 30 --nostream || true
-            exit 1
-          fi
-
           echo "✅ Deployment successful!"

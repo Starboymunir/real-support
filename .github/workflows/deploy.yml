@@ -116,16 +116,14 @@ jobs:
           sudo mkdir -p $APP_DIR
           sudo chown -R $USER:$USER $APP_DIR
 
-          if [ ! -d "$APP_DIR/.git" ]; then
-            echo "📦 First-time clone into $APP_DIR"
-            rm -rf $APP_DIR
-            git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git $APP_DIR
-          else
-            echo "🔄 Updating $APP_DIR to ${{ github.sha }}"
-            cd $APP_DIR
-            git fetch --all --prune
-            git reset --hard ${{ github.sha }}
-          fi
+          echo "🔄 Syncing checkout (${{ github.sha }}) into $APP_DIR ..."
+          # Preserve node_modules and .next for incremental builds; remove .git
+          # so the deployed dir doesn't try to reach GitHub at runtime.
+          rsync -a --delete \
+            --exclude='node_modules' \
+            --exclude='.next' \
+            --exclude='.git' \
+            ./ $APP_DIR/
 
       - name: Write .env
         run: |

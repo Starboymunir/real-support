@@ -144,6 +144,8 @@ jobs:
         with:
           name: nextjs-artifact
           path: nextjs-deploy.tar.gz
+          retention-days: 1
+          overwrite: true
 
   deploy:
     needs: build

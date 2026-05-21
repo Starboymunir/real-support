@@ -117,7 +117,6 @@ export default function DriverBoardPage() {
           requestId: job.id,
           driverId,
           bidAmount: amount,
-          passengerId: job.passengerId,
         });
         toast.success('Bid placed!', `£${amount.toFixed(2)} submitted.`);
       }

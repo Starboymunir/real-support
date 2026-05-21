@@ -1,5 +1,5 @@
 // RS Ride Service Worker — handles PWA install + push notifications
-const CACHE = 'rs-ride-v1';
+const CACHE = 'rs-ride-v2';
 const OFFLINE_URLS = ['/'];
 
 self.addEventListener('install', (event) => {
@@ -37,25 +37,50 @@ self.addEventListener('push', (event) => {
     body: data.body || '',
     icon: data.icon || '/icons/logo-192.png',
     badge: '/icons/logo-192.png',
-    data: { url: data.url || '/' },
+    data: { url: data.url || '/', extra: data.extra, urgent: !!data.urgent },
     tag: data.tag,
-    renotify: true,
+    renotify: data.renotify !== false,
+    requireInteraction: data.requireInteraction === true || data.urgent === true,
+    vibrate: data.vibrate || (data.urgent ? [300, 120, 300, 120, 600] : undefined),
+    actions: Array.isArray(data.actions) ? data.actions : undefined,
+    silent: false,
   };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    self.registration
+      .showNotification(title, options)
+      .then(() =>
+        // Best-effort: ping any open RS Ride client so it can foreground a UI handler
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+          for (const c of list) {
+            try {
+              c.postMessage({ type: 'PUSH_RECEIVED', payload: data });
+            } catch (_) { /* ignore */ }
+          }
+        }),
+      )
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || '/';
+  const nData = event.notification.data || {};
+  const baseUrl = nData.url || '/';
+  // Action button → encode the action in a query string the app can read
+  const action = event.action;
+  const targetUrl =
+    action && action !== ''
+      ? `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}action=${encodeURIComponent(action)}`
+      : baseUrl;
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
       for (const c of list) {
         if (c.url.includes(self.location.origin) && 'focus' in c) {
-          c.navigate(url);
+          try { c.postMessage({ type: 'NOTIFICATION_CLICK', action, payload: nData }); } catch (_) { /* ignore */ }
+          c.navigate(targetUrl);
           return c.focus();
         }
       }
-      if (clients.openWindow) return clients.openWindow(url);
+      if (clients.openWindow) return clients.openWindow(targetUrl);
     })
   );
 });

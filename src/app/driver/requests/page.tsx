@@ -147,7 +147,6 @@ export default function DriverRequestsPage() {
           requestId: request.id,
           driverId,
           bidAmount: amount,
-          passengerId: request.passengerId,
         });
         toast.success('Bid placed!', `Your bid of £${amount.toFixed(2)} has been submitted.`);
       }
@@ -345,7 +344,10 @@ export default function DriverRequestsPage() {
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 pt-3 border-t border-white/[0.04]">
                     <div className="flex items-center gap-1.5 text-secondary">
                       <DollarSign size={16} />
-                      <span className="text-sm font-bold">£{(request.totalBill || 0).toFixed(2)}</span>
+                      <span className="text-sm font-bold">£{((request.budget ?? request.totalBill) || 0).toFixed(2)}</span>
+                      {!isFixed && request.budget != null && (
+                        <span className="text-[10px] uppercase tracking-wide text-white/40 ml-1">rider offer</span>
+                      )}
                     </div>
                     <div className="flex items-center gap-1.5 text-white/50">
                       <Route size={14} />

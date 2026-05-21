@@ -9,7 +9,6 @@ export interface CreateBidDto {
   requestId: string;
   bidAmount: number;
   driverId: string;
-  passengerId: string;
 }
 
 export interface UpdateBidDto {

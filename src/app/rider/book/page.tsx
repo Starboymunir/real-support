@@ -125,6 +125,19 @@ export default function BookRide() {
   // location (or the rider's current map center). Falls back to silent
   // failure so a flaky network never breaks the booking flow.
   const [onlineDrivers, setOnlineDrivers] = useState<OnlineDriver[]>([]);
+  // Rider's own GPS, used as the default map center until they pick a
+  // pickup location. Without this we'd default to London and miss any
+  // drivers who are online in the rider's actual region.
+  const [riderLocation, setRiderLocation] = useState<{ lng: number; lat: number } | null>(null);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setRiderLocation({ lng: pos.coords.longitude, lat: pos.coords.latitude }),
+      () => {},
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60_000 },
+    );
+  }, []);
 
   const selectedPackage = packages.find((p) => p.id === selectedPackageId);
 
@@ -331,6 +344,8 @@ export default function BookRide() {
     ? [pickupPlace.lng, pickupPlace.lat]
     : dropoffPlace
     ? [dropoffPlace.lng, dropoffPlace.lat]
+    : riderLocation
+    ? [riderLocation.lng, riderLocation.lat]
     : [-0.1276, 51.5074];
 
   // Poll nearby online drivers around the current map center every 8s.
@@ -340,7 +355,7 @@ export default function BookRide() {
     let cancelled = false;
     const fetchDrivers = async () => {
       try {
-        const drivers = await dispatchApi.onlineDrivers(lat, lng, 15);
+        const drivers = await dispatchApi.onlineDrivers(lat, lng, 50);
         if (!cancelled) setOnlineDrivers(Array.isArray(drivers) ? drivers : []);
       } catch {
         if (!cancelled) setOnlineDrivers([]);

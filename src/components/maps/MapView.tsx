@@ -120,17 +120,20 @@ export default function MapView({
       }
       const el = document.createElement('div');
       el.className = 'driver-car-marker';
-      el.style.width = '34px';
-      el.style.height = '34px';
+      // Smaller pill so the map doesn't get crowded. Mapbox HTML markers
+      // keep a constant pixel size across zoom levels by default, so cars
+      // look the same whether the user is zoomed in or out.
+      el.style.width = '22px';
+      el.style.height = '22px';
       el.style.display = 'flex';
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
       el.style.borderRadius = '50%';
-      el.style.background = 'rgba(0, 0, 0, 0.75)';
-      el.style.border = '2px solid #00E676';
-      el.style.boxShadow = '0 2px 10px rgba(0, 230, 118, 0.45)';
+      el.style.background = 'rgba(0, 0, 0, 0.78)';
+      el.style.border = '1.5px solid #00E676';
+      el.style.boxShadow = '0 1px 4px rgba(0, 230, 118, 0.4)';
       el.innerHTML =
-        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00E676" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>';
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00E676" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>';
 
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([d.lng, d.lat])

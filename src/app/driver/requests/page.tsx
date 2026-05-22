@@ -104,8 +104,33 @@ export default function DriverRequestsPage() {
     const handleNewRequest = () => {
       fetchRequests();
     };
+    // When a rider cancels (or otherwise leaves PENDING) drop the card
+    // immediately instead of leaving a stale "ghost" offer on screen.
+    const handleCancelled = (data: { id?: string } | string) => {
+      const id = typeof data === 'string' ? data : data?.id;
+      if (!id) {
+        fetchRequests();
+        return;
+      }
+      setRequests(prev => prev.filter(r => r.id !== id));
+    };
+    const handleUpdated = (data: { id?: string; status?: string }) => {
+      if (!data?.id) return;
+      // Anything that's no longer PENDING shouldn't show on the driver list.
+      if (data.status && data.status !== 'PENDING') {
+        setRequests(prev => prev.filter(r => r.id !== data.id));
+      } else {
+        fetchRequests();
+      }
+    };
     socket.on('NEW_REQUEST', handleNewRequest);
-    return () => { socket.off('NEW_REQUEST', handleNewRequest); };
+    socket.on('REQUEST_CANCELLED', handleCancelled);
+    socket.on('REQUEST_UPDATED', handleUpdated);
+    return () => {
+      socket.off('NEW_REQUEST', handleNewRequest);
+      socket.off('REQUEST_CANCELLED', handleCancelled);
+      socket.off('REQUEST_UPDATED', handleUpdated);
+    };
   }, [socket, fetchRequests]);
 
   const handleAcceptFixed = async (request: RideRequest) => {

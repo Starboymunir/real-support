@@ -135,12 +135,14 @@ export default function RideDetail() {
   }
 
   function buildRequestFare(r: RideRequest) {
-    const total = r.totalBill ?? 0;
+    // For ADJUSTABLE rides totalBill is null; the rider's offered amount
+    // lives in `budget` and is what we should surface as the fare.
+    const total = r.budget ?? r.totalBill ?? 0;
     const service = r.serviceCharge ?? 0;
     const baseFare = Math.max(0, total - service);
     const discount = r.discountAmount ?? 0;
     const items: FareItem[] = [
-      { label: 'Estimated Fare', value: `£${baseFare.toFixed(2)}` },
+      { label: r.requestType === 'ADJUSTABLE' ? 'Your Offer' : 'Estimated Fare', value: `£${baseFare.toFixed(2)}` },
       { label: 'Service Charge', value: `£${service.toFixed(2)}` },
     ];
     if (discount > 0) items.push({ label: 'Discount', value: `-£${discount.toFixed(2)}`, highlight: true });
@@ -278,7 +280,11 @@ export default function RideDetail() {
   const pickup = data.startFrom?.name || data.startFrom?.city || data.startFrom?.postCode || '—';
   const dropoff = data.destination?.name || data.destination?.city || data.destination?.postCode || '—';
   const { label: statusLabel, cls: statusClass } = getStatusInfo(data.status);
-  const total = booking ? (booking.finalBill ?? booking.totalBill ?? 0) : (request?.totalBill ?? 0);
+  // Bookings carry the agreed price in finalBill/totalBill. For an open
+  // ADJUSTABLE request totalBill is null — fall back to the rider's budget.
+  const total = booking
+    ? (booking.finalBill ?? booking.totalBill ?? 0)
+    : (request?.budget ?? request?.totalBill ?? 0);
   const driverName = booking?.driverName || (isRequest ? 'Awaiting driver' : '—');
   const hasDriver = booking && booking.driverName;
   const driverInitials = hasDriver ? driverName.split(' ').map(n => n[0]).join('').toUpperCase() : '?';

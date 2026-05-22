@@ -102,7 +102,9 @@ function requestToRide(r: RideRequest): Ride {
     time: r.bookingTime || d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase(),
     driver: 'Awaiting driver',
     vehicle: r.packageInfo?.name || 'Vehicle',
-    fare: `£${(r.totalBill ?? 0).toFixed(2)}`,
+    // ADJUSTABLE rides have null totalBill — the rider's custom price
+    // lives in `budget`. Prefer it so the card shows what they offered.
+    fare: `£${(r.budget ?? r.totalBill ?? 0).toFixed(2)}`,
     status: mapRequestStatus(r.status),
   };
 }

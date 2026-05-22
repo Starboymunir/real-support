@@ -56,13 +56,27 @@ export default function DispatchListener() {
     const onExpired = (data: { requestId: string }) => {
       setOffer((cur) => (cur && cur.requestId === data.requestId ? null : cur));
     };
+    // If the rider cancels (or the request otherwise leaves PENDING) the
+    // active offer modal must close — otherwise the driver sees a ghost
+    // card they can't accept.
+    const onRequestGone = (data: { id?: string; status?: string } | string) => {
+      const id = typeof data === 'string' ? data : data?.id;
+      const status = typeof data === 'object' ? data?.status : undefined;
+      if (!id) return;
+      if (status && status === 'PENDING') return;
+      setOffer((cur) => (cur && cur.requestId === id ? null : cur));
+    };
 
     socket.on(SOCKET_EVENTS.DISPATCH_OFFERED_TO_DRIVER, onOffered);
     socket.on(SOCKET_EVENTS.DISPATCH_OFFER_EXPIRED, onExpired);
+    socket.on(SOCKET_EVENTS.REQUEST_CANCELLED, onRequestGone);
+    socket.on(SOCKET_EVENTS.REQUEST_UPDATED, onRequestGone);
 
     return () => {
       socket.off(SOCKET_EVENTS.DISPATCH_OFFERED_TO_DRIVER, onOffered);
       socket.off(SOCKET_EVENTS.DISPATCH_OFFER_EXPIRED, onExpired);
+      socket.off(SOCKET_EVENTS.REQUEST_CANCELLED, onRequestGone);
+      socket.off(SOCKET_EVENTS.REQUEST_UPDATED, onRequestGone);
     };
   }, [socket, isDriver]);
 
@@ -144,7 +158,7 @@ export default function DispatchListener() {
   const totalMs = offer?.timeoutMs || 5000;
   const pct = offer ? Math.max(0, Math.min(100, (remaining / totalMs) * 100)) : 0;
   const req = offer?.request;
-  const fare = req?.totalBill ?? req?.budget ?? 0;
+  const fare = req?.budget ?? req?.totalBill ?? 0;
 
   return (
     <AnimatePresence>

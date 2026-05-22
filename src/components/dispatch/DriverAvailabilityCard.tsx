@@ -46,7 +46,7 @@ export default function DriverAvailabilityCard() {
       const now = Date.now();
       if (!force && now - lastSentRef.current < LOCATION_MIN_INTERVAL_MS) return;
       lastSentRef.current = now;
-      const spoof = maybeSpoofedCoords();
+      const spoof = maybeSpoofedCoords(user);
       othersApi
         .updateLocation(userId, {
           latitude: spoof ? spoof.lat : pos.coords.latitude,
@@ -57,7 +57,7 @@ export default function DriverAvailabilityCard() {
         .then(() => setLocated(true))
         .catch(() => {});
     },
-    [userId],
+    [userId, user],
   );
 
   const stopWatch = useCallback(() => {

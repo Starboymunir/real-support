@@ -132,7 +132,7 @@ export default function BookRide() {
   const [riderLocation, setRiderLocation] = useState<{ lng: number; lat: number } | null>(null);
 
   useEffect(() => {
-    const spoof = maybeSpoofedCoords();
+    const spoof = maybeSpoofedCoords(user);
     if (spoof) {
       setRiderLocation({ lng: spoof.lng, lat: spoof.lat });
       return;
@@ -143,7 +143,7 @@ export default function BookRide() {
       () => {},
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 60_000 },
     );
-  }, []);
+  }, [user]);
 
   const selectedPackage = packages.find((p) => p.id === selectedPackageId);
 

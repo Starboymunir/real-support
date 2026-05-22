@@ -10,6 +10,7 @@ interface MapViewProps {
   center?: [number, number]; // [lng, lat]
   zoom?: number;
   markers?: { lng: number; lat: number; color?: string; label?: string }[];
+  driverCars?: { id: string; lng: number; lat: number; label?: string }[];
   route?: [number, number][]; // array of [lng, lat]
   onMapClick?: (lng: number, lat: number) => void;
   className?: string;
@@ -20,6 +21,7 @@ export default function MapView({
   center = [-0.1276, 51.5074], // London
   zoom = 12,
   markers = [],
+  driverCars = [],
   route,
   onMapClick,
   className = 'w-full h-[400px]',
@@ -28,6 +30,7 @@ export default function MapView({
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const carsRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const [loaded, setLoaded] = useState(false);
 
   // Initialize map
@@ -100,6 +103,52 @@ export default function MapView({
       markersRef.current.push(marker);
     });
   }, [markers]);
+
+  // Render / update driver car markers. Unlike the pickup/dropoff markers we
+  // diff by id so existing cars just move smoothly instead of flickering.
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const map = mapRef.current;
+    const seen = new Set<string>();
+
+    driverCars.forEach((d) => {
+      seen.add(d.id);
+      const existing = carsRef.current.get(d.id);
+      if (existing) {
+        existing.setLngLat([d.lng, d.lat]);
+        return;
+      }
+      const el = document.createElement('div');
+      el.className = 'driver-car-marker';
+      el.style.width = '34px';
+      el.style.height = '34px';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+      el.style.borderRadius = '50%';
+      el.style.background = 'rgba(0, 0, 0, 0.75)';
+      el.style.border = '2px solid #00E676';
+      el.style.boxShadow = '0 2px 10px rgba(0, 230, 118, 0.45)';
+      el.innerHTML =
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00E676" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>';
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([d.lng, d.lat])
+        .addTo(map);
+      if (d.label) {
+        marker.setPopup(new mapboxgl.Popup({ offset: 25 }).setText(d.label));
+      }
+      carsRef.current.set(d.id, marker);
+    });
+
+    // Remove cars that are no longer in the list.
+    Array.from(carsRef.current.entries()).forEach(([id, marker]) => {
+      if (!seen.has(id)) {
+        marker.remove();
+        carsRef.current.delete(id);
+      }
+    });
+  }, [driverCars]);
 
   // Draw route
   useEffect(() => {

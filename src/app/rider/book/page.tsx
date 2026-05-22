@@ -31,6 +31,7 @@ import { packagesApi } from '@/lib/services/packages';
 import { othersApi } from '@/lib/services/others';
 import { walletApi } from '@/lib/services/wallet';
 import { couponsApi } from '@/lib/services/coupons';
+import { dispatchApi, type OnlineDriver } from '@/lib/services/dispatch';
 import type { Package, DiscountCoupon } from '@/lib/types';
 import AddressAutocomplete, { type PlaceResult } from '@/components/maps/AddressAutocomplete';
 import dynamic from 'next/dynamic';
@@ -119,6 +120,11 @@ export default function BookRide() {
   const [appliedCoupon, setAppliedCoupon] = useState<DiscountCoupon | null>(null);
   const [couponError, setCouponError] = useState('');
   const [applyingCoupon, setApplyingCoupon] = useState(false);
+
+  // Live driver cars shown on the map. Polled every 8s near the pickup
+  // location (or the rider's current map center). Falls back to silent
+  // failure so a flaky network never breaks the booking flow.
+  const [onlineDrivers, setOnlineDrivers] = useState<OnlineDriver[]>([]);
 
   const selectedPackage = packages.find((p) => p.id === selectedPackageId);
 
@@ -327,6 +333,28 @@ export default function BookRide() {
     ? [dropoffPlace.lng, dropoffPlace.lat]
     : [-0.1276, 51.5074];
 
+  // Poll nearby online drivers around the current map center every 8s.
+  // Anchors on pickup if set, otherwise the dropoff, otherwise default city.
+  useEffect(() => {
+    const [lng, lat] = mapCenter;
+    let cancelled = false;
+    const fetchDrivers = async () => {
+      try {
+        const drivers = await dispatchApi.onlineDrivers(lat, lng, 15);
+        if (!cancelled) setOnlineDrivers(Array.isArray(drivers) ? drivers : []);
+      } catch {
+        if (!cancelled) setOnlineDrivers([]);
+      }
+    };
+    fetchDrivers();
+    const id = setInterval(fetchDrivers, 8000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapCenter[0], mapCenter[1]]);
+
   const handleConfirmBooking = useCallback(async () => {
     if (!user) return;
 
@@ -454,6 +482,16 @@ export default function BookRide() {
                 center={mapCenter}
                 zoom={pickupPlace || dropoffPlace ? 13 : 11}
                 markers={markers}
+                driverCars={onlineDrivers.map((d) => ({
+                  id: d.id,
+                  lng: d.lng,
+                  lat: d.lat,
+                  label: d.firstName
+                    ? `${d.firstName}${d.carName ? ` · ${d.carName}` : ''}${
+                        d.distanceKm != null ? ` · ${d.distanceKm}km away` : ''
+                      }`
+                    : undefined,
+                }))}
                 route={routeInfo?.geometry}
                 className="w-full h-[240px] sm:h-[350px]"
               />

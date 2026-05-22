@@ -16,6 +16,7 @@ import { driverApi } from '@/lib/services/driver';
 import { othersApi } from '@/lib/services/others';
 import { toast } from '@/lib/toast';
 import type { Driver } from '@/lib/types';
+import { maybeSpoofedCoords } from '@/lib/dev-location';
 
 /** Don't hammer the backend — at most one location push per this interval. */
 const LOCATION_MIN_INTERVAL_MS = 12_000;
@@ -45,10 +46,11 @@ export default function DriverAvailabilityCard() {
       const now = Date.now();
       if (!force && now - lastSentRef.current < LOCATION_MIN_INTERVAL_MS) return;
       lastSentRef.current = now;
+      const spoof = maybeSpoofedCoords();
       othersApi
         .updateLocation(userId, {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
+          latitude: spoof ? spoof.lat : pos.coords.latitude,
+          longitude: spoof ? spoof.lng : pos.coords.longitude,
           accuracy: pos.coords.accuracy ?? 0,
           timestamp: pos.timestamp ?? now,
         })

@@ -32,6 +32,7 @@ import { othersApi } from '@/lib/services/others';
 import { walletApi } from '@/lib/services/wallet';
 import { couponsApi } from '@/lib/services/coupons';
 import { dispatchApi, type OnlineDriver } from '@/lib/services/dispatch';
+import { maybeSpoofedCoords } from '@/lib/dev-location';
 import type { Package, DiscountCoupon } from '@/lib/types';
 import AddressAutocomplete, { type PlaceResult } from '@/components/maps/AddressAutocomplete';
 import dynamic from 'next/dynamic';
@@ -131,6 +132,11 @@ export default function BookRide() {
   const [riderLocation, setRiderLocation] = useState<{ lng: number; lat: number } | null>(null);
 
   useEffect(() => {
+    const spoof = maybeSpoofedCoords();
+    if (spoof) {
+      setRiderLocation({ lng: spoof.lng, lat: spoof.lat });
+      return;
+    }
     if (typeof navigator === 'undefined' || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => setRiderLocation({ lng: pos.coords.longitude, lat: pos.coords.latitude }),

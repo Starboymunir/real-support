@@ -57,7 +57,7 @@ interface AdminTxn {
     id: string;
     firstName?: string;
     lastName?: string;
-    email?: string;
+    emailAddress?: string;
     role?: string;
   } | null;
 }
@@ -380,7 +380,7 @@ export default function CompanyEscrowWalletView() {
                 txns.map((tx) => {
                   const name = tx.userInfo
                     ? `${tx.userInfo.firstName || ""} ${tx.userInfo.lastName || ""}`.trim() ||
-                      tx.userInfo.email ||
+                      tx.userInfo.emailAddress ||
                       "—"
                     : "—";
                   return (
@@ -395,9 +395,9 @@ export default function CompanyEscrowWalletView() {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">{name}</Typography>
-                        {tx.userInfo?.email && (
+                        {tx.userInfo?.emailAddress && (
                           <Typography variant="caption" color="text.secondary">
-                            {tx.userInfo.email}
+                            {tx.userInfo.emailAddress}
                           </Typography>
                         )}
                       </TableCell>

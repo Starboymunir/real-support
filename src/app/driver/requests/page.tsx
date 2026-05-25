@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin,
   Clock,
-  DollarSign,
+  PoundSterling,
   Users,
   CheckCircle,
   XCircle,
@@ -368,7 +368,7 @@ export default function DriverRequestsPage() {
                   {/* Key metrics */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 pt-3 border-t border-white/[0.04]">
                     <div className="flex items-center gap-1.5 text-secondary">
-                      <DollarSign size={16} />
+                      <PoundSterling size={16} />
                       <span className="text-sm font-bold">£{((request.budget ?? request.totalBill) || 0).toFixed(2)}</span>
                       {!isFixed && request.budget != null && (
                         <span className="text-[10px] uppercase tracking-wide text-white/40 ml-1">rider offer</span>
@@ -429,7 +429,7 @@ export default function DriverRequestsPage() {
                             </div>
                           )}
                           <div className="flex items-center gap-2 text-white/60">
-                            <DollarSign size={14} className="text-white/30" />
+                            <PoundSterling size={14} className="text-white/30" />
                             <span className="text-sm">Service fee: £{(request.serviceCharge || 0).toFixed(2)}</span>
                           </div>
                         </div>

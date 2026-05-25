@@ -23,7 +23,7 @@ import {
   XCircle,
   Clock,
   Shield,
-  DollarSign,
+  PoundSterling,
   MapPin,
 } from 'lucide-react';
 
@@ -42,7 +42,7 @@ const faqs = [
     question: 'How and when do I get paid?',
     answer:
       'Earnings from completed rides are tracked in your Earnings page. You can withdraw your balance at any time from the Withdraw page. Payments are processed within 1-3 business days.',
-    icon: DollarSign,
+    icon: PoundSterling,
   },
   {
     question: 'What documents are required?',

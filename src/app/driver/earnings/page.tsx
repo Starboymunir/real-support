@@ -7,7 +7,7 @@ import { useRequireAuth } from '@/lib/use-require-auth';
 import { walletApi, bookingsApi } from '@/lib/services';
 import type { Booking, Transaction } from '@/lib/types';
 import {
-  DollarSign,
+  PoundSterling,
   TrendingUp,
   Car,
   Coins,
@@ -125,7 +125,7 @@ export default function EarningsPage() {
   useEffect(() => { fetchEarnings(); }, [fetchEarnings]);
 
   const summaryCards = [
-    { label: 'Total Earnings', value: data.earnings, icon: DollarSign, color: 'bg-secondary/10 text-secondary' },
+    { label: 'Total Earnings', value: data.earnings, icon: PoundSterling, color: 'bg-secondary/10 text-secondary' },
     { label: 'Total Rides', value: data.rides, icon: Car, color: 'bg-accent/10 text-accent' },
     { label: 'Average per Ride', value: data.average, icon: TrendingUp, color: 'bg-purple-500/10 text-purple-400' },
     { label: 'Tips', value: data.tips, icon: Coins, color: 'bg-yellow-500/10 text-yellow-400' },

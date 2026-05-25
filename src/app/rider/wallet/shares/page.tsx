@@ -9,7 +9,7 @@ import {
   BarChart3,
   Wallet,
   ShoppingCart,
-  DollarSign,
+  PoundSterling,
   ArrowUpRight,
   ArrowDownLeft,
   Minus,
@@ -201,7 +201,7 @@ export default function SharesPage() {
                   </div>
                   <div className="rounded-xl bg-white/[0.04] border border-white/[0.06] p-4">
                     <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center mb-2">
-                      <DollarSign size={18} className="text-blue-400" />
+                      <PoundSterling size={18} className="text-blue-400" />
                     </div>
                     <p className="text-2xl font-black text-white tabular-nums">£{animatedValue.toFixed(2)}</p>
                     <p className="text-white/30 text-xs mt-0.5">Portfolio Value</p>
@@ -411,7 +411,7 @@ export default function SharesPage() {
                     </>
                   ) : (
                     <>
-                      <DollarSign size={16} />
+                      <PoundSterling size={16} />
                       Sell {quantity} Share{quantity !== 1 ? 's' : ''} for £{totalCost.toFixed(2)}
                     </>
                   )}
@@ -511,7 +511,7 @@ export default function SharesPage() {
                 {
                   title: 'Sell Anytime',
                   desc: 'Sell your shares back at the sell price (10% below market) and the proceeds go straight to your wallet.',
-                  icon: DollarSign,
+                  icon: PoundSterling,
                   color: 'text-blue-400',
                   bg: 'bg-blue-500/10',
                 },

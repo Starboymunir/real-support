@@ -6,7 +6,7 @@ import {
   Search,
   Filter,
   Clock,
-  DollarSign,
+  PoundSterling,
   User,
   Car,
   Loader2,
@@ -171,7 +171,7 @@ export default function AdminBookingsPage() {
                     {/* Price & date */}
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1.5">
-                        <DollarSign size={14} className="text-secondary" />
+                        <PoundSterling size={14} className="text-secondary" />
                         <span className="text-white font-semibold">
                           £{(booking.totalBill ?? 0).toFixed(2)}
                         </span>

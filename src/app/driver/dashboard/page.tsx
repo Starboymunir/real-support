@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import { motion } from 'framer-motion';
 import {
-  DollarSign,
+  PoundSterling,
   Car,
   Star,
   CheckCircle,
@@ -212,7 +212,7 @@ export default function DriverDashboardPage() {
               <div className="relative">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-                    <DollarSign size={20} className="text-secondary" />
+                    <PoundSterling size={20} className="text-secondary" />
                   </div>
                   <span className="text-white/40 text-sm font-medium">Today&apos;s Earnings</span>
                 </div>

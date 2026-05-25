@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useRequireAuth } from '@/lib/use-require-auth';
 import { notificationsApi } from '@/lib/services';
 import type { Notification as ApiNotification } from '@/lib/types';
-import { Bell, CheckCircle, AlertTriangle, Info, Star, DollarSign, Trash2 } from 'lucide-react';
+import { Bell, CheckCircle, AlertTriangle, Info, Star, PoundSterling, Trash2 } from 'lucide-react';
 
 type DisplayNotification = {
   id: number | string;
@@ -36,7 +36,7 @@ export default function DriverNotificationsPage() {
     if (lowerTitle.includes('complet') || lowerTitle.includes('approved') || lowerTitle.includes('passed')) { type = 'success'; icon = CheckCircle; }
     else if (lowerTitle.includes('expir') || lowerTitle.includes('warn') || lowerTitle.includes('alert')) { type = 'warning'; icon = AlertTriangle; }
     else if (lowerTitle.includes('rating') || lowerTitle.includes('star')) { icon = Star; }
-    else if (lowerTitle.includes('pay') || lowerTitle.includes('earn')) { icon = DollarSign; }
+    else if (lowerTitle.includes('pay') || lowerTitle.includes('earn')) { icon = PoundSterling; }
 
     const diff = Date.now() - new Date(n.createdAt).getTime();
     const mins = Math.floor(diff / 60000);

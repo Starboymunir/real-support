@@ -80,6 +80,9 @@ export function useNavData() {
                 { title: "Bank Accounts", path: paths.dashboard.wallet.bankAccounts.list },
                 { title: "User Transactions", path: paths.dashboard.wallet.userTransaction.list },
                 { title: "Transactions", path: paths.dashboard.wallet.adminTransaction.list },
+                ...(isSuperAdmin
+                  ? [{ title: "Company Escrow", path: paths.dashboard.wallet.companyEscrow.root }]
+                  : []),
               ],
             },
           ]

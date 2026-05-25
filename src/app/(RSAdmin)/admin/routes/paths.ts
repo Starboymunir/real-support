@@ -179,6 +179,9 @@ export const paths = {
         root: `${ROOTS.DASHBOARD}/wallet/bankAccounts/`,
         list: `${ROOTS.DASHBOARD}/wallet/bankAccounts/`,
       },
+      companyEscrow: {
+        root: `${ROOTS.DASHBOARD}/wallet/company`,
+      },
     },
     workSummary: {
       root: `${ROOTS.DASHBOARD}/work-summary`,

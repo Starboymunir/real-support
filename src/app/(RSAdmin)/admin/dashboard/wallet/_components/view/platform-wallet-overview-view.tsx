@@ -96,6 +96,11 @@ export default function PlatformWalletOverviewView() {
   const [shareData, setShareData] = useState<any>(null);
   const [shareholders, setShareholders] = useState<any[]>([]);
   const [sharesPending, setSharesPending] = useState(true);
+  const [platformBreakdown, setPlatformBreakdown] = useState<{
+    usersWalletBalance: number;
+    companyWalletBalance: number;
+    platformBalance: number;
+  } | null>(null);
 
   // Valuation adjustment form state
   const [valForm, setValForm] = useState({ assetValue: "", earningsValue: "", futureValue: "" });
@@ -147,6 +152,17 @@ export default function PlatformWalletOverviewView() {
       setShareholders(finalHolders);
       setSharesPending(false);
     });
+  }, []);
+
+  // Live wallet breakdown — sum of all user wallets + company escrow.
+  useEffect(() => {
+    axiosInstance
+      .get("/super-admin/platform-balance")
+      .then((res) => {
+        const data = res.data?.data ?? res.data;
+        if (data) setPlatformBreakdown(data);
+      })
+      .catch(() => undefined);
   }, []);
 
   // Sync form with loaded share data
@@ -337,8 +353,31 @@ export default function PlatformWalletOverviewView() {
         Platform Wallet
       </Typography>
 
-      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, mb: 4 }}>
-        <StatCard title="Platform Balance" value={formatGBP(metrics.platformBalance)} icon="solar:wallet-money-bold-duotone" color={theme.palette.primary.main} helper="Total received minus total dispensed" />
+      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }, mb: 2 }}>
+        <StatCard
+          title="Users Wallet Balance"
+          value={formatGBP(platformBreakdown?.usersWalletBalance ?? 0)}
+          icon="solar:users-group-rounded-bold-duotone"
+          color={theme.palette.info.main}
+          helper="Total funds currently held across all user wallets"
+        />
+        <StatCard
+          title="Company Wallet Balance"
+          value={formatGBP(platformBreakdown?.companyWalletBalance ?? 0)}
+          icon="solar:buildings-2-bold-duotone"
+          color={theme.palette.warning.main}
+          helper="Company escrow wallet (commissions retained)"
+        />
+        <StatCard
+          title="Platform Balance"
+          value={formatGBP(platformBreakdown?.platformBalance ?? 0)}
+          icon="solar:wallet-money-bold-duotone"
+          color={theme.palette.primary.main}
+          helper="Users Wallets + Company Wallet"
+        />
+      </Box>
+
+      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }, mb: 4 }}>
         <StatCard title="Total Received" value={formatGBP(metrics.totalTopUps)} icon="solar:card-recive-bold-duotone" color={theme.palette.success.main} helper="Top-ups & deposits into the platform" />
         <StatCard title="Total Dispensed" value={formatGBP(metrics.totalWithdrawn)} icon="solar:card-send-bold-duotone" color={theme.palette.error.main} helper="Processed withdrawal payouts" />
         <StatCard title="Available Balance" value={formatGBP(metrics.availableBalance)} icon="solar:safe-circle-bold-duotone" color={theme.palette.info.main} helper="After pending withdrawals" />

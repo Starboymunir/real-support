@@ -40,18 +40,20 @@ interface Ride {
   driver: string;
   vehicle: string;
   fare: string;
-  status: 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending';
+  status: 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending' | 'Accepted' | 'Arrived';
 }
 
-function mapBookingStatus(status: string): 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending' {
+function mapBookingStatus(status: string): 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending' | 'Accepted' | 'Arrived' {
   switch (status) {
     case 'COMPLETED': return 'Completed';
     case 'CANCELLED':
     case 'REJECTED':
       return 'Cancelled';
     case 'ACCEPTED':
+      return 'Accepted';
     case 'WAY_TO_PICKUP':
     case 'ARRIVED':
+      return 'Arrived';
     case 'PICKED_UP':
     case 'WAY_TO_DESTINATION':
       return 'Scheduled';

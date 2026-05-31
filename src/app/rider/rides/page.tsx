@@ -27,7 +27,7 @@ const fadeUp = {
   }),
 };
 
-type RideStatus = 'All' | 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending';
+type RideStatus = 'All' | 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending' | 'Accepted' | 'Arrived';
 
 interface Ride {
   id: string;
@@ -111,13 +111,15 @@ function requestToRide(r: RideRequest): Ride {
   };
 }
 
-const tabs: RideStatus[] = ['All', 'Pending', 'Scheduled', 'Completed', 'Cancelled'];
+const tabs: RideStatus[] = ['All', 'Pending', 'Scheduled', 'Completed', 'Cancelled', 'Accepted', 'Arrived'];
 
 const statusStyles: Record<string, string> = {
   Completed: 'bg-success/10 text-success',
   Cancelled: 'bg-error/10 text-error',
   Scheduled: 'bg-info/10 text-info',
   Pending: 'bg-warning/10 text-warning',
+  Accepted: 'bg-info/10 text-info',
+  Arrived: 'bg-success/10 text-success',
 };
 
 export default function MyRides() {

@@ -78,6 +78,8 @@ const BookingDetails = ({ id }) => {
   const netTotal = (Number(data?.totalBill) || 0) - (Number(data?.discountAmount) || 0)
   const hasRatings = data?.passengerRating || data?.driverRating
 
+  console.log('Booking Details Data:', data)
+
   return (
     <Container maxWidth={settings.themeStretch ? false : 'xl'}>
       <CustomBreadcrumbs
@@ -145,7 +147,7 @@ const BookingDetails = ({ id }) => {
                   </Box>
                 </Stack>
                 <Stack spacing={2}>
-                  {data?.commission && <InfoItem label="Commission" value={data.commission} />}
+                  {data?.commissionPercentage && <InfoItem label="Commission Percentage" value={data.commissionPercentage} />}
                   {data?.nationalInsuranceNumber && (
                     <InfoItem label="NI Number" value={data.nationalInsuranceNumber} />
                   )}
@@ -288,6 +290,14 @@ const BookingDetails = ({ id }) => {
                     </Typography>
                     <Typography variant="body2" fontWeight={500} color="success.main">
                       − £{Number(data?.discountAmount ?? 0).toFixed(2)}
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Commission
+                    </Typography>
+                    <Typography variant="body2" fontWeight={500} color="success.main">
+                      £{Number(data?.commission ?? 0).toFixed(2)}
                     </Typography>
                   </Stack>
 

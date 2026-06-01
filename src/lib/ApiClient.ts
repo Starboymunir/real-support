@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiResponse } from "@/types/type";
 import axiosInstance from "./admin-axios";
 

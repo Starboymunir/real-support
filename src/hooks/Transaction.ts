@@ -51,3 +51,14 @@ export const useWithdrawalRequestsQuery = () => {
     }
   });
 };
+
+export const useCommissionsQuery = () => {
+  return useQuery({
+    queryKey: ["commissions"],
+    queryFn: async () => {
+      const commissions = await axiosInstance.get(`/finance/commissions`);
+      console.log("commissions", commissions);
+      return commissions.data;
+    }
+  });
+};

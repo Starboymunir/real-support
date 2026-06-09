@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Search,
@@ -11,6 +11,8 @@ import {
   Car,
   Loader2,
   Eye,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/lib/auth-context';
@@ -18,6 +20,8 @@ import { adminBookingsApi } from '@/lib/services';
 import type { Booking } from '@/lib/types';
 
 type FilterTab = 'ALL' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
+
+const PAGE_SIZE = 20;
 
 const statusColors: Record<string, string> = {
   ACCEPTED: 'text-blue-400 bg-blue-400/10',
@@ -38,35 +42,62 @@ export default function AdminBookingsPage() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  // ── Server-side fetch — only the current page, filtered by status ──
+  const loadPage = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await adminBookingsApi.list({
+        page,
+        count: PAGE_SIZE,
+        status: activeTab === 'ALL' ? undefined : activeTab,
+      });
+      setBookings(res.items);
+      setTotal(res.totalRecords);
+    } catch {
+      setBookings([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, activeTab]);
 
   useEffect(() => {
     if (!admin) {
       router.replace('/admin/login');
       return;
     }
-    adminBookingsApi
-      .getAll()
-      .then((data) => setBookings(Array.isArray(data) ? data : []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [admin, router]);
+    loadPage();
+  }, [admin, router, loadPage]);
 
   if (!admin) return null;
 
   const tabs: FilterTab[] = ['ALL', 'ACCEPTED', 'COMPLETED', 'CANCELLED'];
 
-  const filtered = bookings.filter((b) => {
-    if (activeTab !== 'ALL' && b.status !== activeTab) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (
-        (b.riderName ?? '').toLowerCase().includes(q) ||
-        (b.driverName ?? '').toLowerCase().includes(q) ||
-        b.id.toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
+  const onTabChange = (tab: FilterTab) => {
+    if (tab === activeTab) return;
+    setActiveTab(tab);
+    setPage(1);
+    setSelectedBooking(null);
+  };
+
+  // Search is in-page only — narrows the currently loaded page.
+  const filtered = !search
+    ? bookings
+    : bookings.filter((b) => {
+        const q = search.toLowerCase();
+        return (
+          (b.riderName ?? '').toLowerCase().includes(q) ||
+          (b.driverName ?? '').toLowerCase().includes(q) ||
+          b.id.toLowerCase().includes(q)
+        );
+      });
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const firstShown = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const lastShown = Math.min(page * PAGE_SIZE, total);
 
   return (
     <DashboardLayout role="admin" pageTitle="Bookings Management">
@@ -74,13 +105,20 @@ export default function AdminBookingsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-white/40 text-sm">{bookings.length} total bookings</p>
+            <p className="text-white/40 text-sm">
+              {total} {activeTab === 'ALL' ? 'total' : activeTab.toLowerCase()} booking{total === 1 ? '' : 's'}
+              {total > 0 && (
+                <span className="ml-2 text-white/25">
+                  · showing {firstShown}–{lastShown}
+                </span>
+              )}
+            </p>
           </div>
           <div className="relative w-full sm:w-80">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
             <input
               type="text"
-              placeholder="Search by rider, driver, or ID..."
+              placeholder="Search this page by rider, driver, or ID…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input-dark pl-11 text-sm"
@@ -93,7 +131,7 @@ export default function AdminBookingsPage() {
           {tabs.map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => onTabChange(tab)}
               className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
                 activeTab === tab
                   ? 'bg-secondary/10 text-secondary border border-secondary/20'
@@ -114,7 +152,9 @@ export default function AdminBookingsPage() {
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-12 text-center">
             <Filter size={40} className="mx-auto text-white/10 mb-3" />
             <p className="text-white/30 text-lg font-medium">No bookings found</p>
-            <p className="text-white/15 text-sm mt-1">Try adjusting your search or filter</p>
+            <p className="text-white/15 text-sm mt-1">
+              {search ? 'No matches on this page — try clearing the search or changing tabs.' : 'Try a different filter.'}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -223,6 +263,31 @@ export default function AdminBookingsPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && total > PAGE_SIZE && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+            <p className="text-sm text-white/40">
+              Page {page} of {totalPages}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1 || loading}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium border border-white/[0.06] text-white/60 hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={16} /> Prev
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages || loading}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium border border-white/[0.06] text-white/60 hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Next <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         )}
       </div>

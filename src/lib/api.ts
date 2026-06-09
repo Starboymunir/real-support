@@ -90,6 +90,7 @@ export function getToken(): string | null {
 async function request<T>(
   path: string,
   options: RequestInit = {},
+  unwrap = true,
 ): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -120,8 +121,10 @@ async function request<T>(
     );
   }
 
-  // Unwrap: if backend returns { success, data, message }, return data directly
-  if (json.success !== undefined && json.data !== undefined) return json.data as T;
+  // Unwrap: if backend returns { success, data, message }, return data directly.
+  // Pass `unwrap = false` to read the full envelope (e.g. paginated lists that
+  // need `totalRecords` alongside `data`).
+  if (unwrap && json.success !== undefined && json.data !== undefined) return json.data as T;
   return json as T;
 }
 
@@ -140,6 +143,9 @@ export class ApiError extends Error {
 
 export const api = {
   get: <T>(path: string) => request<T>(path, { method: 'GET' }),
+
+  /** GET that returns the full backend envelope ({ data, totalRecords, … }) instead of unwrapping. */
+  getEnvelope: <T>(path: string) => request<T>(path, { method: 'GET' }, false),
 
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),

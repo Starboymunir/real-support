@@ -85,9 +85,53 @@ export const adminAuthApi = {
 
 // ── Admin Bookings ──
 
+export interface AdminBookingsQuery {
+  page?: number;
+  count?: number;
+  status?: string;
+  driverId?: string;
+  passengerId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface PaginatedBookings {
+  items: Booking[];
+  totalRecords: number;
+  page: number;
+  count: number;
+}
+
+function toQueryString(query: Record<string, unknown>): string {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(query)) {
+    if (v !== undefined && v !== null && v !== '') params.append(k, String(v));
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const adminBookingsApi = {
-  getAll: () =>
-    api.get<Booking[]>('/admin/bookings'),
+  /**
+   * Paginated, server-filtered listing. Use this instead of loading every
+   * booking into memory — pass only the filters you care about.
+   */
+  list: async (query: AdminBookingsQuery = {}): Promise<PaginatedBookings> => {
+    const page = Number(query.page ?? 1);
+    const count = Number(query.count ?? 20);
+    const envelope = await api.getEnvelope<{
+      success?: boolean;
+      data?: Booking[];
+      totalRecords?: number;
+      message?: string;
+    }>(`/admin/bookings${toQueryString({ ...query, page, count })}`);
+    return {
+      items: envelope.data ?? [],
+      totalRecords: envelope.totalRecords ?? 0,
+      page,
+      count,
+    };
+  },
 
   getById: (id: string) =>
     api.get<Booking>(`/admin/bookings/${id}`),

@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useMemo, useEffect, useState, useCallback } from "react";
+import { useMemo, useEffect, useState } from "react";
 import Container from "@mui/material/Container";
 import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
@@ -27,7 +28,7 @@ import Iconify from "@/components/iconify/iconify";
 import CustomBreadcrumbs from "@/app/(RSAdmin)/admin/common/custom-breadcrumbs";
 import { LoadingScreen } from "@/app/(RSAdmin)/admin/common/loading-screen";
 import { paths } from "@/app/(RSAdmin)/admin/routes/paths";
-import { useAdminTransactionsQuery, useUsersTransactionsQuery, useWithdrawalRequestsQuery } from "@/hooks/Transaction";
+import { useAdminTransactionsQuery, useCommissionsQuery, useUsersTransactionsQuery, useWithdrawalRequestsQuery } from "@/hooks/Transaction";
 import axiosInstance from "@/lib/admin-axios";
 import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 
@@ -92,6 +93,11 @@ export default function PlatformWalletOverviewView() {
   const { data: adminTransactions = [], isPending: adminPending } = useAdminTransactionsQuery();
   const { data: userTransactions = [], isPending: usersPending } = useUsersTransactionsQuery();
   const { data: withdrawalRequests = [], isPending: withdrawalPending } = useWithdrawalRequestsQuery();
+  const { data: commissions = {
+    totalCommission: 0,
+    totalBookings: 0,
+    bookings: [],
+  }, isPending: commissionsPending } = useCommissionsQuery();
 
   const [shareData, setShareData] = useState<any>(null);
   const [shareholders, setShareholders] = useState<any[]>([]);
@@ -129,7 +135,6 @@ export default function PlatformWalletOverviewView() {
       setShareData(share);
       setExpenses(Array.isArray(exps) ? exps : []);
       setEarnings(Array.isArray(earns) ? earns : []);
-
       // If dedicated holdings endpoint returned data, use it; otherwise fall back to passengers list
       let finalHolders = Array.isArray(holders) ? holders : [];
       if (finalHolders.length === 0) {
@@ -153,6 +158,13 @@ export default function PlatformWalletOverviewView() {
       setSharesPending(false);
     });
   }, []);
+
+  // _____________________________________________________
+
+  // console.log("Commissions-------:", commissions);
+
+  // ______________________________________________________
+
 
   // Live wallet breakdown — sum of all user wallets + company escrow.
   useEffect(() => {
@@ -255,7 +267,7 @@ export default function PlatformWalletOverviewView() {
     }
   };
 
-  const isLoading = adminPending || usersPending || withdrawalPending || sharesPending;
+  const isLoading = adminPending || usersPending || withdrawalPending || sharesPending || commissionsPending;
 
   const metrics = useMemo(() => {
     const totalTopUps = userTransactions
@@ -268,11 +280,6 @@ export default function PlatformWalletOverviewView() {
 
     const platformBalance = totalTopUps - totalWithdrawn;
 
-    const bookingCommission = [
-      ...userTransactions.filter((t: any) => t?.type === "COMMISSION"),
-      ...adminTransactions.filter((t: any) => t?.type === "COMMISSION"),
-    ].reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
-
     const cancellationFees = userTransactions
       .filter((t: any) => t?.type === "CANCELLATION_FEE")
       .reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
@@ -281,7 +288,7 @@ export default function PlatformWalletOverviewView() {
       .filter((t: any) => t?.type === "ADMIN_CHARGE")
       .reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
 
-    const totalCommission = bookingCommission + cancellationFees + adminCharges;
+    const totalCommission = commissions.totalCommission + cancellationFees + adminCharges;
 
     const totalExpenses = userTransactions
       .filter((t: any) => t?.type === "EXPENSE")
@@ -309,7 +316,6 @@ export default function PlatformWalletOverviewView() {
       totalTopUps,
       totalWithdrawn,
       totalCommission,
-      bookingCommission,
       cancellationFees,
       adminCharges,
       totalExpenses,
@@ -329,7 +335,7 @@ export default function PlatformWalletOverviewView() {
       companyExpenses,
       outsideEarnings,
       grossRevenue,
-      netProfit,
+      netProfit
     };
   }, [adminTransactions, userTransactions, withdrawalRequests, shareData, expenses, earnings]);
 
@@ -378,7 +384,7 @@ export default function PlatformWalletOverviewView() {
       </Box>
 
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }, mb: 4 }}>
-        <StatCard title="Total Received" value={formatGBP(metrics.totalTopUps)} icon="solar:card-recive-bold-duotone" color={theme.palette.success.main} helper="Top-ups & deposits into the platform" />
+        <StatCard title="Total Top-ups" value={formatGBP(metrics.totalTopUps)} icon="solar:card-recive-bold-duotone" color={theme.palette.success.main} helper="Top-ups & deposits into the platform" />
         <StatCard title="Total Dispensed" value={formatGBP(metrics.totalWithdrawn)} icon="solar:card-send-bold-duotone" color={theme.palette.error.main} helper="Processed withdrawal payouts" />
         <StatCard title="Available Balance" value={formatGBP(metrics.availableBalance)} icon="solar:safe-circle-bold-duotone" color={theme.palette.info.main} helper="After pending withdrawals" />
       </Box>
@@ -386,6 +392,7 @@ export default function PlatformWalletOverviewView() {
       <Divider sx={{ mb: 4 }} />
 
       {/* ═══════ Company Profit ═══════ */}
+      
       <Typography variant="h6" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
         <Iconify icon="solar:chart-bold-duotone" width={22} />
         Company Profit
@@ -399,7 +406,7 @@ export default function PlatformWalletOverviewView() {
       </Box>
 
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, mb: 4 }}>
-        <StatCard title="Booking Commission" value={formatGBP(metrics.bookingCommission)} icon="solar:ticket-bold-duotone" color={theme.palette.warning.main} helper="Commission from ride bookings" />
+        <StatCard title="Booking Commission" value={formatGBP(commissions.totalCommission)} icon="solar:ticket-bold-duotone" color={theme.palette.warning.main} helper="Commission from ride bookings" />
         <StatCard title="Cancellation Fees" value={formatGBP(metrics.cancellationFees)} icon="solar:close-circle-bold-duotone" color={theme.palette.error.light} helper="Fees collected from cancellations" />
         <StatCard title="Share Spread Margin" value={formatGBP(metrics.shareSpreadProfit)} icon="solar:graph-up-bold-duotone" color={theme.palette.secondary.main} helper="10% margin on share sell-backs" />
         <StatCard title="Admin Charges" value={formatGBP(metrics.adminCharges)} icon="solar:shield-user-bold-duotone" color={theme.palette.primary.main} helper="Manual admin charges to users" />
@@ -444,7 +451,7 @@ export default function PlatformWalletOverviewView() {
       </Card>
 
       {/* Valuation Adjustment Form */}
-      <Card sx={{ p: 2.5, mb: 4, border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`, boxShadow: "none" }}>
+      {/* <Card sx={{ p: 2.5, mb: 4, border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`, boxShadow: "none" }}>
         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Adjust Valuation Inputs</Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="flex-end">
           <TextField
@@ -487,7 +494,7 @@ export default function PlatformWalletOverviewView() {
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
           Final valuation = (Asset + Earnings + Future) / 3. This recalculates share prices automatically.
         </Typography>
-      </Card>
+      </Card> */}
 
       {/* Shareholders table */}
       {shareholders.length > 0 && (() => {

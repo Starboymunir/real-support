@@ -27,7 +27,7 @@ const fadeUp = {
   }),
 };
 
-type RideStatus = 'All' | 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending';
+type RideStatus = 'All' | 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending' | 'Accepted' | 'Arrived';
 
 interface Ride {
   id: string;
@@ -40,18 +40,20 @@ interface Ride {
   driver: string;
   vehicle: string;
   fare: string;
-  status: 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending';
+  status: 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending' | 'Accepted' | 'Arrived';
 }
 
-function mapBookingStatus(status: string): 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending' {
+function mapBookingStatus(status: string): 'Completed' | 'Cancelled' | 'Scheduled' | 'Pending' | 'Accepted' | 'Arrived' {
   switch (status) {
     case 'COMPLETED': return 'Completed';
     case 'CANCELLED':
     case 'REJECTED':
       return 'Cancelled';
     case 'ACCEPTED':
+      return 'Accepted';
     case 'WAY_TO_PICKUP':
     case 'ARRIVED':
+      return 'Arrived';
     case 'PICKED_UP':
     case 'WAY_TO_DESTINATION':
       return 'Scheduled';
@@ -109,13 +111,15 @@ function requestToRide(r: RideRequest): Ride {
   };
 }
 
-const tabs: RideStatus[] = ['All', 'Pending', 'Scheduled', 'Completed', 'Cancelled'];
+const tabs: RideStatus[] = ['All', 'Pending', 'Scheduled', 'Completed', 'Cancelled', 'Accepted', 'Arrived'];
 
 const statusStyles: Record<string, string> = {
   Completed: 'bg-success/10 text-success',
   Cancelled: 'bg-error/10 text-error',
   Scheduled: 'bg-info/10 text-info',
   Pending: 'bg-warning/10 text-warning',
+  Accepted: 'bg-info/10 text-info',
+  Arrived: 'bg-success/10 text-success',
 };
 
 export default function MyRides() {

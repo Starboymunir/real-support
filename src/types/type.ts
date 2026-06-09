@@ -19,117 +19,123 @@ import {
   WithdrawRequests,
   ContactUs,
   ContactUsMessage,
-} from "@/lib/types";
+} from '@/lib/types'
 
 export type ApiResponse<T> = {
-  success: boolean;
-  data: T;
-  message: string;
-  totalCount?: number;
-};
+  success: boolean
+  data: T
+  message: string
+  totalCount?: number
+}
 
 export type IRequestType = Request & {
-  packageInfo?: Package;
-  riderInfo?: User;
-  destination?: Address;
-  startFrom?: Address;
-  stoppages?: Address[];
-};
+  packageInfo?: Package
+  riderInfo?: User
+  destination?: Address
+  startFrom?: Address
+  stoppages?: Address[]
+}
 
 export type ITransaction = Transaction & {
-  userInfo?: User;
-  receiverInfo?: User;
-  senderInfo?: User;
-};
+  userInfo?: User
+  receiverInfo?: User
+  senderInfo?: User
+}
 
 export type IBookingType = Booking & {
-  requestInfo?: IRequestType | null;
-  driverInfo?: IDriver | null;
-  riderInfo?: User | null;
-  destination?: Address | null;
-  startFrom?: Address | null;
-  packageInfo?: Package | null;
-  requestId: string | null;
-};
+  requestInfo?: IRequestType | null
+  driverInfo?: IDriver | null
+  riderInfo?: User | null
+  destination?: Address | null
+  startFrom?: Address | null
+  packageInfo?: Package | null
+  requestId: string | null
+}
 
 export type IPaymentRequest = PaymentRequests & {
-  payee?: User;
-  recipient?: User;
-};
+  payee?: User
+  recipient?: User
+}
 
 export type formatedRequestCardData = {
-  id: string;
-  date: Date | null;
-  time: string | null;
-  image: string | null | undefined;
-  name: string | undefined;
-  status: RideRequestStatus;
-  type: Payment;
-  from: string | null | undefined;
-  drop: string | null | undefined;
-  price: number | null;
-  distance: number;
-};
+  id: string
+  date: Date | null
+  time: string | null
+  image: string | null | undefined
+  name: string | undefined
+  status: RideRequestStatus
+  type: Payment
+  from: string | null | undefined
+  drop: string | null | undefined
+  price: number | null
+  distance: number
+}
 export type formattedBookingCardData = {
-  date: Date | null;
-  time: string | null;
-  image?: string | null | undefined;
-  name: string;
-  status: BookingStatus;
-  type?: Payment;
-  from: string | null | undefined;
-  drop: string | null | undefined;
-  price: number;
-  distance: number;
-};
+  date: Date | null
+  time: string | null
+  image?: string | null | undefined
+  name: string
+  status: BookingStatus
+  type?: Payment
+  from: string | null | undefined
+  drop: string | null | undefined
+  price: number
+  distance: number
+}
 export type formattedBookingTableData = {
-  image?: string | null | undefined;
-  name: string;
-  drop: string | null | undefined;
-  from: string | null | undefined;
-  price: number;
-};
+  image?: string | null | undefined
+  name: string
+  drop: string | null | undefined
+  from: string | null | undefined
+  price: number
+}
 
 export type IUser = User & {
-  driver?: Driver;
-  addressInfo?: UserAddress[];
-  SocialLink?: any[];
-  wallet?: Wallet;
-  bookings?: Booking[];
-  bankAccounts?: BankAccount[];
-  role?: string;
-};
+  driver?: Driver
+  addressInfo?: UserAddress[]
+  SocialLink?: []
+  wallet?: Wallet
+  bookings?: Booking[]
+  bankAccounts?: BankAccount[]
+  role?: string
+}
 
 export type IDriver = Driver & {
-  userInfo?: User | null;
-};
+  userInfo?: User | null
+}
 
 export type IAdmin = Admin & {
-  userProfile?: User; // legacy — kept for backward compat
-  password?: string;
-  secretNumber?: string;
-  profileImageUrl?: string;
-  coverImage?: string;
-};
+  userProfile?: User // legacy — kept for backward compat
+  password?: string
+  secretNumber?: string
+  profileImageUrl?: string
+  coverImage?: string
+}
 
 export type ICompany = Company & {
-  userInfo?: Admin;
-};
+  userInfo?: Admin
+}
 
 export type IAdminTransaction = AdminTransaction & {
-  userInfo?: IUser | null;
-  narration?: string;
-};
+  userInfo?: IUser | null
+  narration?: string
+}
 
 export type IWithdrawals = WithdrawRequests & {
-  userInfo?: IUser | null;
-  proceeder?: IAdmin | null;
-  totalTopUp?: number;
-  totalWithdraw?: number;
-  currentBalance?: number;
-};
+  userInfo?: IUser | null
+  proceeder?: IAdmin | null
+  totalTopUp?: number
+  totalWithdraw?: number
+  currentBalance?: number
+}
 
 export type IContactUs = ContactUs & {
-  userInfo?: IUser;
-  messages?: ContactUsMessage[];
-};
+  userInfo?: IUser
+  messages?: ContactUsMessage[]
+}
+
+export type ICommission = {
+  totalCommission: number
+  totalBookings: number
+  bookings: []
+}

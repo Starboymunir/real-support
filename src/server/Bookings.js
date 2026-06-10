@@ -101,7 +101,10 @@ export const getCoupon = async (coupon) => {
 const getBookingById = async (bookingId) => {
   try {
     const result = await apiClient.get(`/admin/bookings/${bookingId}`);
-    return { data: result.data, statusCode: 200 };
+    // Backend returns `{ success, data: booking, message }`. Unwrap so the
+    // edit form receives the booking object directly rather than the envelope.
+    const booking = result?.data?.data ?? result?.data ?? null;
+    return { data: booking, statusCode: 200 };
   } catch (error) {
     return { message: error.message, statusCode: 400 };
   }

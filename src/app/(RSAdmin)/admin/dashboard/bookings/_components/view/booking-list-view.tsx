@@ -35,7 +35,7 @@ import BookingsTableRow from "../bookings-table-row";
 import { Tab, Tabs, alpha } from "@mui/material";
 import Label from "@/app/(RSAdmin)/admin/common/label";
 import { allowGenerateInvoice } from "@/server/Passenger";
-import { useAdminBookingsQuery } from "@/hooks/Bookings";
+import { useAdminBookingsQuery, useBookingStatsQuery } from "@/hooks/Bookings";
 import { IBookingType } from "@/types/type";
 
 // ----------------------------------------------------------------------
@@ -81,6 +81,7 @@ export default function BookingListView() {
   const router = useRouter();
   const confirm = useBoolean();
   const { data: tableData = [], isPending, refetch } = useAdminBookingsQuery();
+  const { data: bookingStats } = useBookingStatsQuery();
   const [changeFlag, setChangeFlag] = useState(true);
   const [loading, setLoading] = useState(true);
   const { enqueueSnackbar } = useSnackbar();
@@ -241,39 +242,13 @@ export default function BookingListView() {
                           "default"
                         }
                       >
-                        {tab.value === "all" && tableData?.length}
-                        {tab.value === "COMPLETED" &&
-                          tableData?.filter(
-                            (booking) => booking.status === "COMPLETED"
-                          ).length}
-                        {tab.value === "ACCEPTED" &&
-                          tableData?.filter(
-                            (booking) => booking.status === "ACCEPTED"
-                          ).length}
-                        {tab.value === "CANCELLED" &&
-                          tableData?.filter(
-                            (booking) => booking.status === "CANCELLED"
-                          ).length}
-                        {tab.value === "REJECTED" &&
-                          tableData?.filter(
-                            (booking) => booking.status === "REJECTED"
-                          ).length}
-                        {tab.value === "WAY_TO_PICKUP" &&
-                          tableData?.filter(
-                            (booking) => booking.status === "WAY_TO_PICKUP"
-                          ).length}
-                        {tab.value === "ARRIVED" &&
-                          tableData?.filter(
-                            (booking) => booking.status === "ARRIVED"
-                          ).length}
-                        {tab.value === "PICKED_UP" &&
-                          tableData?.filter(
-                            (booking) => booking.status === "PICKED_UP"
-                          ).length}
-                        {tab.value === "WAY_TO_DESTINATION" &&
-                          tableData?.filter(
-                            (booking) => booking.status === "WAY_TO_DESTINATION"
-                          ).length}
+                        {tab.value === "all" &&
+                          (bookingStats?.total ?? tableData?.length)}
+                        {tab.value !== "all" &&
+                          (bookingStats?.[tab.value as keyof typeof bookingStats] ??
+                            tableData?.filter(
+                              (booking) => booking.status === tab.value
+                            ).length)}
                       </Label>
                     }
                   />

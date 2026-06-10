@@ -98,7 +98,7 @@ const BOOKINGS_HEAD = [
   { id: "packageName", label: "Package", width: 120 },
   { id: "startFrom", label: "Pickup" },
   { id: "destination", label: "Drop-off" },
-  { id: "totalBill", label: "Fare", width: 90, align: "right" },
+  { id: "finalBill", label: "Fare", width: 90, align: "right" },
   { id: "cashCollected", label: "Cash", width: 90, align: "right" },
   { id: "walletCollected", label: "Wallet", width: 90, align: "right" },
   { id: "commission", label: "Commission", width: 100, align: "right" },
@@ -123,6 +123,7 @@ export default function DriverSummaryListView() {
   const [loading, setLoading] = useState(true);
   const [drivers, setDrivers] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [summary, setSummary] = useState({ rows: [], totals: null });
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [period, setPeriod] = useState("today");
   const [customStart, setCustomStart] = useState(null);
@@ -151,74 +152,56 @@ export default function DriverSummaryListView() {
   }, [period, customStart, customEnd]);
 
   useEffect(() => {
-    const params = new URLSearchParams({ status: "COMPLETED", count: "10000" });
-    if (selectedDriver) params.set("driverId", selectedDriver.id);
+    // Per-driver aggregated rows + totals come from the server. The previous
+    // implementation pulled `count=10000` completed bookings and aggregated
+    // in the browser, which silently capped the report past 10k bookings
+    // and used `totalBill` (pre-tip) instead of `finalBill` (actually paid).
+    const params = new URLSearchParams();
     if (dateRange.start) params.set("startDate", dateRange.start.toISOString());
     if (dateRange.end) params.set("endDate", dateRange.end.toISOString());
+    if (selectedDriver) params.set("driverId", selectedDriver.id);
 
     setLoading(true);
-    apiClient
-      .get(`/admin/bookings?${params.toString()}`)
-      .then((res) => {
-        setBookings(res.data || []);
+    const requests = [
+      apiClient.get(`/admin/bookings/work-summary?${params.toString()}`),
+    ];
+    // When a single driver is selected we also fetch the booking-level rows
+    // so the per-booking table renders. Keep the page size paginated server
+    // side (default 25 per page is enough for the visible table).
+    if (selectedDriver) {
+      const bookingParams = new URLSearchParams({
+        status: "COMPLETED",
+        count: "500",
+        driverId: selectedDriver.id,
+      });
+      if (dateRange.start) bookingParams.set("startDate", dateRange.start.toISOString());
+      if (dateRange.end) bookingParams.set("endDate", dateRange.end.toISOString());
+      requests.push(apiClient.get(`/admin/bookings?${bookingParams.toString()}`));
+    }
+
+    Promise.all(requests)
+      .then(([summaryRes, bookingsRes]) => {
+        const data = summaryRes?.data?.data || summaryRes?.data || {};
+        setSummary({ rows: data.rows || [], totals: data.totals || null });
+        setBookings(bookingsRes?.data || []);
         table.onChangePage(null, 0);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [dateRange, selectedDriver]);
 
+  // When a driver is selected the summary endpoint returns a single row for
+  // that driver — pull jobs/revenue from it. When no driver is selected the
+  // grid lists every driver's row. Either way the totals come from server.
   const driverStats = useMemo(() => {
     if (selectedDriver) return [];
-    const map = {};
-    bookings.forEach((b) => {
-      if (!map[b.driverId]) {
-        map[b.driverId] = {
-          driverId: b.driverId,
-          driver: b.driverInfo || null,
-          driverName: b.driverName || "",
-          driverEmail: b.driverEmail || "",
-          totalJobs: 0,
-          totalRevenue: 0,
-          cashPay: 0,
-          walletPay: 0,
-          commission: 0,
-        };
-      }
-      const s = map[b.driverId];
-      s.totalJobs += 1;
-      s.totalRevenue += b.totalBill || 0;
-      s.cashPay += b.cashCollected || 0;
-      s.walletPay += b.walletCollected || 0;
-      s.commission += b.commission || 0;
-    });
-    return Object.values(map).sort((a, b) => b.totalJobs - a.totalJobs);
-  }, [bookings, selectedDriver]);
+    return [...summary.rows].sort((a, b) => b.totalJobs - a.totalJobs);
+  }, [summary.rows, selectedDriver]);
 
   const totals = useMemo(() => {
-    const src = selectedDriver ? bookings : driverStats;
-    if (selectedDriver) {
-      return src.reduce(
-        (t, b) => ({
-          jobs: t.jobs + 1,
-          revenue: t.revenue + (b.totalBill || 0),
-          cash: t.cash + (b.cashCollected || 0),
-          wallet: t.wallet + (b.walletCollected || 0),
-          commission: t.commission + (b.commission || 0),
-        }),
-        { jobs: 0, revenue: 0, cash: 0, wallet: 0, commission: 0 }
-      );
-    }
-    return src.reduce(
-      (t, s) => ({
-        jobs: t.jobs + s.totalJobs,
-        revenue: t.revenue + s.totalRevenue,
-        cash: t.cash + s.cashPay,
-        wallet: t.wallet + s.walletPay,
-        commission: t.commission + s.commission,
-      }),
-      { jobs: 0, revenue: 0, cash: 0, wallet: 0, commission: 0 }
-    );
-  }, [bookings, driverStats, selectedDriver]);
+    if (summary.totals) return summary.totals;
+    return { jobs: 0, revenue: 0, cash: 0, wallet: 0, commission: 0 };
+  }, [summary.totals]);
 
   const displayData = selectedDriver ? bookings : driverStats;
   const paginatedData = displayData.slice(
@@ -497,7 +480,7 @@ function BookingRow({ row }) {
       <TableCell sx={{ maxWidth: 200 }}>
         <Typography variant="body2" noWrap>{row.destination?.name || "-"}</Typography>
       </TableCell>
-      <TableCell align="right">{fCurrency(row.totalBill)}</TableCell>
+      <TableCell align="right">{fCurrency(row.finalBill ?? row.totalBill)}</TableCell>
       <TableCell align="right">{fCurrency(row.cashCollected)}</TableCell>
       <TableCell align="right">{fCurrency(row.walletCollected)}</TableCell>
       <TableCell align="right">{fCurrency(row.commission)}</TableCell>

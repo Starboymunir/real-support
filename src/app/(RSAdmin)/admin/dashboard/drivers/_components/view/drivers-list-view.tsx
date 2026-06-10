@@ -37,7 +37,7 @@ import { useSnackbar } from "@/app/(RSAdmin)/admin/common/snackbar";
 import DriversTableToolbar from "../drivers-table-toolbar";
 import DriversTableFiltersResult from "../drivers-table-filters-result";
 import DriversTableRow from "../drivers-table-row";
-import { useDriversQuery } from "@/hooks/Drivers";
+import { useDriversQuery, useDriverStatsQuery } from "@/hooks/Drivers";
 import { IDriver } from "@/types/type";
 import axiosInstance from "@/lib/admin-axios";
 import { useSocket } from "@/providers/SocketProvider";
@@ -83,15 +83,19 @@ export default function DriversListView() {
   const [filters, setFilters] = useState(defaultFilters);
 
   const { data: tableData = [], isPending, refetch } = useDriversQuery();
+  const { data: serverStats, refetch: refetchStats } = useDriverStatsQuery();
 
+  // Prefer server-computed totals so the cards and tab badges reflect the
+  // whole table, not just the page slice the list happens to have loaded.
   const stats = useMemo(() => {
+    if (serverStats) return serverStats;
     const active = tableData.filter((d) => d.status === "ACTIVE").length;
     const pending = tableData.filter((d) => d.status === "PENDING").length;
     const onhold = tableData.filter((d) => d.status === "ONHOLD").length;
     const suspended = tableData.filter((d) => d.status === "SUSPEND").length;
     const online = tableData.filter((d) => d.isOnline === true).length;
     return { total: tableData.length, active, pending, onhold, suspended, online };
-  }, [tableData]);
+  }, [serverStats, tableData]);
 
   // Live refresh on driver presence changes: when a driver goes online/offline
   // (or their profile updates with new location/status), refetch so the Online
@@ -100,6 +104,7 @@ export default function DriversListView() {
     if (!socket) return;
     const onPresenceChange = () => {
       refetch();
+      refetchStats();
     };
     socket.on(SOCKET_EVENT_ENUM.DRIVER.DRIVER_ONLINE, onPresenceChange);
     socket.on(SOCKET_EVENT_ENUM.DRIVER.DRIVER_OFFLINE, onPresenceChange);
@@ -109,7 +114,7 @@ export default function DriversListView() {
       socket.off(SOCKET_EVENT_ENUM.DRIVER.DRIVER_OFFLINE, onPresenceChange);
       socket.off(SOCKET_EVENT_ENUM.DRIVER.DRIVER_PROFILE_UPDATED, onPresenceChange);
     };
-  }, [socket, refetch]);
+  }, [socket, refetch, refetchStats]);
 
   const dataFiltered: IDriver[] = applyFilter({
     inputData: tableData,

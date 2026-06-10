@@ -12,6 +12,27 @@ export const useDriversQuery = () => {
   });
 };
 
+export type DriverStats = {
+  total: number;
+  online: number;
+  active: number;
+  pending: number;
+  onhold: number;
+  suspended: number;
+};
+
+export const useDriverStatsQuery = () => {
+  return useQuery<DriverStats, Error>({
+    queryKey: ["Driver-Stats"],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get("/admin/drivers/stats");
+      return (
+        data?.data ?? { total: 0, online: 0, active: 0, pending: 0, onhold: 0, suspended: 0 }
+      );
+    },
+  });
+};
+
 export const useDriverQuery = (id: string) => {
   return useQuery({
     queryKey: ["Driver", id],

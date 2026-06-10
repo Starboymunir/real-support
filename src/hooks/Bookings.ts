@@ -54,3 +54,37 @@ export const useAdminBookingsQuery = () => {
     }
   });
 };
+
+export type BookingStats = {
+  total: number;
+  ACCEPTED: number;
+  REJECTED: number;
+  CANCELLED: number;
+  WAY_TO_PICKUP: number;
+  ARRIVED: number;
+  PICKED_UP: number;
+  WAY_TO_DESTINATION: number;
+  COMPLETED: number;
+};
+
+const EMPTY_STATS: BookingStats = {
+  total: 0,
+  ACCEPTED: 0,
+  REJECTED: 0,
+  CANCELLED: 0,
+  WAY_TO_PICKUP: 0,
+  ARRIVED: 0,
+  PICKED_UP: 0,
+  WAY_TO_DESTINATION: 0,
+  COMPLETED: 0,
+};
+
+export const useBookingStatsQuery = () => {
+  return useQuery<BookingStats, Error>({
+    queryKey: ["admin-booking-stats"],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get("/admin/bookings/stats");
+      return { ...EMPTY_STATS, ...(data?.data || {}) };
+    },
+  });
+};

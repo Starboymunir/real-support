@@ -131,7 +131,16 @@ export default function RiderProfilePage() {
       setSaveMsg('Photo updated successfully!');
     } catch (err) {
       setLocalPreview(null);
-      setSaveMsg(err instanceof ApiError ? err.message : 'Failed to upload photo');
+      // Surface the underlying error message instead of a generic fallback.
+      // Could be: server-side S3 failure, file too large at the proxy
+      // (NGINX 413), auth expired, or a non-image MIME type.
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : 'Failed to upload photo';
+      setSaveMsg(message);
     } finally {
       setUploadingPhoto(false);
       setTimeout(() => setSaveMsg(''), 3000);

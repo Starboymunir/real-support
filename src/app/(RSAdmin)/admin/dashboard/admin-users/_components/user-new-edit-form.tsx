@@ -114,18 +114,45 @@ export default function UserNewEditForm({
     if (payload.role !== 'COMPANY_ADMIN') {
       delete payload.companyId;
     }
-    // Upload profile image to S3 if a new file was selected
+    // Upload profile image to S3 if a new file was selected. Bubble the
+    // real server message up (S3 error, 413 Payload Too Large from the
+    // proxy, auth expired, etc.) so we can diagnose failures instead of
+    // showing a generic "Failed to upload profile image" with no detail.
     if (data.profileImage instanceof File) {
+      const MAX_BYTES = 5 * 1024 * 1024;
+      if (data.profileImage.size > MAX_BYTES) {
+        enqueueSnackbar(
+          `Image is ${(data.profileImage.size / 1024 / 1024).toFixed(1)} MB — please choose one under 5 MB.`,
+          { variant: 'error' },
+        );
+        return;
+      }
       try {
         const formData = new FormData();
         formData.append('file', data.profileImage);
         const uploadRes = await axiosInstance.post('/documents/upload_file', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        payload.profileImageUrl = uploadRes.data?.data?.fileUrl || uploadRes.data?.fileUrl || uploadRes.data;
-      } catch (uploadErr) {
+        const fileUrl =
+          uploadRes.data?.data?.fileUrl ||
+          uploadRes.data?.fileUrl ||
+          (typeof uploadRes.data === 'string' ? uploadRes.data : undefined);
+        if (!fileUrl) {
+          enqueueSnackbar(
+            'Upload server returned no fileUrl — check backend logs.',
+            { variant: 'error' },
+          );
+          return;
+        }
+        payload.profileImageUrl = fileUrl;
+      } catch (uploadErr: any) {
         console.error('Image upload failed:', uploadErr);
-        enqueueSnackbar('Failed to upload profile image', { variant: 'error' });
+        const serverMsg =
+          uploadErr?.response?.data?.message ||
+          uploadErr?.response?.data?.error ||
+          uploadErr?.message ||
+          'Failed to upload profile image';
+        enqueueSnackbar(serverMsg, { variant: 'error' });
         return;
       }
     }

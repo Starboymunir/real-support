@@ -363,10 +363,19 @@ export default function PlatformWalletOverviewView() {
       dashboardStats?.totalShareRevenue ?? (sharesSold * sharePrice);
     const shareSpreadProfit = sharesRevenue * 0.10;
 
+    // Service fees retained on completed bookings. Counted toward gross
+    // revenue so the platform profit reflects what the company actually
+    // earned (commission + service fees), not just commission.
+    const serviceFees = Number(dashboardStats?.totalServiceFees ?? 0);
+    const companyProfitFromRides = Number(
+      dashboardStats?.totalCompanyProfit ?? (totalCommission + serviceFees),
+    );
+
     const companyExpenses = expenses.reduce((sum: number, e: any) => sum + Math.abs(Number(e?.amount || 0)), 0);
     const outsideEarnings = earnings.reduce((sum: number, e: any) => sum + Math.abs(Number(e?.amount || 0)), 0);
 
-    const grossRevenue = totalCommission + shareSpreadProfit + outsideEarnings;
+    const grossRevenue =
+      totalCommission + serviceFees + shareSpreadProfit + outsideEarnings;
     const netProfit = grossRevenue - companyExpenses;
 
     return {
@@ -384,6 +393,8 @@ export default function PlatformWalletOverviewView() {
       sharePrice,
       sharesRevenue,
       shareSpreadProfit,
+      serviceFees,
+      companyProfitFromRides,
       companyValuation: shareData?.finalValuation || 0,
       totalSharesIssued: shareData?.totalShares || 10000,
       assetValue: shareData?.assetValue || 0,
@@ -465,13 +476,14 @@ export default function PlatformWalletOverviewView() {
 
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, mb: 2 }}>
         <StatCard title="Net Profit" value={formatGBP(metrics.netProfit)} icon="solar:dollar-minimalistic-bold-duotone" color={metrics.netProfit >= 0 ? theme.palette.success.dark : theme.palette.error.main} helper="Gross revenue minus company expenses" />
-        <StatCard title="Gross Revenue" value={formatGBP(metrics.grossRevenue)} icon="solar:chart-bold-duotone" color={theme.palette.success.main} helper="Commission + share margin + outside earnings" />
+        <StatCard title="Gross Revenue" value={formatGBP(metrics.grossRevenue)} icon="solar:chart-bold-duotone" color={theme.palette.success.main} helper="Commission + service fees + share margin + outside earnings" />
         <StatCard title="Company Expenses" value={formatGBP(metrics.companyExpenses)} icon="solar:bill-list-bold-duotone" color={theme.palette.error.main} helper="All recorded company expenses" />
         <StatCard title="Outside Earnings" value={formatGBP(metrics.outsideEarnings)} icon="solar:hand-money-bold-duotone" color={theme.palette.info.main} helper="Revenue from non-platform sources" />
       </Box>
 
-      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, mb: 4 }}>
+      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(5, 1fr)" }, mb: 4 }}>
         <StatCard title="Booking Commission" value={formatGBP(commissions.totalCommission)} icon="solar:ticket-bold-duotone" color={theme.palette.warning.main} helper="Commission from ride bookings" />
+        <StatCard title="Service Fees" value={formatGBP(metrics.serviceFees)} icon="solar:tag-horizontal-bold-duotone" color={theme.palette.success.dark} helper="Service charge retained on completed rides" />
         <StatCard title="Cancellation Fees" value={formatGBP(metrics.cancellationFees)} icon="solar:close-circle-bold-duotone" color={theme.palette.error.light} helper="Fees collected from cancellations" />
         <StatCard title="Share Spread Margin" value={formatGBP(metrics.shareSpreadProfit)} icon="solar:graph-up-bold-duotone" color={theme.palette.secondary.main} helper="10% margin on share sell-backs" />
         <StatCard title="Admin Charges" value={formatGBP(metrics.adminCharges)} icon="solar:shield-user-bold-duotone" color={theme.palette.primary.main} helper="Manual admin charges to users" />

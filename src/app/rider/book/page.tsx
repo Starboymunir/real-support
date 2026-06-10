@@ -65,22 +65,35 @@ function getEmoji(name: string): string {
   return '🚗';
 }
 
-/** Fetch fare estimate from backend */
+type FareBreakdown = {
+  price: number;
+  serviceFee: number;
+};
+
+/**
+ * Fetch full fare breakdown from backend. We need both the total price the
+ * rider pays AND the calculated service-fee portion of it — booking records
+ * need the real per-ride service fee for revenue reporting, not the static
+ * config value off the Package row.
+ */
 async function fetchFareFromBackend(
   packageId: string,
   distanceMeters: number,
   durationSeconds: number
-): Promise<number> {
+): Promise<FareBreakdown> {
   try {
     const result = await othersApi.calculatePrice({
       packageId,
       distance: distanceMeters,
       time: durationSeconds,
     });
-    return result?.price ?? 0;
+    return {
+      price: Number(result?.price ?? 0),
+      serviceFee: Number((result as { serviceFee?: number })?.serviceFee ?? 0),
+    };
   } catch (err) {
     console.error('[BookRide] Backend price calc failed:', err);
-    return 0;
+    return { price: 0, serviceFee: 0 };
   }
 }
 
@@ -108,6 +121,11 @@ export default function BookRide() {
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [fareEstimate, setFareEstimate] = useState<number | null>(null);
   const [faresByPackage, setFaresByPackage] = useState<Record<string, number>>({});
+  // Calculated service-fee portion of the fare, per package. Sourced from the
+  // backend price-calc response (serviceFee field). The booking payload uses
+  // this value rather than selectedPackage.serviceFee, which is the static
+  // config value and has no relationship to what was actually charged.
+  const [serviceFeesByPackage, setServiceFeesByPackage] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [loadingRoute, setLoadingRoute] = useState(false);
   const [error, setError] = useState('');
@@ -225,15 +243,20 @@ export default function BookRide() {
 
       if (route) {
         setRouteInfo(route);
-        // Fetch fares for ALL packages in parallel
+        // Fetch fares for ALL packages in parallel. We pull both the total
+        // price and the calculated service-fee component so the booking
+        // payload can record the real per-ride service fee.
         const faresMap: Record<string, number> = {};
+        const serviceFeeMap: Record<string, number> = {};
         await Promise.all(
           packages.map(async (pkg) => {
-            const fare = await fetchFareFromBackend(pkg.id, route.distance, route.duration);
-            faresMap[pkg.id] = fare;
+            const breakdown = await fetchFareFromBackend(pkg.id, route.distance, route.duration);
+            faresMap[pkg.id] = breakdown.price;
+            serviceFeeMap[pkg.id] = breakdown.serviceFee;
           })
         );
         setFaresByPackage(faresMap);
+        setServiceFeesByPackage(serviceFeeMap);
         if (selectedPackageId && faresMap[selectedPackageId] !== undefined) {
           setFareEstimate(faresMap[selectedPackageId]);
         }
@@ -462,7 +485,12 @@ export default function BookRide() {
         clientName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
         clientEmail: user.emailAddress || '',
         clientPhone: user.phone_number || '',
-        serviceCharge: selectedPackage ? selectedPackage.serviceFee : 0,
+        // Real service-charge for THIS ride (calculated by the backend from
+        // base fare + package serviceFee + maxServiceFee cap). The previous
+        // value was selectedPackage.serviceFee — the static config off the
+        // Package row — which had no relationship to what was actually
+        // charged and broke admin company-profit reporting.
+        serviceCharge: serviceFeesByPackage[selectedPackageId] ?? 0,
         discountAmount: discountAmount,
         ...(appliedCoupon && {
           couponCode: appliedCoupon.coupon,
@@ -483,7 +511,7 @@ export default function BookRide() {
     } finally {
       setSubmitting(false);
     }
-  }, [user, pickupPlace, dropoffPlace, date, time, selectedPackageId, selectedPackage, fareEstimate, finalFare, discountAmount, appliedCoupon, paymentMethod, passengers, note, customBudget, stops, routeInfo, router, walletBalance]);
+  }, [user, pickupPlace, dropoffPlace, date, time, selectedPackageId, selectedPackage, fareEstimate, finalFare, discountAmount, appliedCoupon, paymentMethod, passengers, note, customBudget, priceMode, stops, routeInfo, router, walletBalance, serviceFeesByPackage]);
 
   return (
     <DashboardLayout role="rider" pageTitle="Book a Ride">

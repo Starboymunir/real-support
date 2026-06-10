@@ -123,6 +123,16 @@ export default function PlatformWalletOverviewView() {
     refunds: number;
     totalCommission: number;
   } | null>(null);
+  // Dashboard stats — read for the real share revenue (sum of BUY
+  // ShareTransaction.total) and service-fee aggregate.
+  const [dashboardStats, setDashboardStats] = useState<{
+    totalShareRevenue?: number;
+    totalSharesSold?: number;
+    totalShareBuybacks?: number;
+    totalSharesRepurchased?: number;
+    totalServiceFees?: number;
+    totalCompanyProfit?: number;
+  } | null>(null);
 
   // Valuation adjustment form state
   const [valForm, setValForm] = useState({ assetValue: "", earningsValue: "", futureValue: "" });
@@ -199,6 +209,14 @@ export default function PlatformWalletOverviewView() {
       .then((res) => {
         const data = res.data?.data ?? res.data;
         if (data) setFinanceMetrics(data);
+      })
+      .catch(() => undefined);
+
+    axiosInstance
+      .get("/super-admin/all-stats")
+      .then((res) => {
+        const data = res.data?.data ?? res.data;
+        if (data) setDashboardStats(data);
       })
       .catch(() => undefined);
   }, []);
@@ -333,9 +351,16 @@ export default function PlatformWalletOverviewView() {
       .filter((t: any) => t?.type === "EXPENSE")
       .reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
 
-    const sharesSold = shareData ? (shareData.totalShares - 10000) : 0;
+    // Real share revenue: sum of ShareTransaction.total for BUY entries —
+    // i.e. the actual money received per the historical purchase prices.
+    // Falls back to (count × current price) only while the server stat is
+    // loading. The previous client-side calc multiplied by the *current*
+    // share price regardless of what each buyer actually paid.
+    const sharesSoldFromServer = dashboardStats?.totalSharesSold;
+    const sharesSold = sharesSoldFromServer ?? (shareData ? (shareData.totalShares - 10000) : 0);
     const sharePrice = shareData?.price || 0;
-    const sharesRevenue = sharesSold * sharePrice;
+    const sharesRevenue =
+      dashboardStats?.totalShareRevenue ?? (sharesSold * sharePrice);
     const shareSpreadProfit = sharesRevenue * 0.10;
 
     const companyExpenses = expenses.reduce((sum: number, e: any) => sum + Math.abs(Number(e?.amount || 0)), 0);
@@ -370,7 +395,7 @@ export default function PlatformWalletOverviewView() {
       grossRevenue,
       netProfit
     };
-  }, [adminTransactions, userTransactions, withdrawalRequests, shareData, expenses, earnings, financeMetrics, commissions.totalCommission]);
+  }, [adminTransactions, userTransactions, withdrawalRequests, shareData, expenses, earnings, financeMetrics, dashboardStats, commissions.totalCommission]);
 
   if (isLoading) return <LoadingScreen />;
 
@@ -581,7 +606,9 @@ export default function PlatformWalletOverviewView() {
                   <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
                   <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 600 }}>Shares</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>Value</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>Avg Buy Price</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>Total Paid</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>Value (now)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -590,6 +617,11 @@ export default function PlatformWalletOverviewView() {
                   const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Unknown";
                   const initials = name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
                   const holdingValue = (h.quantity || 0) * (metrics.sharePrice || 0);
+                  // Backend returns avgBuyPrice + totalPaid per holder
+                  // (weighted across all BUY transactions). Falls back to
+                  // "-" if the holder has no BUY history (e.g. seeded).
+                  const avgBuyPrice = Number(h.avgBuyPrice ?? 0);
+                  const totalPaid = Number(h.totalPaid ?? 0);
                   return (
                     <TableRow key={h.id || h.userId} hover>
                       <TableCell>
@@ -608,6 +640,16 @@ export default function PlatformWalletOverviewView() {
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="body2" fontWeight={600}>{(h.quantity || 0).toLocaleString()}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">
+                          {avgBuyPrice > 0 ? formatGBP(avgBuyPrice) : "-"}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" fontWeight={500} color="text.secondary">
+                          {totalPaid > 0 ? formatGBP(totalPaid) : "-"}
+                        </Typography>
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="body2" fontWeight={600}>{formatGBP(holdingValue)}</Typography>

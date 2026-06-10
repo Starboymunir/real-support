@@ -225,7 +225,12 @@ export default function AdminDashboard() {
                 £{(stats?.totalGrossFare ?? stats?.totalRevenue ?? 0).toLocaleString()}
               </p>
               <p className="text-[10px] mt-1" style={{ color: T.textMuted }}>
-                Platform commission: £{(stats?.totalCommission ?? 0).toLocaleString()}
+                Commission £{(stats?.totalCommission ?? 0).toLocaleString()}
+                {' '}+ service fees £{(stats?.totalServiceFees ?? 0).toLocaleString()}
+                {' '}={' '}
+                <span className="text-green-300 font-semibold">
+                  £{(stats?.totalCompanyProfit ?? 0).toLocaleString()} profit
+                </span>
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">

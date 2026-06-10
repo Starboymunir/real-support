@@ -219,10 +219,13 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
               <p className="text-xs" style={{ color: T.textMuted }}>
-                Total Revenue
+                Gross Fare (Completed Rides)
               </p>
               <p className="text-3xl font-bold mt-1" style={{ color: T.text }}>
-                £{(stats?.totalRevenue ?? 0).toLocaleString()}
+                £{(stats?.totalGrossFare ?? stats?.totalRevenue ?? 0).toLocaleString()}
+              </p>
+              <p className="text-[10px] mt-1" style={{ color: T.textMuted }}>
+                Platform commission: £{(stats?.totalCommission ?? 0).toLocaleString()}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -230,22 +233,22 @@ export default function AdminDashboard() {
                 <div className="flex items-center gap-1 mb-1">
                   <ArrowUpRight size={12} className="text-green-400" />
                   <p className="text-[10px]" style={{ color: T.textMuted }}>
-                    Income
+                    Income (admin ledger)
                   </p>
                 </div>
                 <p className="text-lg font-bold text-green-400">
-                  £{Math.round((stats?.totalRevenue ?? 0) * 0.7).toLocaleString()}
+                  £{(stats?.totalIncome ?? 0).toLocaleString()}
                 </p>
               </div>
               <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                 <div className="flex items-center gap-1 mb-1">
                   <ArrowDownRight size={12} className="text-red-400" />
                   <p className="text-[10px]" style={{ color: T.textMuted }}>
-                    Expenditure
+                    Expenditure (admin ledger)
                   </p>
                 </div>
                 <p className="text-lg font-bold text-red-400">
-                  £{Math.round((stats?.totalRevenue ?? 0) * 0.3).toLocaleString()}
+                  £{(stats?.totalExpenditure ?? 0).toLocaleString()}
                 </p>
               </div>
             </div>

@@ -104,8 +104,24 @@ export default function PlatformWalletOverviewView() {
   const [sharesPending, setSharesPending] = useState(true);
   const [platformBreakdown, setPlatformBreakdown] = useState<{
     usersWalletBalance: number;
+    riderWalletBalance?: number;
+    driverWalletBalance?: number;
     companyWalletBalance: number;
     platformBalance: number;
+    userWalletCount?: number;
+    riderWalletCount?: number;
+    driverWalletCount?: number;
+  } | null>(null);
+  const [financeMetrics, setFinanceMetrics] = useState<{
+    totalTopUps: number;
+    totalWithdrawn: number;
+    pendingWithdrawals: number;
+    availableBalance: number;
+    platformBalance: number;
+    cancellationFees: number;
+    adminCharges: number;
+    refunds: number;
+    totalCommission: number;
   } | null>(null);
 
   // Valuation adjustment form state
@@ -166,13 +182,23 @@ export default function PlatformWalletOverviewView() {
   // ______________________________________________________
 
 
-  // Live wallet breakdown — sum of all user wallets + company escrow.
+  // Live wallet breakdown + finance metrics. The metrics endpoint replaces
+  // the previous client-side aggregation over the transactions list, which
+  // started undercounting once those endpoints were paginated.
   useEffect(() => {
     axiosInstance
       .get("/super-admin/platform-balance")
       .then((res) => {
         const data = res.data?.data ?? res.data;
         if (data) setPlatformBreakdown(data);
+      })
+      .catch(() => undefined);
+
+    axiosInstance
+      .get("/payment-transaction/admin/metrics")
+      .then((res) => {
+        const data = res.data?.data ?? res.data;
+        if (data) setFinanceMetrics(data);
       })
       .catch(() => undefined);
   }, []);
@@ -270,35 +296,42 @@ export default function PlatformWalletOverviewView() {
   const isLoading = adminPending || usersPending || withdrawalPending || sharesPending || commissionsPending;
 
   const metrics = useMemo(() => {
-    const totalTopUps = userTransactions
+    // Prefer server-side aggregates so the numbers are correct across the
+    // full table, not just the first page of paginated lists. Falls back to
+    // the legacy client-side compute while the metrics endpoint loads.
+    const totalTopUps = financeMetrics?.totalTopUps ?? userTransactions
       .filter((t: any) => t?.type === "TOPUP" || t?.type === "DEPOSIT")
       .reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
 
-    const totalWithdrawn = withdrawalRequests
+    const totalWithdrawn = financeMetrics?.totalWithdrawn ?? withdrawalRequests
       .filter((r: any) => r?.status === "PROCESSED")
       .reduce((sum: number, r: any) => sum + Math.abs(Number(r?.amount || 0)), 0);
 
-    const platformBalance = totalTopUps - totalWithdrawn;
-
-    const cancellationFees = userTransactions
+    const cancellationFees = financeMetrics?.cancellationFees ?? userTransactions
       .filter((t: any) => t?.type === "CANCELLATION_FEE")
       .reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
 
-    const adminCharges = userTransactions
+    const adminCharges = financeMetrics?.adminCharges ?? userTransactions
       .filter((t: any) => t?.type === "ADMIN_CHARGE")
       .reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
 
-    const totalCommission = commissions.totalCommission + cancellationFees + adminCharges;
+    const pendingWithdrawals = financeMetrics?.pendingWithdrawals ?? withdrawalRequests
+      .filter((r: any) => r?.status === "PENDING")
+      .reduce((sum: number, r: any) => sum + Math.abs(Number(r?.amount || 0)), 0);
+
+    const platformBalance = financeMetrics?.platformBalance ?? (totalTopUps - totalWithdrawn);
+    const availableBalance = financeMetrics?.availableBalance ?? (totalTopUps - totalWithdrawn - pendingWithdrawals);
+
+    // totalCommission: prefer the server-side ledger sum, fall back to the
+    // legacy compute that lumped commission + cancellation fees + admin
+    // charges together.
+    const totalCommission =
+      financeMetrics?.totalCommission ??
+      (commissions.totalCommission + cancellationFees + adminCharges);
 
     const totalExpenses = userTransactions
       .filter((t: any) => t?.type === "EXPENSE")
       .reduce((sum: number, t: any) => sum + Math.abs(Number(t?.amount || 0)), 0);
-
-    const pendingWithdrawals = withdrawalRequests
-      .filter((r: any) => r?.status === "PENDING")
-      .reduce((sum: number, r: any) => sum + Math.abs(Number(r?.amount || 0)), 0);
-
-    const availableBalance = totalTopUps - totalWithdrawn - pendingWithdrawals;
 
     const sharesSold = shareData ? (shareData.totalShares - 10000) : 0;
     const sharePrice = shareData?.price || 0;
@@ -337,7 +370,7 @@ export default function PlatformWalletOverviewView() {
       grossRevenue,
       netProfit
     };
-  }, [adminTransactions, userTransactions, withdrawalRequests, shareData, expenses, earnings]);
+  }, [adminTransactions, userTransactions, withdrawalRequests, shareData, expenses, earnings, financeMetrics, commissions.totalCommission]);
 
   if (isLoading) return <LoadingScreen />;
 
@@ -359,13 +392,20 @@ export default function PlatformWalletOverviewView() {
         Platform Wallet
       </Typography>
 
-      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }, mb: 2 }}>
+      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, mb: 2 }}>
         <StatCard
-          title="Users Wallet Balance"
-          value={formatGBP(platformBreakdown?.usersWalletBalance ?? 0)}
-          icon="solar:users-group-rounded-bold-duotone"
+          title="Rider Wallet Balance"
+          value={formatGBP(platformBreakdown?.riderWalletBalance ?? 0)}
+          icon="solar:user-rounded-bold-duotone"
           color={theme.palette.info.main}
-          helper="Total funds currently held across all user wallets"
+          helper={`Across ${platformBreakdown?.riderWalletCount ?? 0} rider wallets`}
+        />
+        <StatCard
+          title="Driver Wallet Balance"
+          value={formatGBP(platformBreakdown?.driverWalletBalance ?? 0)}
+          icon="solar:car-bold-duotone"
+          color={theme.palette.success.main}
+          helper={`Across ${platformBreakdown?.driverWalletCount ?? 0} driver wallets`}
         />
         <StatCard
           title="Company Wallet Balance"
@@ -379,7 +419,7 @@ export default function PlatformWalletOverviewView() {
           value={formatGBP(platformBreakdown?.platformBalance ?? 0)}
           icon="solar:wallet-money-bold-duotone"
           color={theme.palette.primary.main}
-          helper="Users Wallets + Company Wallet"
+          helper="Riders + Drivers + Company"
         />
       </Box>
 

@@ -230,11 +230,10 @@ export default function SharesPage() {
 
         {/* ═══════ VALUATION BREAKDOWN ═══════ */}
         <motion.div initial="hidden" animate="visible" custom={2} variants={fadeUp}>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { label: 'Asset Value', value: share?.assetValue ?? 0, icon: PieChart, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-              { label: 'Earnings Value', value: share?.earningsValue ?? 0, icon: TrendingUp, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-              { label: 'Future Value', value: share?.futureValue ?? 0, icon: Activity, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+              { label: 'Company Valuation', value: share?.finalValuation ?? 0, icon: BarChart3, color: 'text-amber-400', bg: 'bg-amber-500/10' },
             ].map((item, idx) => {
               const Icon = item.icon;
               return (
@@ -262,8 +261,18 @@ export default function SharesPage() {
                   <ShoppingCart size={18} className="text-purple-400" /> Trade Shares
                 </h2>
 
-                {/* Sell on top, Buy on bottom per client UX preference. */}
+                {/* Buy / Sell Toggle */}
                 <div className="flex rounded-xl bg-white/[0.04] border border-white/[0.06] p-1 mb-6">
+                  <button
+                    onClick={() => { setTradeMode('buy'); setTradeResult(null); setQuantity(50); }}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                      tradeMode === 'buy'
+                        ? 'bg-secondary/20 text-secondary border border-secondary/30 shadow-lg shadow-secondary/5'
+                        : 'text-white/40 hover:text-white/60'
+                    }`}
+                  >
+                    Buy Shares
+                  </button>
                   {holdingQty > 0 && (
                     <button
                       onClick={() => { setTradeMode('sell'); setTradeResult(null); setQuantity(50); }}
@@ -276,16 +285,6 @@ export default function SharesPage() {
                       Sell Shares
                     </button>
                   )}
-                  <button
-                    onClick={() => { setTradeMode('buy'); setTradeResult(null); setQuantity(50); }}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${
-                      tradeMode === 'buy'
-                        ? 'bg-secondary/20 text-secondary border border-secondary/30 shadow-lg shadow-secondary/5'
-                        : 'text-white/40 hover:text-white/60'
-                    }`}
-                  >
-                    Buy Shares
-                  </button>
                 </div>
 
                 {/* Quantity Selector */}

@@ -353,12 +353,13 @@ export default function PlatformWalletOverviewView() {
     const platformBalance = financeMetrics?.platformBalance ?? (totalTopUps - totalWithdrawn);
     const availableBalance = financeMetrics?.availableBalance ?? (totalTopUps - totalWithdrawn - pendingWithdrawals);
 
-    // totalCommission: prefer the server-side ledger sum, fall back to the
-    // legacy compute that lumped commission + cancellation fees + admin
-    // charges together.
-    const totalCommission =
-      financeMetrics?.totalCommission ??
-      (commissions.totalCommission + cancellationFees + adminCharges);
+    // Use the SAME commission number the "Booking Commission" card displays
+    // (commissions.totalCommission, sourced from /finance/commissions) so
+    // the Gross Revenue total ties to the line items the admin can see on
+    // the page. Previously we used a different server-side ledger sum here
+    // which produced a Gross Revenue that didn't equal commission +
+    // serviceFees + ... + spread.
+    const totalCommission = Number(commissions.totalCommission ?? 0);
 
     const totalExpenses = userTransactions
       .filter((t: any) => t?.type === "EXPENSE")
@@ -641,7 +642,6 @@ export default function PlatformWalletOverviewView() {
                   <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 600 }}>Shares</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 600 }}>Avg Buy Price</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>Total Paid</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 600 }}>Value (now)</TableCell>
                 </TableRow>
               </TableHead>
@@ -656,11 +656,10 @@ export default function PlatformWalletOverviewView() {
                   // redemption value; buy price is what someone would pay to
                   // top up.
                   const holdingValue = (h.quantity || 0) * (metrics.sellPrice || metrics.sharePrice || 0);
-                  // Backend returns avgBuyPrice + totalPaid per holder
-                  // (weighted across all BUY transactions). Falls back to
-                  // "-" if the holder has no BUY history (e.g. seeded).
+                  // Backend returns avgBuyPrice per holder (weighted across
+                  // all BUY transactions). Falls back to "-" if the holder
+                  // has no BUY history (e.g. seeded).
                   const avgBuyPrice = Number(h.avgBuyPrice ?? 0);
-                  const totalPaid = Number(h.totalPaid ?? 0);
                   return (
                     <TableRow key={h.id || h.userId} hover>
                       <TableCell>
@@ -683,11 +682,6 @@ export default function PlatformWalletOverviewView() {
                       <TableCell align="right">
                         <Typography variant="body2" fontWeight={500} color="text.secondary">
                           {avgBuyPrice > 0 ? formatGBP(avgBuyPrice) : "-"}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" fontWeight={500} color="text.secondary">
-                          {totalPaid > 0 ? formatGBP(totalPaid) : "-"}
                         </Typography>
                       </TableCell>
                       <TableCell align="right">

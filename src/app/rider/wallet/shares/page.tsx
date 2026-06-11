@@ -58,6 +58,13 @@ function useCounter(end: number, dur = 1000) {
 
 export default function SharesPage() {
   const { user } = useRequireAuth();
+  // The same page mounts under both /rider/wallet/shares and
+  // /driver/wallet/shares so drivers can buy/sell from their wallet.
+  // The shares endpoints are user-agnostic — only the dashboard chrome
+  // (sidebar, back link, page title) needs to follow the user's mode.
+  const isDriverMode = user?.mode === 'DRIVER';
+  const dashboardRole: 'rider' | 'driver' = isDriverMode ? 'driver' : 'rider';
+  const walletHref = isDriverMode ? '/driver/wallet' : '/rider/wallet';
   const [share, setShare] = useState<CompanyShare | null>(null);
   const [holding, setHolding] = useState<UserShareHolding | null>(null);
   const [transactions, setTransactions] = useState<ShareTransaction[]>([]);
@@ -74,7 +81,9 @@ export default function SharesPage() {
   const buyPrice = share?.buyPrice ?? 0;
   const sellPrice = share?.sellPrice ?? 0;
   const totalCost = tradeMode === 'buy' ? buyPrice * quantity : sellPrice * quantity;
-  const holdingValue = holdingQty * (share?.price ?? 0);
+  // Value the rider's holding at the sell price — what they could actually
+  // realise if they redeemed today — instead of the midpoint price.
+  const holdingValue = holdingQty * sellPrice;
 
   const animatedBalance = useCounter(walletBalance);
   const animatedHolding = useCounter(holdingQty);
@@ -126,7 +135,7 @@ export default function SharesPage() {
 
   if (loading) {
     return (
-      <DashboardLayout role="rider" pageTitle="Shares">
+      <DashboardLayout role={dashboardRole} pageTitle="Shares">
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 size={32} className="animate-spin text-secondary" />
         </div>
@@ -135,14 +144,14 @@ export default function SharesPage() {
   }
 
   return (
-    <DashboardLayout role="rider" pageTitle="Shares">
+    <DashboardLayout role={dashboardRole} pageTitle="Shares">
       <div className="space-y-6">
 
         {/* ═══════ BACK + HEADER ═══════ */}
         <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
           <div className="flex items-center gap-4 mb-2">
             <Link
-              href="/rider/wallet"
+              href={walletHref}
               className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-all"
             >
               <ArrowLeft size={20} className="text-white/60" />
@@ -253,18 +262,8 @@ export default function SharesPage() {
                   <ShoppingCart size={18} className="text-purple-400" /> Trade Shares
                 </h2>
 
-                {/* Buy / Sell Toggle */}
+                {/* Sell on top, Buy on bottom per client UX preference. */}
                 <div className="flex rounded-xl bg-white/[0.04] border border-white/[0.06] p-1 mb-6">
-                  <button
-                    onClick={() => { setTradeMode('buy'); setTradeResult(null); setQuantity(50); }}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${
-                      tradeMode === 'buy'
-                        ? 'bg-secondary/20 text-secondary border border-secondary/30 shadow-lg shadow-secondary/5'
-                        : 'text-white/40 hover:text-white/60'
-                    }`}
-                  >
-                    Buy Shares
-                  </button>
                   {holdingQty > 0 && (
                     <button
                       onClick={() => { setTradeMode('sell'); setTradeResult(null); setQuantity(50); }}
@@ -277,6 +276,16 @@ export default function SharesPage() {
                       Sell Shares
                     </button>
                   )}
+                  <button
+                    onClick={() => { setTradeMode('buy'); setTradeResult(null); setQuantity(50); }}
+                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                      tradeMode === 'buy'
+                        ? 'bg-secondary/20 text-secondary border border-secondary/30 shadow-lg shadow-secondary/5'
+                        : 'text-white/40 hover:text-white/60'
+                    }`}
+                  >
+                    Buy Shares
+                  </button>
                 </div>
 
                 {/* Quantity Selector */}

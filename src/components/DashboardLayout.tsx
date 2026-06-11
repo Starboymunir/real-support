@@ -69,7 +69,6 @@ const sidebarLinks = {
   driver: [
     { label: 'Dashboard', href: '/driver/dashboard', icon: LayoutDashboard },
     { label: 'Ride Requests', href: '/driver/requests', icon: Navigation },
-    { label: 'Job Board', href: '/driver/board', icon: Megaphone },
     { label: 'My Rides', href: '/driver/rides', icon: History },
     { label: 'Profile', href: '/driver/profile', icon: User },
     { label: 'Vehicle', href: '/driver/vehicle', icon: Car },

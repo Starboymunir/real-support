@@ -20,6 +20,7 @@ import {
   EyeOff,
   Banknote,
   ArrowRight,
+  TrendingUp,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -146,7 +147,7 @@ export default function DriverWalletPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6">
             <Link href="/driver/withdraw" className="rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.06] p-3 flex flex-col items-center gap-1.5 transition">
               <Banknote size={18} className="text-secondary" />
               <span className="text-xs font-semibold text-white">Withdraw</span>
@@ -158,6 +159,10 @@ export default function DriverWalletPage() {
             <Link href="/rider/wallet/topup" className="rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.06] p-3 flex flex-col items-center gap-1.5 transition">
               <ArrowDownLeft size={18} className="text-success" />
               <span className="text-xs font-semibold text-white">Top up</span>
+            </Link>
+            <Link href="/driver/wallet/shares" className="rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.06] p-3 flex flex-col items-center gap-1.5 transition">
+              <TrendingUp size={18} className="text-purple-400" />
+              <span className="text-xs font-semibold text-white">Shares</span>
             </Link>
             <Link href="/driver/earnings" className="rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.06] p-3 flex flex-col items-center gap-1.5 transition">
               <ArrowUpRight size={18} className="text-warning" />

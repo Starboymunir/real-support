@@ -124,15 +124,19 @@ export default function PlatformWalletOverviewView() {
     totalCommission: number;
   } | null>(null);
   // Dashboard stats — read for the real share revenue (sum of BUY
-  // ShareTransaction.total) and service-fee aggregate.
+  // ShareTransaction.total), service-fee aggregate, and the buyback-only
+  // share spread profit.
   const [dashboardStats, setDashboardStats] = useState<{
     totalShareRevenue?: number;
     totalSharesSold?: number;
     totalShareBuybacks?: number;
     totalSharesRepurchased?: number;
+    totalShareSpread?: number;
     totalServiceFees?: number;
     totalCompanyProfit?: number;
   } | null>(null);
+  // Recent share BUY/SELL transactions for the Finance Overview table.
+  const [shareTransactions, setShareTransactions] = useState<any[]>([]);
 
   // Valuation adjustment form state
   const [valForm, setValForm] = useState({ assetValue: "", earningsValue: "", futureValue: "" });
@@ -217,6 +221,15 @@ export default function PlatformWalletOverviewView() {
       .then((res) => {
         const data = res.data?.data ?? res.data;
         if (data) setDashboardStats(data);
+      })
+      .catch(() => undefined);
+
+    // Recent share BUY/SELL ledger for the table at the bottom of the page.
+    axiosInstance
+      .get("/company-shares/transactions?count=50")
+      .then((res) => {
+        const data = res.data?.data ?? res.data ?? [];
+        if (Array.isArray(data)) setShareTransactions(data);
       })
       .catch(() => undefined);
   }, []);
@@ -361,7 +374,16 @@ export default function PlatformWalletOverviewView() {
     const sharePrice = shareData?.price || 0;
     const sharesRevenue =
       dashboardStats?.totalShareRevenue ?? (sharesSold * sharePrice);
-    const shareSpreadProfit = sharesRevenue * 0.10;
+    const sharesBuybacks = Number(dashboardStats?.totalShareBuybacks ?? 0);
+    // Share-spread profit is only realised when a user sells back to the
+    // platform — the 5% gap between buyPrice and sellPrice (= 5/95 of the
+    // sellback total). The previous calc (sharesRevenue × 0.10) treated
+    // every buy as if it had been sold back at a 10% margin, which was
+    // never correct. Sourced from the server; falls back to a derived
+    // value while the dashboard stats are loading.
+    const shareSpreadProfit = Number(
+      dashboardStats?.totalShareSpread ?? sharesBuybacks * (5 / 95),
+    );
 
     // Service fees retained on completed bookings. Counted toward gross
     // revenue so the platform profit reflects what the company actually
@@ -374,8 +396,17 @@ export default function PlatformWalletOverviewView() {
     const companyExpenses = expenses.reduce((sum: number, e: any) => sum + Math.abs(Number(e?.amount || 0)), 0);
     const outsideEarnings = earnings.reduce((sum: number, e: any) => sum + Math.abs(Number(e?.amount || 0)), 0);
 
+    // Gross revenue is now the literal sum of every contributing card so the
+    // numbers tie out visually on the page. Previously cancellationFees and
+    // adminCharges were shown as profit cards but excluded from the
+    // grossRevenue total — so the line items didn't add up to the headline.
     const grossRevenue =
-      totalCommission + serviceFees + shareSpreadProfit + outsideEarnings;
+      totalCommission +
+      serviceFees +
+      cancellationFees +
+      adminCharges +
+      shareSpreadProfit +
+      outsideEarnings;
     const netProfit = grossRevenue - companyExpenses;
 
     return {
@@ -476,7 +507,7 @@ export default function PlatformWalletOverviewView() {
 
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, mb: 2 }}>
         <StatCard title="Net Profit" value={formatGBP(metrics.netProfit)} icon="solar:dollar-minimalistic-bold-duotone" color={metrics.netProfit >= 0 ? theme.palette.success.dark : theme.palette.error.main} helper="Gross revenue minus company expenses" />
-        <StatCard title="Gross Revenue" value={formatGBP(metrics.grossRevenue)} icon="solar:chart-bold-duotone" color={theme.palette.success.main} helper="Commission + service fees + share margin + outside earnings" />
+        <StatCard title="Gross Revenue" value={formatGBP(metrics.grossRevenue)} icon="solar:chart-bold-duotone" color={theme.palette.success.main} helper="Commission + service fees + cancellation fees + admin charges + share margin + outside earnings" />
         <StatCard title="Company Expenses" value={formatGBP(metrics.companyExpenses)} icon="solar:bill-list-bold-duotone" color={theme.palette.error.main} helper="All recorded company expenses" />
         <StatCard title="Outside Earnings" value={formatGBP(metrics.outsideEarnings)} icon="solar:hand-money-bold-duotone" color={theme.palette.info.main} helper="Revenue from non-platform sources" />
       </Box>
@@ -485,7 +516,7 @@ export default function PlatformWalletOverviewView() {
         <StatCard title="Booking Commission" value={formatGBP(commissions.totalCommission)} icon="solar:ticket-bold-duotone" color={theme.palette.warning.main} helper="Commission from ride bookings" />
         <StatCard title="Service Fees" value={formatGBP(metrics.serviceFees)} icon="solar:tag-horizontal-bold-duotone" color={theme.palette.success.dark} helper="Service charge retained on completed rides" />
         <StatCard title="Cancellation Fees" value={formatGBP(metrics.cancellationFees)} icon="solar:close-circle-bold-duotone" color={theme.palette.error.light} helper="Fees collected from cancellations" />
-        <StatCard title="Share Spread Margin" value={formatGBP(metrics.shareSpreadProfit)} icon="solar:graph-up-bold-duotone" color={theme.palette.secondary.main} helper="10% margin on share sell-backs" />
+        <StatCard title="Share Spread Margin" value={formatGBP(metrics.shareSpreadProfit)} icon="solar:graph-up-bold-duotone" color={theme.palette.secondary.main} helper="5% margin realised on share buy-backs" />
         <StatCard title="Admin Charges" value={formatGBP(metrics.adminCharges)} icon="solar:shield-user-bold-duotone" color={theme.palette.primary.main} helper="Manual admin charges to users" />
       </Box>
 
@@ -512,17 +543,8 @@ export default function PlatformWalletOverviewView() {
             <Typography variant="h6">{formatGBP(metrics.assetValue)}</Typography>
           </Box>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="caption" color="text.secondary">Earnings Value</Typography>
-            <Typography variant="h6">{formatGBP(metrics.earningsValue)}</Typography>
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="caption" color="text.secondary">Future Value</Typography>
-            <Typography variant="h6">{formatGBP(metrics.futureValue)}</Typography>
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="caption" color="text.secondary">Final Valuation</Typography>
+            <Typography variant="caption" color="text.secondary">Company Valuation</Typography>
             <Typography variant="h6" sx={{ color: "success.main" }}>{formatGBP(metrics.companyValuation)}</Typography>
-            <Typography variant="caption" color="text.secondary">(Asset + Earnings + Future) / 3</Typography>
           </Box>
         </Stack>
       </Card>
@@ -628,7 +650,12 @@ export default function PlatformWalletOverviewView() {
                   const user = h.user || {};
                   const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Unknown";
                   const initials = name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
-                  const holdingValue = (h.quantity || 0) * (metrics.sharePrice || 0);
+                  // Value a holding at the sellPrice (what the holder could
+                  // actually realise today by selling back to the platform),
+                  // not the buyPrice or midpoint. Sell price is the
+                  // redemption value; buy price is what someone would pay to
+                  // top up.
+                  const holdingValue = (h.quantity || 0) * (metrics.sellPrice || metrics.sharePrice || 0);
                   // Backend returns avgBuyPrice + totalPaid per holder
                   // (weighted across all BUY transactions). Falls back to
                   // "-" if the holder has no BUY history (e.g. seeded).
@@ -685,6 +712,87 @@ export default function PlatformWalletOverviewView() {
         </Card>
         );
       })()}
+
+      {/* Share Transactions table — recent BUY/SELL ledger across all users. */}
+      {shareTransactions.length > 0 && (
+        <Card sx={{ mb: 4, border: (t) => `1px solid ${alpha(t.palette.grey[500], 0.12)}`, boxShadow: "none", overflow: "hidden" }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2.5, pb: 0 }}>
+            <Typography variant="subtitle1" fontWeight={700}>
+              Share Transactions
+            </Typography>
+            <Chip label={`${shareTransactions.length} most recent`} size="small" color="secondary" variant="outlined" />
+          </Stack>
+
+          <TableContainer sx={{ px: 1, mt: 2 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>User</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Type</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>Quantity</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>Price</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 600 }}>Total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {shareTransactions.map((t: any) => {
+                  const user = t.user || {};
+                  const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.emailAddress || "—";
+                  const isBuy = t.type === "BUY";
+                  return (
+                    <TableRow key={t.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {new Date(t.createdAt).toLocaleString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={500}>{name}</Typography>
+                        {user.emailAddress && (
+                          <Typography variant="caption" color="text.secondary">{user.emailAddress}</Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={t.type}
+                          size="small"
+                          color={isBuy ? "success" : "warning"}
+                          variant="outlined"
+                          sx={{ fontWeight: 700, letterSpacing: 0.5 }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" fontWeight={600}>
+                          {isBuy ? "+" : "−"}{Number(t.quantity || 0).toLocaleString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">{formatGBP(Number(t.price || 0))}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography
+                          variant="body2"
+                          fontWeight={700}
+                          sx={{ color: isBuy ? "success.main" : "warning.main" }}
+                        >
+                          {isBuy ? "+" : "−"}{formatGBP(Number(t.total || 0))}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
 
       <Divider sx={{ mb: 4 }} />
 

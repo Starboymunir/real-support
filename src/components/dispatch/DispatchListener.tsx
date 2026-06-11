@@ -31,6 +31,68 @@ interface OfferPayload {
   request: RideRequest;
 }
 
+/**
+ * Play a short two-note alert via the Web Audio API. Avoids needing an asset
+ * file in the bundle and works as long as the driver has interacted with the
+ * page at least once (browser autoplay policy).
+ */
+function playNewJobSound() {
+  if (typeof window === 'undefined') return;
+  try {
+    const AC: typeof AudioContext =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    const now = ctx.currentTime;
+    const playTone = (freq: number, start: number, dur: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.25, start + 0.02);
+      gain.gain.linearRampToValueAtTime(0, start + dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + dur + 0.05);
+    };
+    playTone(880, now, 0.18);
+    playTone(1320, now + 0.2, 0.25);
+    // Close the context a bit later so the second tone gets to finish.
+    setTimeout(() => ctx.close().catch(() => undefined), 700);
+  } catch {
+    // Ignore — Web Audio not available or blocked.
+  }
+}
+
+/**
+ * Fire a desktop / mobile push-style notification with the offer summary.
+ * Silently no-ops if notifications are denied or unsupported.
+ */
+function showNewJobNotification(offer: OfferPayload) {
+  if (typeof window === 'undefined' || !('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  try {
+    const start = offer.request?.startFrom?.name || 'Pickup';
+    const dest = offer.request?.destination?.name || 'destination';
+    const body =
+      offer.distanceKm != null
+        ? `${start} → ${dest} · ~${offer.distanceKm.toFixed(1)}km away`
+        : `${start} → ${dest}`;
+    new Notification('New ride offer', {
+      body,
+      icon: '/icons/logo-192.png',
+      badge: '/icons/logo-192.png',
+      tag: `dispatch-${offer.requestId}`,
+      // Wake the screen / keep it on top
+      requireInteraction: false,
+    });
+  } catch {
+    // Ignore — Notification constructor can throw on some browsers.
+  }
+}
+
 export default function DispatchListener() {
   const { user } = useAuth();
   const { socket } = useSocket();
@@ -46,12 +108,27 @@ export default function DispatchListener() {
   const isDriver = role === 'DRIVER';
   const isRider = role === 'PASSENGER';
 
+  // Ask for desktop-notification permission as soon as the driver loads
+  // any page with the listener mounted, so the first incoming offer can
+  // actually pop a system notification.
+  useEffect(() => {
+    if (!isDriver || typeof window === 'undefined') return;
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => undefined);
+    }
+  }, [isDriver]);
+
   // ── Driver: subscribe to incoming offers ──
   useEffect(() => {
     if (!socket || !isDriver) return;
 
     const onOffered = (data: OfferPayload) => {
       setOffer(data);
+      // Audible + visual alert so the driver notices even when the tab
+      // isn't focused. Both no-op silently if blocked by the browser.
+      playNewJobSound();
+      showNewJobNotification(data);
     };
     const onExpired = (data: { requestId: string }) => {
       setOffer((cur) => (cur && cur.requestId === data.requestId ? null : cur));

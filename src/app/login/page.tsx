@@ -6,11 +6,17 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { useIsInIOSApp } from '@/lib/useIsInIOSApp';
 
 const _raw = process.env.NEXT_PUBLIC_BACKEND_API ?? 'https://backend.real-support.com/api';
 const API_BASE = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
 
 function LoginContent() {
+  // Hide social logins inside the iOS app shell. The OAuth redirect would
+  // bounce to the default browser (Apple App Review Guideline 4 rejection
+  // in Submission 6b89a241). On the web — and on Android, where OAuth in
+  // a Chrome Custom Tab is allowed — they remain visible.
+  const inIOSApp = useIsInIOSApp();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -179,8 +185,9 @@ function LoginContent() {
               </div>
             )}
 
-            {/* Social buttons */}
-            <div className="flex gap-3 mb-6">
+            {/* Social buttons — hidden inside the iOS app to avoid the
+                external-browser redirect that App Review flagged. */}
+            <div className={`flex gap-3 mb-6 ${inIOSApp ? 'hidden' : ''}`}>
               <button
                 type="button"
                 disabled={socialLoading}
@@ -208,7 +215,7 @@ function LoginContent() {
               </button>
             </div>
 
-            <div className="flex items-center gap-4 mb-6">
+            <div className={`flex items-center gap-4 mb-6 ${inIOSApp ? 'hidden' : ''}`}>
               <div className="flex-1 h-px bg-white/[0.06]" />
               <span className="text-white/25 text-sm">OR</span>
               <div className="flex-1 h-px bg-white/[0.06]" />

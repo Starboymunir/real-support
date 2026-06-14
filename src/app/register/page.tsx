@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, User, Phone, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { useIsInIOSApp } from '@/lib/useIsInIOSApp';
 
 const _raw = process.env.NEXT_PUBLIC_BACKEND_API ?? 'https://backend.real-support.com/api';
 const API_BASE = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`;
@@ -13,6 +14,10 @@ const API_BASE = _raw.endsWith('/api') ? _raw : `${_raw.replace(/\/$/, '')}/api`
 type FormRole = 'rider';
 
 function RegisterContent() {
+  // Hide social signup inside the iOS app for the same reason as the
+  // login page — OAuth redirect bounces out to the default browser,
+  // which fails App Review Guideline 4.
+  const inIOSApp = useIsInIOSApp();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreed, setAgreed] = useState(false);
@@ -120,8 +125,8 @@ function RegisterContent() {
             <h2 className="text-3xl font-bold text-white text-center mb-2">Create Account</h2>
             <p className="text-white/35 text-center mb-5">Join the premium ride experience</p>
 
-            {/* Social signup */}
-            <div className="flex gap-3 mb-5">
+            {/* Social signup — hidden inside the iOS app to keep auth in-app. */}
+            <div className={`flex gap-3 mb-5 ${inIOSApp ? 'hidden' : ''}`}>
               <button
                 type="button"
                 disabled={socialLoading}
@@ -149,7 +154,7 @@ function RegisterContent() {
               </button>
             </div>
 
-            <div className="flex items-center gap-4 mb-5">
+            <div className={`flex items-center gap-4 mb-5 ${inIOSApp ? 'hidden' : ''}`}>
               <div className="flex-1 h-px bg-white/[0.06]" />
               <span className="text-white/25 text-sm">OR</span>
               <div className="flex-1 h-px bg-white/[0.06]" />
